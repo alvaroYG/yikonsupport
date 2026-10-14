@@ -30,8 +30,8 @@ Recoge cómo le gusta trabajar a Álvaro y las reglas que se han ido decidiendo.
    - Lee el código que vas a tocar antes de editarlo (no lo reconstruyas de memoria).
    - Tests nuevos para lo nuevo, con aserciones **que comprueben algo de verdad** (no le gustan las
      aserciones vacías). Ajusta los tests existentes solo si el comportamiento cambió a propósito.
-   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 562 tests, de los que
-     31 fallan desde la revisión de correos (ver `PENDIENTES.md`): comprueba que no falla ninguno más.
+   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 564 tests y pasan todos:
+     no se entrega nada con alguno en rojo.
    - Traducciones al inglés (ver más abajo): `tests/test_idioma.py` falla si queda algo sin traducir.
    - Migraciones: una por paso, encadenada a la última, probada **subiendo, bajando y volviendo a subir**.
    - Mira las pantallas nuevas con una captura (Playwright) antes de darlas por buenas.
@@ -114,4 +114,7 @@ que te trae un informe; se amplía con los pasos de lo nuevo.
 - Hecho hasta el **paso 92** y, después, revisión de correos, precios de productos por cliente, paginación
   de 10 en 10 y catálogo propio por cliente (detalle al final de `PENDIENTES.md`).
 - Última migración: `c1d7e5a3b902` (catálogo por cliente).
-- Pendiente inmediato: adaptar los 31 tests que fallan por la revisión de correos.
+- **En producción** desde el 13/10/2026 en https://yikonsupport.com (Hetzner). Cómo entrar al servidor
+  (`ssh alvaro@2.31.22.223`), correo (Brevo), copias y cómo actualizar: «Nuestro servidor» en `DESPLIEGUE.md`.
+- Tests: 564, todos pasan (los de la revisión de correos se adaptaron con `confirmar_correos()` de
+  `tests/conftest.py`, que hace lo que el botón «Enviar» de la ventana de revisión).

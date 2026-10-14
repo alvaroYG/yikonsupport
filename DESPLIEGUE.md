@@ -32,6 +32,30 @@ Los archivos de configuración ya están preparados en la carpeta [`deploy/`](de
 > Ubuntu pero **no se han ejecutado en vuestro servidor**: síguelos con calma la primera vez
 > y, si un comando da un error, no sigas al siguiente paso.
 
+
+## Nuestro servidor (instalado el 13/10/2026)
+
+| | |
+|---|---|
+| Web | https://yikonsupport.com (y `www`), HTTPS de Let's Encrypt que se renueva solo |
+| Servidor | Hetzner Cloud **CAX11** (Arm64, 2 núcleos, 4 GB), Ubuntu 26.04 |
+| IP | `2.31.22.223` |
+| Entrar | Desde PowerShell: **`ssh alvaro@2.31.22.223`** (con tu clave SSH; te pide su frase de paso). `sudo` pide la contraseña de `alvaro`. **root no puede entrar** y no se entra con contraseña |
+| Versiones | Python 3.14, PostgreSQL 18 |
+| Correo saliente | Brevo (`smtp-relay.brevo.com`, puerto 587), remitente `avisos@yikonsupport.com`; dominio verificado en Brevo (registros en la zona DNS de dondominio) |
+| DNS / dominio | dondominio |
+| Copias | Cada noche a las 3:15 (hora del servidor, UTC) en `/srv/yikonpo/copias` (14 días) + **Backups de Hetzner** (diarios, 7) |
+| Actualizar | `sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && ./deploy/actualizar.sh"` |
+
+Diferencias con la guía de abajo: el código se subió la primera vez con un `.tar.gz` (no había Git) y
+después se convirtió en copia de Git; `copia_seguridad.sh` hace `cd "$BASE"` (si no, falla al
+lanzarlo a mano desde la carpeta de otro usuario).
+
+Código: GitHub privado `alvaroYG/yikonsupport`; el servidor lo descarga con una *deploy key* de solo
+lectura (`/srv/yikonpo/.ssh/id_ed25519`). **Ojo con los scripts nuevos** (`.sh`): Git en Windows no
+guarda el permiso de ejecución; al crear uno, márcalo una vez en tu PC con
+`git update-index --chmod=+x deploy/nuevo.sh` antes del commit.
+
 ---
 
 ## 0. Antes de empezar (sin tocar el servidor)
