@@ -1012,6 +1012,7 @@ a.marca-nuevo:hover { background: #274a78; color: #fff; }
 .tabla-apartados th[scope=row] { min-width: 16rem; max-width: 26rem; }
 .tabla-apartados thead th { white-space: nowrap; }
 .tabla-apartados .casilla-apartado { width: 1.3rem; height: 1.3rem; cursor: pointer; }
+.tabla-apartados .fila-grupo th { padding-top: 1.4rem; border-bottom: 2px solid #a61c92; color: #a61c92; font-weight: 700; }
 .celda-fija { color: var(--texto-suave, #6a5f70); font-weight: 600; }
 .celda-nada { color: #b9b2bd; }
 .aviso-apartado { color: #5a4500; }

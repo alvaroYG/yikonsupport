@@ -30,7 +30,7 @@ Recoge cómo le gusta trabajar a Álvaro y las reglas que se han ido decidiendo.
    - Lee el código que vas a tocar antes de editarlo (no lo reconstruyas de memoria).
    - Tests nuevos para lo nuevo, con aserciones **que comprueben algo de verdad** (no le gustan las
      aserciones vacías). Ajusta los tests existentes solo si el comportamiento cambió a propósito.
-   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 624 tests y pasan todos:
+   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 629 tests y pasan todos:
      no se entrega nada con alguno en rojo.
    - Traducciones al inglés (ver más abajo): `tests/test_idioma.py` falla si queda algo sin traducir.
    - Migraciones: una por paso, encadenada a la última, probada **subiendo, bajando y volviendo a subir**.
@@ -74,6 +74,9 @@ Recoge cómo le gusta trabajar a Álvaro y las reglas que se han ido decidiendo.
 - La **conversación general** del cliente es **privada con su Soporte de cliente** (y admin). Almacén y
   Facturación solo ven lo que el Soporte les comparte (elige con quién: `Mensaje.compartido_con`). Lo de un
   pedido va en el chat del pedido (ahí sí están los dos; Almacén, desde que se acepta).
+- **Quién escribe al cliente** lo decide admin en Ajustes → Qué ve cada rol → «Quién habla con los clientes»
+  (`apartados.py`: `hablar_general` → `mensajes.general`, `hablar_pedidos` → `mensajes.pedido_cliente`). Lo de
+  arriba es lo de fábrica. Sin la casilla, el rol lee pero no escribe; las notas internas no cambian.
 - **Pedidos**: el documento del pedido es **obligatorio** (cliente y Yikon). El cliente pide kits y productos
   sueltos de su catálogo; Yikon, cualquier cosa.
 - Proforma: número `PF-{referencia interna}` (`-v2`, `-v3`…) y **PDF obligatorio** al enviarla.
@@ -125,5 +128,5 @@ que te trae un informe; se amplía con los pasos de lo nuevo.
 - Última migración: `d4e8a1c6f203` (compartir un mensaje con Almacén o Facturación).
 - **En producción** desde el 13/10/2026 en https://yikonsupport.com (Hetzner). Cómo entrar al servidor
   (`ssh alvaro@2.31.22.223`), correo (Brevo), copias y cómo actualizar: «Nuestro servidor» en `DESPLIEGUE.md`.
-- Tests: 624, todos pasan (los de la revisión de correos se adaptaron con `confirmar_correos()` de
+- Tests: 629, todos pasan (los de la revisión de correos se adaptaron con `confirmar_correos()` de
   `tests/conftest.py`, que hace lo que el botón «Enviar» de la ventana de revisión).

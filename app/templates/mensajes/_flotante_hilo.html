@@ -15,7 +15,7 @@
   <p class="small mb-0 mt-2">{% if pedido %}<a href="{{ url_for('pedidos.detalle', id=pedido.id) }}#{{ 'interno' if interno else 'mensajes' }}">{{ _('Abrir el pedido →') }}</a>
     {% else %}<a href="{{ url_for('mensajes.conversacion', cliente_id=cliente.id) }}">{{ _('Abrir la conversación →') }}</a>{% endif %}</p>
 </div>
-{% if current_user.puede('mensajes.enviar') and (pedido or current_user.puede('mensajes.general')) %}
+{% if escribe %}
 <form class="mf-pie mf-responder" method="post" action="{{ url_for('mensajes.flotante_hilo', hilo=hilo) }}" data-mf-form>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label class="visually-hidden" for="mf-texto">{{ _('Mensaje') }}</label>

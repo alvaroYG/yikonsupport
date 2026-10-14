@@ -38,6 +38,7 @@ class Apartado:
     de_fabrica: set = field(default_factory=set)
     interruptor: str = ""             # si lo hay, el valor de fábrica es esa opción de config (para todos)
     aviso: str = ""                   # qué pasa si se quita (sale en la tabla)
+    grupo: str = ""                   # si lo hay, la tabla abre un bloque con este título
 
 
 APARTADOS = {
@@ -89,6 +90,21 @@ APARTADOS = {
         interruptor="DOCUMENTOS_INTERNOS", aviso=_l("En pausa: actívalo cuando se empiece a usar.")),
     "administracion": Apartado(
         _l("Administración"), "fa-cogs", _l("Usuarios, auditoría y estos ajustes."), fijos={"admin"}),
+    # ---- Quién habla con los clientes (escribir; leer, cada uno lo de siempre) ----
+    "hablar_general": Apartado(
+        _l("Conversación general"), "fa-comments",
+        _l("Ver y escribir en la conversación general de cada cliente (la que no va de un pedido). "
+           "Sin ella, Facturación y Almacén solo ven lo que les comparten, y Soporte de cliente la lee pero no escribe."),
+        permisos=("mensajes.general",), fijos={"admin", "cliente"},
+        cambiables={"facturacion", "logistica", "fas"}, de_fabrica={"fas"},
+        grupo=_l("Quién habla con los clientes")),
+    "hablar_pedidos": Apartado(
+        _l("Mensajes en los pedidos"), "fa-comment-dots",
+        _l("Escribir al cliente en la conversación de cada pedido (Almacén: desde que el cliente acepta). "
+           "Sin ella, la lee pero no escribe; el chat interno del pedido no cambia."),
+        permisos=("mensajes.pedido_cliente",), fijos={"admin", "cliente"},
+        cambiables={"facturacion", "logistica", "fas"}, de_fabrica={"facturacion", "logistica", "fas"},
+        grupo=_l("Quién habla con los clientes")),
 }
 
 

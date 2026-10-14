@@ -491,7 +491,7 @@ def detalle(id):
         mensajes_sin_leer=mensajes_sin_leer, novedades=novedades, deshacer=mensaje_para_deshacer(),
         interno_form=con_ids_propios(MensajeForm(), "interno") if ver_internos else None,
         mensaje_form=(con_ids_propios(MensajeForm(), "mensaje")
-                      if current_user.puede("mensajes.enviar") else None),
+                      if current_user.puede("mensajes.pedido_cliente") else None),
         **_contexto_proforma(pedido),
         **_contexto_facturas(pedido),
         **_contexto_incidencias(pedido),

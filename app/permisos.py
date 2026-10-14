@@ -87,10 +87,14 @@ PERMISOS = {
     "mensajes.ver": PEDIDOS,
     "mensajes.enviar": PEDIDOS,
     "mensajes.internos": YIKON_PEDIDOS,
-    # La conversación GENERAL de cada cliente es privada entre el cliente y su Soporte de cliente
-    # (admin también la ve, pero el cliente no lo sabe: admin es un perfil interno). Almacén y
-    # Facturación no: solo los mensajes que el Soporte les comparte (alcance.filtrar_mensajes).
-    "mensajes.general": {"admin", "fas", "cliente"},
+    # QUIÉN HABLA CON LOS CLIENTES: admin lo decide en Ajustes → Qué ve cada rol (apartados.py,
+    # filas «Conversación general» y «Mensajes en los pedidos»). Esto es el techo:
+    #  · escribir al cliente en la conversación de un pedido (de fábrica: todo Yikon)
+    "mensajes.pedido_cliente": PEDIDOS,
+    #  · la conversación GENERAL de cada cliente (de fábrica: el cliente y su Soporte de cliente;
+    #    admin también la ve, pero el cliente no lo sabe: admin es un perfil interno). Facturación y
+    #    Almacén, si admin no se la da, solo ven lo que el Soporte les comparte (alcance.filtrar_mensajes).
+    "mensajes.general": YIKON_PEDIDOS | {"cliente"},
     "mensajes.compartir": {"admin", "fas"},          # "Compartir con Almacén / Facturación"
     # Inventario de la oficina (Facturación: consulta, para ver stock y caducidades al hacer la proforma)
     "inventario.ver": ALMACEN | {"facturacion"},

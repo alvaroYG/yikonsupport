@@ -25,6 +25,10 @@
         </tr></thead>
         <tbody>
         {% for clave, ap, celdas in filas %}
+          {% if ap.grupo and (loop.first or loop.previtem[1].grupo != ap.grupo) %}
+          <tr class="fila-grupo"><th scope="colgroup" colspan="{{ roles|length + 1 }}">{{ ap.grupo }}
+            <div class="small fw-normal text-muted">{{ _('Quién puede escribir a los clientes. Las notas internas y los mensajes automáticos (proformas, envíos…) no cambian.') }}</div></th></tr>
+          {% endif %}
           <tr>
             <th scope="row" class="fw-normal">
               <div class="fw-semibold"><i class="fas {{ ap.icono }} me-1 text-marca" aria-hidden="true"></i>{{ ap.nombre }}</div>

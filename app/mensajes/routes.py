@@ -120,7 +120,7 @@ def _enviar_en_pedido(pedido, interno):
 
 
 @bp.route("/pedido/<int:pedido_id>", methods=["POST"])
-@requiere_permiso("mensajes.enviar")
+@requiere_permiso("mensajes.pedido_cliente")     # (Ajustes → Qué ve cada rol → Mensajes en los pedidos)
 def enviar_pedido(pedido_id):
     """Mensaje en la conversación de un pedido con el cliente (formulario en la ficha del pedido)."""
     return _enviar_en_pedido(pedido_o_404(pedido_id), interno=False)
@@ -308,6 +308,14 @@ def flotante_cuenta():
     return jsonify(sin_leer=_cuenta_flotante())
 
 
+def _escribe_en(pedido, interno):
+    """¿Puede escribir en este hilo? Al cliente, según Ajustes → Qué ve cada rol (Quién habla con
+    los clientes): la general, «Conversación general»; la de un pedido, «Mensajes en los pedidos»."""
+    if interno:
+        return current_user.puede("mensajes.internos")
+    return current_user.puede("mensajes.pedido_cliente" if pedido else "mensajes.general")
+
+
 @bp.route("/flotante/hilo/<hilo>", methods=["GET", "POST"])
 @requiere_permiso("mensajes.ver")
 def flotante_hilo(hilo):
@@ -316,7 +324,7 @@ def flotante_hilo(hilo):
     cliente, pedido, interno = _hilo_flotante(hilo)
     error = None
     if request.method == "POST":
-        if not current_user.puede("mensajes.enviar") or (pedido is None and not current_user.puede("mensajes.general")):
+        if not current_user.puede("mensajes.enviar") or not _escribe_en(pedido, interno):
             abort(403)
         texto = (request.form.get("texto") or "").strip()
         if not texto:
@@ -328,5 +336,6 @@ def flotante_hilo(hilo):
     servicio.marcar_leido(current_user, hilo)
     db.session.commit()
     return render_template("mensajes/_flotante_hilo.html", hilo=hilo, cliente=cliente, pedido=pedido, interno=interno,
+                           escribe=current_user.puede("mensajes.enviar") and _escribe_en(pedido, interno),
                            mensajes=servicio.mensajes_de(hilo)[-MAX_FLOTANTE_MENSAJES:], error=error,
                            cuenta=_cuenta_flotante())

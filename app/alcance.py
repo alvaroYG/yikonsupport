@@ -73,14 +73,17 @@ def filtrar_mensajes(select):
     sitio por el que pasan todas las consultas de mensajes."""
     u = current_user
     if u.rol in TODOS_LOS_CLIENTES or u.rol == ALMACEN:
-        if u.puede("mensajes.general"):
+        if u.rol != ALMACEN and u.puede("mensajes.general"):
             return select
-        # Facturación y Almacén: los de los pedidos que ven y, de las conversaciones generales, solo
-        # lo que el Soporte de cliente les ha compartido (Mensaje.compartido_con)
+        # Facturación y Almacén: los de los pedidos que ven y, de las conversaciones generales, toda
+        # si admin les ha dado «Conversación general» (Ajustes → Qué ve cada rol) o, si no, solo lo
+        # que el Soporte de cliente les ha compartido (Mensaje.compartido_con)
         de_pedidos = Mensaje.pedido_id.isnot(None)
         if u.rol == ALMACEN:
-            de_pedidos = Mensaje.pedido.has(pedido_de_almacen())
-        return select.where(or_(de_pedidos, Mensaje.compartido_con.contains(u.rol)))
+            de_pedidos = Mensaje.pedido.has(pedido_de_almacen())    # tampoco los de las proformas
+        generales = (Mensaje.pedido_id.is_(None) if u.puede("mensajes.general")
+                     else Mensaje.compartido_con.contains(u.rol))
+        return select.where(or_(de_pedidos, generales))
     if u.rol == "fas":
         return select.where(Mensaje.cliente.has(Cliente.logisticos.any(User.id == u.id)))
     if u.es_cliente:

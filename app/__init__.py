@@ -168,7 +168,10 @@ def _registrar_contexto(app):
     # {{ 'facturacion'|nombre_rol }} → «Facturación»; y con quién se puede compartir un mensaje
     from app.permisos import COMPARTIR_CON, ROLES
     app.jinja_env.filters["nombre_rol"] = lambda rol: ROLES.get(rol, rol)
-    app.jinja_env.globals["compartir_con"] = COMPARTIR_CON
+    # (sin los equipos que ya tienen la «Conversación general» en Ajustes → Qué ve cada rol: ya la ven)
+    from app import apartados as _apartados
+    app.jinja_env.globals["compartir_con"] = lambda: [
+        rol for rol in COMPARTIR_CON if not _apartados.visible("hablar_general", rol)]
 
     @app.context_processor
     def avisos():

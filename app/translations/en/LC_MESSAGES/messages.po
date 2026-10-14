@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-14 12:35+0000\n"
+"POT-Creation-Date: 2026-10-14 13:06+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app/__init__.py:329
+#: app/__init__.py:332
 msgid "No tienes permiso para ver esta página."
 msgstr "You don't have permission to view this page."
 
-#: app/__init__.py:334
+#: app/__init__.py:337
 msgid "La página que buscas no existe."
 msgstr "The page you're looking for doesn't exist."
 
-#: app/__init__.py:348
+#: app/__init__.py:351
 msgid "Algo ha fallado. Inténtalo de nuevo."
 msgstr "Something went wrong. Please try again."
 
@@ -65,7 +65,7 @@ msgstr "Proforma sent, no reply from the client"
 msgid "Enviado, sin confirmar la recepción"
 msgstr "Shipped, receipt not confirmed"
 
-#: app/apartados.py:45 app/buscador.py:53 app/clientes/exportar.py:77
+#: app/apartados.py:46 app/buscador.py:53 app/clientes/exportar.py:77
 #: app/navegacion.py:53 app/navegacion.py:54 app/pedidos/routes.py:163
 #: app/pedidos/routes.py:211 app/templates/clientes/detalle.html:55
 #: app/templates/clientes/detalle.html:65
@@ -75,7 +75,7 @@ msgstr "Shipped, receipt not confirmed"
 msgid "Pedidos"
 msgstr "Orders"
 
-#: app/apartados.py:46
+#: app/apartados.py:47
 msgid ""
 "Lista y ficha de los pedidos, proformas, documentos y el chat con el "
 "cliente (Almacén: desde que el cliente acepta)."
@@ -83,27 +83,27 @@ msgstr ""
 "Order list and page, pro formas, documents and the chat with the client "
 "(Warehouse: once the client accepts)."
 
-#: app/apartados.py:49
+#: app/apartados.py:50
 msgid "Preparar y fotos"
 msgstr "Preparation and photos"
 
-#: app/apartados.py:49
+#: app/apartados.py:50
 msgid "Preparar los pedidos, hacer las fotos y enviarlos."
 msgstr "Prepare orders, take the photos and ship them."
 
-#: app/apartados.py:52 app/inventario/routes.py:82 app/navegacion.py:69
+#: app/apartados.py:53 app/inventario/routes.py:82 app/navegacion.py:69
 msgid "Inventario"
 msgstr "Inventory"
 
-#: app/apartados.py:52
+#: app/apartados.py:53
 msgid "Stock, entradas y salidas, reservas de lotes (Facturación: solo consulta)."
 msgstr "Stock, incoming and outgoing, lot reservations (Invoicing: read only)."
 
-#: app/apartados.py:55
+#: app/apartados.py:56
 msgid "Kits y productos"
 msgstr "Kits and products"
 
-#: app/apartados.py:56
+#: app/apartados.py:57
 msgid ""
 "El catálogo. Al cliente: los productos activos con su ficha de seguridad,"
 " sin precios."
@@ -111,11 +111,11 @@ msgstr ""
 "The catalogue. For the client: active products with their safety data "
 "sheet, without prices."
 
-#: app/apartados.py:60
+#: app/apartados.py:61
 msgid "Lotes y trazabilidad"
 msgstr "Batches and traceability"
 
-#: app/apartados.py:61
+#: app/apartados.py:62
 msgid ""
 "La sección «Lotes» de cada pedido (qué lote sale y cuál salió) y "
 "«Rastrear lote»."
@@ -123,13 +123,13 @@ msgstr ""
 "The \"Batches\" section of each order (which batch ships and which "
 "shipped) and \"Trace batch\"."
 
-#: app/apartados.py:65 app/buscador.py:109 app/clientes/routes.py:83
+#: app/apartados.py:66 app/buscador.py:109 app/clientes/routes.py:83
 #: app/navegacion.py:75 app/templates/clientes/lista.html:5
 #: app/templates/mensajes/_flotante_lista.html:8
 msgid "Clientes"
 msgstr "Clients"
 
-#: app/apartados.py:66
+#: app/apartados.py:67
 msgid ""
 "La ficha de cada cliente: datos, usuarios, facturación (Soporte de "
 "cliente: solo los suyos)."
@@ -137,14 +137,14 @@ msgstr ""
 "Each client's page: details, users, invoicing (Customer Support: only "
 "their own)."
 
-#: app/apartados.py:70 app/buscador.py:191 app/clientes/exportar.py:70
+#: app/apartados.py:71 app/buscador.py:191 app/clientes/exportar.py:70
 #: app/facturas/routes.py:78 app/facturas/routes.py:96 app/navegacion.py:76
 #: app/navegacion.py:77 app/templates/clientes/detalle.html:84
 #: app/templates/facturas/lista.html:5 app/templates/pedidos/detalle.html:360
 msgid "Facturas"
 msgstr "Invoices"
 
-#: app/apartados.py:71
+#: app/apartados.py:72
 msgid ""
 "Las facturas (al cliente, solo las suyas ya enviadas). Soporte de "
 "cliente, además, las revisa."
@@ -152,7 +152,7 @@ msgstr ""
 "Invoices (the client sees only their own, once sent). Customer Support "
 "also reviews them."
 
-#: app/apartados.py:74
+#: app/apartados.py:75
 msgid ""
 "Sin él, Soporte de cliente no revisa facturas: las que lo pidan las "
 "revisará admin."
@@ -160,20 +160,20 @@ msgstr ""
 "Without it, Customer Support doesn't review invoices: admin will review "
 "those that need it."
 
-#: app/apartados.py:76 app/main/routes.py:175 app/navegacion.py:90
+#: app/apartados.py:77 app/main/routes.py:175 app/navegacion.py:90
 #: app/templates/main/estadisticas.html:13
 msgid "Estadísticas"
 msgstr "Statistics"
 
-#: app/apartados.py:76
+#: app/apartados.py:77
 msgid "Pedidos por mes, productos más pedidos y facturación por cliente."
 msgstr "Orders per month, most ordered products and revenue per client."
 
-#: app/apartados.py:79 app/buscador.py:122 app/navegacion.py:80
+#: app/apartados.py:80 app/buscador.py:122 app/navegacion.py:80
 msgid "Tickets ChromGo"
 msgstr "ChromGo tickets"
 
-#: app/apartados.py:80
+#: app/apartados.py:81
 msgid ""
 "Soporte de ChromGo. Al cliente, solo a los usuarios con «Acceso a Soporte"
 " ChromGo» en su ficha."
@@ -181,7 +181,7 @@ msgstr ""
 "ChromGo support. For clients, only users with \"Access to ChromGo "
 "Support\" on their profile."
 
-#: app/apartados.py:83
+#: app/apartados.py:84
 msgid ""
 "En pausa: actívalo cuando se empiece a usar. Los roles Soporte ChromGo y "
 "Cliente ChromGo solo se ofrecen al crear usuarios si lo tienen activado."
@@ -190,12 +190,12 @@ msgstr ""
 "ChromGo Client roles are only offered when creating users if they have it"
 " on."
 
-#: app/apartados.py:86 app/buscador.py:204 app/documentos/routes.py:112
+#: app/apartados.py:87 app/buscador.py:204 app/documentos/routes.py:112
 #: app/navegacion.py:84 app/templates/documentos/lista.html:11
 msgid "Documentos internos"
 msgstr "Internal documents"
 
-#: app/apartados.py:87
+#: app/apartados.py:88
 msgid ""
 "Logos, plantillas y protocolos del equipo (no son los documentos de los "
 "pedidos). Subir y borrar: solo admin."
@@ -203,17 +203,50 @@ msgstr ""
 "The team's logos, templates and protocols (not the order documents). "
 "Upload and delete: admin only."
 
-#: app/apartados.py:89
+#: app/apartados.py:90
 msgid "En pausa: actívalo cuando se empiece a usar."
 msgstr "Paused: turn it on when it starts being used."
 
-#: app/apartados.py:91 app/navegacion.py:87
+#: app/apartados.py:92 app/navegacion.py:87
 msgid "Administración"
 msgstr "Administration"
 
-#: app/apartados.py:91
+#: app/apartados.py:92
 msgid "Usuarios, auditoría y estos ajustes."
 msgstr "Users, audit log and these settings."
+
+#: app/apartados.py:95 app/pedidos/pendientes.py:128
+#: app/templates/mensajes/lista.html:50
+msgid "Conversación general"
+msgstr "General conversation"
+
+#: app/apartados.py:96
+msgid ""
+"Ver y escribir en la conversación general de cada cliente (la que no va "
+"de un pedido). Sin ella, Facturación y Almacén solo ven lo que les "
+"comparten, y Soporte de cliente la lee pero no escribe."
+msgstr ""
+"See and write in each client's general conversation (the one not about a "
+"specific order). Without it, Invoicing and Warehouse only see what is "
+"shared with them, and Client Support can read it but not write."
+
+#: app/apartados.py:100 app/apartados.py:107
+msgid "Quién habla con los clientes"
+msgstr "Who talks to clients"
+
+#: app/apartados.py:102
+msgid "Mensajes en los pedidos"
+msgstr "Messages in orders"
+
+#: app/apartados.py:103
+msgid ""
+"Escribir al cliente en la conversación de cada pedido (Almacén: desde que"
+" el cliente acepta). Sin ella, la lee pero no escribe; el chat interno "
+"del pedido no cambia."
+msgstr ""
+"Write to the client in each order's conversation (Warehouse: once the "
+"client accepts). Without it, they can read it but not write; the order's "
+"internal chat does not change."
 
 #: app/archivos.py:34 app/archivos.py:47
 #, python-format
@@ -1836,7 +1869,7 @@ msgstr ""
 #: app/inventario/forms.py:126 app/productos/forms.py:31
 #: app/productos/forms.py:81 app/templates/admin/ajustes.html:23
 #: app/templates/admin/ajustes.html:55 app/templates/admin/ajustes.html:77
-#: app/templates/admin/ajustes_apartados.html:54
+#: app/templates/admin/ajustes_apartados.html:58
 #: app/templates/admin/ajustes_avisos.html:38
 #: app/templates/admin/ajustes_correo.html:52
 #: app/templates/admin/ajustes_correos.html:69
@@ -3136,7 +3169,7 @@ msgstr "Activity"
 msgid "Mensaje"
 msgstr "Message"
 
-#: app/mensajes/forms.py:13 app/mensajes/routes.py:325 app/soporte/forms.py:30
+#: app/mensajes/forms.py:13 app/mensajes/routes.py:333 app/soporte/forms.py:30
 #: app/soporte/forms.py:38
 #, python-format
 msgid "Máximo %(max)d caracteres."
@@ -3191,7 +3224,7 @@ msgstr "It can no longer be undone: the client already has it."
 msgid "Mensaje retirado: el cliente no lo ha visto ni le ha llegado el email."
 msgstr "Message withdrawn: the client has not seen it and no email was sent."
 
-#: app/mensajes/routes.py:323
+#: app/mensajes/routes.py:331
 msgid "Escribe algo antes de enviar."
 msgstr "Write something before sending."
 
@@ -3554,10 +3587,6 @@ msgid "%(num)s mensaje"
 msgid_plural "%(num)s mensajes"
 msgstr[0] "%(num)s message"
 msgstr[1] "%(num)s messages"
-
-#: app/pedidos/pendientes.py:128 app/templates/mensajes/lista.html:50
-msgid "Conversación general"
-msgstr "General conversation"
 
 #: app/pedidos/pendientes.py:133
 msgid "chat interno"
@@ -4959,7 +4988,7 @@ msgstr ""
 "their clients; the client, their company's)."
 
 #: app/templates/admin/ajustes_apartados.html:11
-#: app/templates/admin/ajustes_apartados.html:38
+#: app/templates/admin/ajustes_apartados.html:42
 msgid "Siempre"
 msgstr "Always"
 
@@ -4987,21 +5016,29 @@ msgid_plural "%(num)s usuarios"
 msgstr[0] "%(num)s user"
 msgstr[1] "%(num)s users"
 
-#: app/templates/admin/ajustes_apartados.html:38
+#: app/templates/admin/ajustes_apartados.html:30
+msgid ""
+"Quién puede escribir a los clientes. Las notas internas y los mensajes "
+"automáticos (proformas, envíos…) no cambian."
+msgstr ""
+"Who can write to clients. Internal notes and automatic messages "
+"(proformas, shipments…) do not change."
+
+#: app/templates/admin/ajustes_apartados.html:42
 #, python-format
 msgid "%(rol)s ve siempre %(apartado)s"
 msgstr "%(rol)s always sees %(apartado)s"
 
-#: app/templates/admin/ajustes_apartados.html:42
+#: app/templates/admin/ajustes_apartados.html:46
 #, python-format
 msgid "%(rol)s ve %(apartado)s"
 msgstr "%(rol)s sees %(apartado)s"
 
-#: app/templates/admin/ajustes_apartados.html:44
+#: app/templates/admin/ajustes_apartados.html:48
 msgid "Este rol no puede tenerlo"
 msgstr "This role can't have it"
 
-#: app/templates/admin/ajustes_apartados.html:56
+#: app/templates/admin/ajustes_apartados.html:60
 msgid ""
 "¿Dejarlo todo como venía? Se desmarcan los Tickets ChromGo y los "
 "Documentos internos."
@@ -5009,7 +5046,7 @@ msgstr ""
 "Reset everything to how it came? ChromGo Tickets and Internal documents "
 "will be unticked."
 
-#: app/templates/admin/ajustes_apartados.html:56
+#: app/templates/admin/ajustes_apartados.html:60
 #: app/templates/admin/ajustes_avisos.html:39
 #: app/templates/admin/ajustes_seguridad.html:27
 msgid "Dejarlo como venía"

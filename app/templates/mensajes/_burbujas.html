@@ -23,7 +23,7 @@
     <div class="burbuja-compartido"><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartido con %(equipos)s', equipos=ya|map('nombre_rol')|join(' · ')) }}{% if m.compartido_por %} · {{ m.compartido_por.nombre }}{% endif %}
       {% if m.compartido_nota %}<div class="fst-italic">«{{ m.compartido_nota }}»</div>{% endif %}</div>
     {% endif %}
-    {% set faltan = compartir_con|reject('in', ya)|list %}
+    {% set faltan = compartir_con()|reject('in', ya)|list %}
     {% if faltan and current_user.puede('mensajes.compartir') %}
     <details class="burbuja-compartir"><summary><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartir también con…') if ya else _('Compartir con…') }}</summary>
       <form method="post" action="{{ url_for('mensajes.compartir', mensaje_id=m.id) }}" class="mt-1">

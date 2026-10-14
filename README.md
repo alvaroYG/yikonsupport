@@ -174,7 +174,8 @@ Cada cambio queda en **Auditoría** (quién, cuándo, qué cambió).
 - **Inventario por lotes**: caducidad obligatoria, lote reservado por pedido desde la proforma (propuesta FEFO), caducados bloqueados,
   avisos a 7 días, trazabilidad del lote en cada pedido.
 - **Mensajes** con el cliente: conversación general por cliente y una en cada pedido, con
-  archivos adjuntos, no leídos, avisos en la campana y por email (uno hasta que se lee).
+  archivos adjuntos, no leídos, avisos en la campana y por email (uno hasta que se lee). Qué roles
+  escriben al cliente lo decide admin en Ajustes → Qué ve cada rol → «Quién habla con los clientes».
 - **Facturas** (registro de las emitidas por contabilidad, con su PDF oficial); el cliente ve
   las suyas y descarga el PDF. **Estadísticas** (admin).
 - **Exportar** a PDF y Excel respetando filtros, orden y permisos. Las listas se **ordenan pulsando las cabeceras**

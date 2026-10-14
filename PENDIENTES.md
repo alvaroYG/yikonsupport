@@ -476,6 +476,12 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Quién habla con los clientes** (14/10): en Ajustes → Qué ve cada rol, un bloque nuevo con dos filas:
+  «Conversación general» (de fábrica: el FAS) y «Mensajes en los pedidos» (de fábrica: Facturación, Almacén y
+  FAS); admin y el cliente, siempre. Sin la casilla, el rol lee pero no escribe. Dar la general a Facturación
+  o Almacén les deja ver y escribir en todas las conversaciones generales (Almacén sigue sin ver lo de las
+  proformas) y ya no se les ofrece «Compartir con…». Permiso nuevo `mensajes.pedido_cliente`; sin migración
+  (se guarda en `ajustes`). Test: `test_quien_habla.py`.
 - **Roles Almacén y Facturación** (14/10, propuesta aprobada por Álvaro): Logística pasa a ser **Almacén**
   (por dentro sigue siendo el rol `logistica`, así los usuarios no cambian): ve los pedidos desde «aceptado»
   (`alcance.pedido_de_almacen`; los cancelados, solo si llegaron a aceptarse), prepara, fotos, envía, reserva
