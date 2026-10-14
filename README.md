@@ -1,11 +1,17 @@
-# Plataforma de clientes — esqueleto
+# Yikon Genomics PO
 
-Registro de clientes (clínicas), productos, pedidos y facturas, con usuarios por roles.
-Flask + SQLAlchemy, misma base que el tutorial de Corey Schafer, pero con la estructura
-de una aplicación "de verdad" (application factory, migraciones, permisos, auditoría y tests).
+Plataforma de pedidos de **Yikon Genomics España** con sus clientes (clínicas y laboratorios):
+proformas, pedidos, preparación con fotos, envío, inventario por lotes, mensajes y registro de
+facturas, con usuarios por roles. En producción en **https://yikonsupport.com**.
 
-> ⚠ La plataforma **registra** facturas emitidas por el sistema contable; **no emite** facturas
-> legales (eso tendría requisitos de VeriFactu / Reglamento de facturación).
+Flask (application factory, blueprints) + SQLAlchemy 2 + Alembic, Flask-Login, Flask-WTF,
+Flask-Babel (es/en), Bootstrap 5.3. SQLite en desarrollo, PostgreSQL en producción. Tests con pytest.
+
+> ⚠ La plataforma **no genera facturas**. Logística (Aina) las hace a mano en contabilidad; la
+> plataforma solo le da los datos («Preparar factura», en Excel) y **registra** el PDF oficial.
+> Nº de factura = referencia interna del pedido.
+
+Para trabajar en ella con Claude: **COMO_TRABAJAMOS.md** (reglas) y **PENDIENTES.md** (qué hay hecho y qué falta).
 
 ## Puesta en marcha (desarrollo)
 
@@ -25,10 +31,13 @@ flask crear-admin                    # o crea tu propio usuario administrador
 flask run --debug                    # http://127.0.0.1:5000
 ```
 
-Usuarios demo (contraseña `demo123456`): `admin@ejemplo.com`, `ana@ejemplo.com` (administración),
-`carlos@ejemplo.com` (comercial), `lucia@ejemplo.com` (solo lectura).
+Usuarios de `flask datos-demo` (contraseña `demo123456`): `admin@ejemplo.com` (admin),
+`logistica@ejemplo.com` (Logística), `laura@ejemplo.com` y `pablo@ejemplo.com` (Soporte de cliente),
+`norte@`, `centro@` e `instituto@ejemplo.com` (clientes). Al terminar, el comando lista todos.
 
-Tests: `pytest`
+En desarrollo (`ENTORNO=dev`) hay además una barra «Entrar como» para cambiar de usuario al probar.
+
+Tests: `python -m pytest -q` (todos deben pasar antes de entregar un cambio).
 
 ## Si Windows bloquea librerías ("Una directiva de Control de aplicaciones bloqueó este archivo")
 
@@ -50,12 +59,18 @@ config.py              Configuración por entorno (dev / prod / test). Secretos 
 run.py                 Punto de entrada
 app/
   __init__.py          create_app(): registra extensiones, blueprints, filtros y errores
-  extensions.py        db, migrate, bcrypt, login_manager, csrf
-  models.py            User, Cliente, Producto, Pedido, LineaPedido, Factura, RegistroAuditoria
+  extensions.py        db, migrate, csrf, babel, login_manager
+  models.py            todas las tablas (usuarios, clientes, kits, pedidos, proformas, lotes, facturas…)
   permisos.py          ROLES + PERMISOS + decorador @requiere_permiso  ← quién puede qué
+  apartados.py         lo que admin quita/pone a cada rol desde Ajustes
+  alcance.py           qué registros ve cada uno (filtrar_pedidos, filtrar_mensajes…)
   auditoria.py         registrar(): deja rastro de cada cambio
-  cli.py               flask crear-admin / flask datos-demo
-  auth/  admin/  main/  clientes/  productos/  pedidos/  facturas/   (un blueprint por área)
+  correo.py            envío de correos (tras el commit), registro de enviados, reenviar
+  revision_correo.py   los correos del equipo esperan a que su autor los revise y envíe
+  correos_cliente.py   textos editables de los correos al cliente · avisos_internos.py: los internos
+  cli.py               flask crear-admin / datos-demo / datos-prueba / reservar-pendientes…
+  auth/ admin/ main/ clientes/ productos/ pedidos/ facturas/ mensajes/ inventario/
+  soporte/ documentos/   (un blueprint por área; soporte y documentos están en pausa)
   templates/           Jinja + Bootstrap 5 (incluido en static/vendor, sin CDN)
                        layout.html = estructura tipo "SB Admin 2": menú lateral + barra superior
   static/main.css      todos los estilos propios (colores, menú, tarjetas, tablas)
@@ -78,27 +93,31 @@ Todo se define en `app/permisos.py`. Las vistas usan `@requiere_permiso("factura
 plantillas `current_user.puede("facturas.editar")`; **nunca se pregunta por el rol directamente**,
 así que cambiar lo que puede hacer un rol es tocar una sola línea.
 
-| Permiso | Admin | Logistics | Cliente |
-|---|:-:|:-:|:-:|
-| Ver clientes | todos | solo los asignados | — |
-| Crear/editar clientes, asignar logistics | ✓ | | |
-| Ver catálogo de productos / editarlo | ✓ / ✓ | ✓ / — | — |
-| Ver pedidos | todos | de sus clientes | de su empresa |
-| Crear pedidos | ✓ | para sus clientes | para su empresa (kit + cantidad), vía proforma |
-| Enviar / retirar proformas | ✓ | de sus clientes | |
-| Aceptar la proforma o pedir cambios | | | de su empresa |
-| Confirmar pedidos solicitados, cambiar estado, editar líneas | ✓ | de sus clientes | |
-| Inventario de la oficina | ✓ | | |
-| Subir fotos de preparación / enviar a validación | ✓ | | |
-| Validar o rechazar las fotos (Revisar urgente) | ✓ (si logistics no puede) | de sus clientes | |
-| Cambiar a cualquier estado fuera del flujo (queda en auditoría) | ✓ | | |
-| Marcar Enviado / Entregado | ✓ | | |
-| Exportar PDF de pedidos | ✓ | de sus clientes | de su empresa |
-| Ver importes (precios, IVA, totales) | ✓ | ✓ | solo si su empresa tiene "Ve precios" |
-| Activar "Ve precios" de un cliente | ✓ | de sus clientes | |
-| Mensajes (general del cliente y de cada pedido) | todos | de sus clientes | de su empresa |
-| Facturas (todas), usuarios, auditoría | ✓ | | |
-| Sus facturas y el PDF (sin importes en pantalla) | | | de su empresa |
+Roles: **Administrador** · **Logística** (la oficina) · **Soporte de cliente** (rol `fas`: FAS y
+business developers, cada uno con sus clientes asignados; el nombre visible está en
+`permisos.NOMBRE_FAS`) · **Cliente** · y, en pausa, **Soporte ChromGo** y **Cliente ChromGo**.
+Admin es un perfil interno: el cliente nunca lo ve nombrado.
+
+| Permiso | Admin | Logística | Soporte de cliente | Cliente |
+|---|:-:|:-:|:-:|:-:|
+| Ver clientes / editarlos | ✓ / ✓ | (si admin le activa el apartado) | sus clientes / — | — |
+| Catálogo de cada cliente, avisos por email, «Ve precios» | ✓ | | sus clientes | |
+| Productos: ver / editar | ✓ / ✓ | ✓ / ✓ | ✓ / — | catálogo sin precios + SDS |
+| Pedidos: ver y crear | todos | todos | de sus clientes | de su empresa (vía proforma) |
+| Enviar proformas / aceptarlas o pedir cambios | ✓ / — | ✓ / — | sus clientes / — | — / ✓ |
+| Preparar, hacer fotos y enviar | ✓ | ✓ | | |
+| Validar las fotos (o devolver a preparación) | ✓ (suple) | | sus clientes | |
+| Marcar recibido | ✓ | ✓ (en su nombre) | | ✓ |
+| Saltarse el flujo (queda en auditoría) | ✓ | | | |
+| Importes (precios, IVA, totales) | ✓ | ✓ | ✓ | si su empresa «Ve precios» |
+| Conversación general del cliente | ✓ | solo lo que le comparten | sus clientes | ✓ |
+| Chat del pedido / chat interno | ✓ / ✓ | ✓ / ✓ | ✓ / ✓ | ✓ / — |
+| Incidencias de un pedido: abrir / resolver | — / ✓ | — / ✓ | — / ✓ | ✓ / — |
+| Inventario | ✓ | ✓ | | |
+| Facturas: registrar / revisar antes de enviar | ✓ / ✓ | ✓ / — | — / sus clientes | ver las suyas y el PDF |
+| Correos enviados | todos (y reenviar) | | de sus clientes | |
+| Usuarios, ajustes, auditoría, estado | ✓ | | | |
+| Estadísticas | ✓ | ✓ | | |
 
 **Desde la web, sin tocar código:** Administración → Ajustes → **Qué ve cada rol** quita o pone
 apartados enteros (Facturas, Clientes, Estadísticas, Tickets ChromGo, Documentos internos…) a cada
@@ -112,24 +131,35 @@ Dos capas: `app/permisos.py` decide **qué pantallas** (por rol) y `app/alcance.
 **qué registros** dentro de ellas (por asignación/empresa). Toda consulta de clientes o pedidos
 pasa por `filtrar_clientes()` / `filtrar_pedidos()` / `filtrar_mensajes()` o `cliente_o_404()` / `pedido_o_404()`.
 
-**Referencias internas:** cada cliente tiene un prefijo (DiNA) y un contador; cada pedido nuevo
-recibe `DiNA_001`, `DiNA_002`… Los números no se reutilizan aunque se borre un pedido.
+**Referencias internas:** cada cliente tiene un prefijo (p. ej. `DiNA`) y un contador por año; cada
+pedido recibe `YK-2026-DiNA-001`, `YK-2026-DiNA-002`… (formato en `models.referencia_pedido`). Los
+números no se reutilizan aunque se borre un pedido. La proforma es `PF-{referencia}` (`-v2`, `-v3`…).
 
 ## Flujo de trabajo
 
-1. **Cliente** → se da de alta la clínica.
-2. **Pedido** → se crea en *borrador*, se añaden líneas (el precio se copia del catálogo en ese
-   momento, así los cambios de precio no alteran pedidos antiguos) y se *confirma*.
-3. Administración va cambiando el estado (enviado, entregado…).
-4. **Factura** → desde el pedido, "Registrar factura" rellena cliente e importes; se añade el
-   número del sistema contable. Se valida que base + IVA = total.
-5. Cuando se cobra → "Marcar pagada". Las pendientes con vencimiento pasado salen como vencidas.
+1. **Proforma solicitada** → el cliente pide por kits (o Yikon pide por él). El precio se copia en
+   ese momento: los cambios de tarifa no alteran pedidos ya hechos.
+2. **Proforma enviada** → Yikon reserva lotes (FEFO) y envía la proforma con su **PDF obligatorio**.
+   El cliente la acepta o pide cambios (**Cambios solicitados** → nueva versión).
+3. **Aceptado** → Logística lo pasa a **En preparación**, lo prepara y sube las fotos.
+4. **Pendiente de validación** → el Soporte de cliente valida las fotos (**Listo para enviar**) o lo
+   devuelve a preparación.
+5. **Enviado** (transportista, seguimiento, fecha estimada) → el cliente marca **Recibido**.
+6. **Factura** → Logística usa «Preparar factura» (Excel con los datos), la hace en contabilidad y
+   registra el PDF; puede pedir al Soporte de cliente que la revise antes de enviarla. Después,
+   «Marcar pagada». Las pendientes con vencimiento pasado salen como vencidas.
+
+Cada paso avisa por email a quien le toca. Los correos que genera el equipo de Yikon **no salen
+solos**: se abre una ventana para revisarlos (asunto y texto) y enviarlos, guardarlos o descartarlos.
+Los que nacen de un cliente y los de cambio de contraseña sí salen automáticamente.
 
 Cada cambio queda en **Auditoría** (quién, cuándo, qué cambió).
 
 ## Qué hace (resumen)
 
-- **Kits**: agrupaciones de productos con precio estándar y precio especial por cliente.
+- **Kits**: agrupaciones de productos con precio estándar. **Precios especiales** por cliente, de
+  kits y de productos sueltos, y **catálogo propio** de cada cliente (qué kits puede pedir y qué
+  productos ve).
 - **Proforma**: el cliente pide proforma, Yikon la revisa y la envía (PDF sin precios con la
   caducidad prevista); al aceptarla pasa a pedido. Versiones si pide cambios.
 - **Pedidos**: el cliente pide por kits (puede quitar productos o cambiar cantidades), con su
@@ -151,6 +181,11 @@ Cada cambio queda en **Auditoría** (quién, cuándo, qué cambió).
 - **Avisos por email del cliente**: en su ficha, qué recibe cada usuario y emails en copia
   (`app/avisos_cliente.py`). **Aviso para clientes** arriba de su inicio (`app/aviso_clientes.py`).
 - **Exportar todo lo de un cliente** en un ZIP (solo admin, `app/clientes/exportar.py`).
+- **Correos**: revisión antes de enviar, registro de enviados con reenvío de los fallidos
+  (Administración → Correos enviados) y destinatarios configurables de los avisos internos.
+- **Administración**: ajustes desde la web (datos de la empresa, proformas, plazos, seguridad,
+  qué ve cada rol, correos), **modo mantenimiento** (solo entra admin), página de **Estado**,
+  auditoría y listas paginadas de 10 en 10.
 
 ## Traducciones (español / inglés)
 
@@ -194,9 +229,15 @@ Nunca borres la base de datos para aplicar cambios cuando ya haya datos reales.
 
 ## Producción
 
-Guía de instalación paso a paso en un servidor (Ubuntu, PostgreSQL, gunicorn, nginx, HTTPS,
-copias de seguridad): **[DESPLIEGUE.md](DESPLIEGUE.md)**. Los archivos de configuración están
-en `deploy/`.
+En marcha desde el 13/10/2026 en **https://yikonsupport.com** (Hetzner, Ubuntu, PostgreSQL,
+gunicorn, nginx, HTTPS de Let's Encrypt, correo con Brevo). Cómo entrar al servidor, copias y datos
+del montaje: «Nuestro servidor» al principio de **[DESPLIEGUE.md](DESPLIEGUE.md)**; el resto de esa
+guía es la instalación paso a paso. Los archivos de configuración están en `deploy/`.
+
+**Subir un cambio:** en tu PC, tests en verde → `git commit` → `git push`; en el servidor:
+`sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && ./deploy/actualizar.sh"` (copia de seguridad,
+descarga, librerías, migraciones, reinicio y comprobación). Variables nuevas del `.env` se añaden a
+mano en el servidor.
 
 - `FLASK_CONFIG=prod` activa las comprobaciones de arranque y el funcionamiento detrás de
   nginx (`app/produccion.py`).
