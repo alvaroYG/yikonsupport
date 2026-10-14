@@ -83,7 +83,7 @@ def test_revisar_urgente_avisa_a_los_admins(app, client):
     _correos(app).clear()
     login(client, "loga")
     client.post(f"/pedidos/{p.id}/validar", data={"rechazar": "1", "comentario": "Falta un kit"})
-    assert confirmar_correos() == 1
+    assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
     [msg] = _correos(app)
     # a quien prepara: admin y Logística
     assert set(msg["To"].split(", ")) == {"admin@ejemplo.com", "ofi@ejemplo.com"} and "Devuelto por Soporte de cliente" in msg["Subject"]

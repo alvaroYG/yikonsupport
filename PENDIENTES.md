@@ -369,14 +369,15 @@ Código listo (paso 59): ver **DESPLIEGUE.md** y la carpeta `deploy/`. Probado c
 Dominio: `yikonsupport.com` (comprado en dondominio el 13/10/2026; sin `.es`). Servidor: VPS alquilado a nombre
 de Yikon España, en la UE.
 
+Hecho (13–14/10/2026): servidor Hetzner, dominio, HTTPS, correo (Brevo, dominio verificado), Git,
+copias nocturnas + Backups de Hetzner. Detalle en «Nuestro servidor» de DESPLIEGUE.md.
+
 Queda por hacer (fuera del código):
-- Comprar el dominio y contratar el servidor (cuenta y pago de empresa: pendiente de hablar).
-- Configurar el SMTP real (MAIL_SERVER...) y ADMIN_EMAILS en el .env del servidor; SPF/DKIM en el DNS.
-- Seguir DESPLIEGUE.md en el servidor (esos pasos de sistema no se han ejecutado aún).
-- Código en un repositorio Git privado (ver GIT.md); el servidor lo descarga de ahí.
-- Copias de seguridad automáticas (y probar a restaurarlas).
-- RGPD: proveedor en la UE con contrato de encargado, aviso de privacidad, visto bueno interno.
-- Decidir dónde se aloja (hablar con IT: servidor/nube propia y dominio).
+- **Probar a restaurar** una copia en una base de datos de prueba (DESPLIEGUE.md, paso 9).
+- Bajar de vez en cuando la carpeta `copias` a otro sitio (además de los Backups de Hetzner).
+- RGPD: contrato de encargado del tratamiento con Hetzner y Brevo, aviso de privacidad, visto bueno interno.
+- Una semana de uso interno y `flask reiniciar-datos` antes de dar acceso al primer cliente
+  (lista completa al final de DESPLIEGUE.md).
 
 ## Preguntas resueltas
 
@@ -456,10 +457,22 @@ pruebas automáticas con navegador.
   `Cliente.catalogo_propio`, tablas `catalogo_kits` y `catalogo_productos`, migración `c1d7e5a3b902`.
   Test: `test_catalogo_cliente.py`.
 
+### Hecho el 13–14/10/2026
+- **En producción** en https://yikonsupport.com (ver «Nuestro servidor» en DESPLIEGUE.md). Código en GitHub
+  (`alvaroYG/yikonsupport`); se actualiza con `deploy/actualizar.sh`.
+- **Tests de la revisión de correos adaptados**: `confirmar_correos()` en `tests/conftest.py` hace lo que el
+  botón «Enviar» de la ventana de revisión. 564 + los nuevos, todos pasan. (`test_kits` fallaba por otra
+  cosa: el apartado de la ficha ahora se llama «Precios especiales».)
+- **Los avisos entre compañeros salen solos** (decisión de Álvaro, 14/10): si TODOS los destinatarios son
+  usuarios activos del equipo (admin, Logística, Soporte de cliente, Soporte ChromGo), no pasan por la
+  revisión: factura para revisar/devuelta, notas internas, «Compartir con Logística», devuelto a
+  preparación, correo de prueba de Ajustes… Se siguen revisando: los que llevan a alguien de fuera
+  (cliente o email en copia), las **invitaciones** (aunque sean para un compañero) y los **reenvíos** del
+  registro. `revision_correo.solo_para_el_equipo()`, test: `test_correos_entre_companeros.py`.
+- **Estado → copia de seguridad**: `copia_seguridad.sh` deja la hora en `/srv/yikonpo/ultima_copia.txt` y
+  el `.env` del servidor lleva `COPIA_SEGURIDAD_MARCA` con esa ruta.
+
 ### Pendiente
-- **31 tests fallan** desde la revisión de correos: esperan que el email salga en el momento y ahora queda
-  como borrador (test_correos, test_correos_editables, test_correos_registro_estado, test_invitaciones,
-  test_mensajes*, test_proformas, test_soporte, test_avisos_cliente, test_idioma…). Hay que adaptarlos.
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:
   la ventana de pedido tendría que abrirse con el kit ya elegido).
 

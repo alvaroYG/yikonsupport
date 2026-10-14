@@ -39,7 +39,7 @@ def test_admin_escribe_y_logistics_lo_recibe_pero_el_cliente_no(app, client):
     assert r.status_code == 302 and r.headers["Location"].endswith("#interno")
     m = db.session.scalar(db.select(Mensaje))
     assert m.interno and m.hilo == f"interno-{p.id}"
-    assert confirmar_correos() == 1
+    assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
     # email a su logistics (loga), no al cliente ni a logb
     destinatarios = {d.strip() for c in correos for d in c["To"].split(",")}
     assert destinatarios == {"loga@ejemplo.com"}

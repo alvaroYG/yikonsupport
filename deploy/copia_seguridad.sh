@@ -31,4 +31,8 @@ chmod -R go-rwx "$DESTINO"
 # Fuera las de hace más de DIAS días
 find "$BASE/copias" -mindepth 1 -maxdepth 1 -type d -mtime +"$DIAS" -exec rm -rf {} +
 
+# Marca con la hora de la última copia buena: la lee Administración → Estado (COPIA_SEGURIDAD_MARCA del
+# .env) y avisa si pasan más de 2 días sin copia. Solo se llega aquí si todo lo anterior ha ido bien.
+date -Iseconds > "$BASE/ultima_copia.txt"
+
 echo "Copia hecha en $DESTINO ($(du -sh "$DESTINO" | cut -f1))"

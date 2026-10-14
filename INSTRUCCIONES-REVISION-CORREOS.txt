@@ -17,3 +17,6 @@ Si falla la entrega, no se reintenta automáticamente: revisa el registro antes 
 
 VALIDACIÓN
 15 pruebas de servidor superadas; prueba real del modal en navegador con entrega simulada; migración aplicada a una base de datos de prueba. No se han enviado correos reales.
+
+CAMBIO DEL 14/10/2026
+Los avisos entre compañeros (todos los destinatarios son usuarios activos del equipo de Yikon) salen solos, sin revisión. Se siguen revisando los que llevan a alguien de fuera, las invitaciones y los reenvíos.

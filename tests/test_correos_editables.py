@@ -118,7 +118,7 @@ def test_vista_previa_y_prueba(app, client):
     correos = _correos(app)
     client.post("/admin/ajustes/correos/enviado?idioma=es",
                 data={"accion": "prueba", "asunto": "Sale {referencia}", "cuerpo": "Va con {transportista}"})
-    assert confirmar_correos() == 1
+    assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
     assert [m["To"] for m in correos] == ["admin@ejemplo.com"] and correos[0]["Subject"] == "[Prueba] Sale YK-2026-Ejemplo-014"
     assert db.session.scalar(db.select(PlantillaCorreo)) is None                    # la prueba no guarda
 

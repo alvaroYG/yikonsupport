@@ -245,7 +245,7 @@ mano en el servidor.
 - Los tests se pueden pasar contra PostgreSQL:
   `TEST_DATABASE_URL=postgresql+psycopg://usuario@localhost/pruebas python -m pytest`
 
-**Copia de seguridad en la página de Estado:** el script de copias del servidor, al terminar, escribe la
-hora en un archivo (por ejemplo `date -Iseconds > /srv/yikon/ultima_copia.txt`) y en el `.env` se pone
-`COPIA_SEGURIDAD_MARCA=/srv/yikon/ultima_copia.txt`. Administración → Estado avisa si pasan más de 2
-días sin copia. Sin configurarlo, la tarjeta dice «Sin configurar».
+**Copia de seguridad en la página de Estado:** `deploy/copia_seguridad.sh`, al terminar bien, escribe la
+hora en `/srv/yikonpo/ultima_copia.txt`, y el `.env` del servidor tiene
+`COPIA_SEGURIDAD_MARCA=/srv/yikonpo/ultima_copia.txt`. Administración → Estado avisa si pasan más de 2
+días sin copia. Sin esa línea en el `.env`, la tarjeta dice «Sin configurar».

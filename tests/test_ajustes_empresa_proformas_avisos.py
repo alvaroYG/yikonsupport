@@ -110,14 +110,14 @@ def test_facturas_revisar_y_devuelta(app, client):
     login(client, "ofi")
     client.post(f"/facturas/pedido/{p.id}", data={"numero": "F-1", "fecha_emision": date.today().isoformat(),
                                                   "revisar": "y", "pdf": (BytesIO(b"%PDF-1.4 f"), "f.pdf")})
-    assert confirmar_correos() == 1                     # lo escribe Logística: pasa por su revisión
+    assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
     assert _a(correos) == ["loga@ejemplo.com"] and "Factura para revisar" in correos[0]["Subject"]
     _salir(client)
     f = db.session.scalar(db.select(Factura))
     correos = _correos(app)
     login(client, "loga")
     client.post(f"/facturas/{f.id}/devolver", data={"comentario": "Falta el descuento"})
-    assert confirmar_correos() == 1
+    assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
     assert _a(correos) == ["ofi@ejemplo.com"] and "Falta el descuento" in correos[0].get_content()
 
 

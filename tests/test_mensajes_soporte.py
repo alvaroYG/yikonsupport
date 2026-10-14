@@ -58,7 +58,7 @@ def test_compartir_con_logistica(app, client):
     correos = _correos(app)
     login(client, "loga")
     client.post(f"/mensajes/{m.id}/compartir", data={"nota": "¿Hay stock para el martes?"})
-    assert confirmar_correos() == 1
+    assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
     assert [c["To"] for c in correos] == ["ofi@ejemplo.com"]
     assert m.texto in correos[0].get_content() and "¿Hay stock para el martes?" in correos[0].get_content()
     _salir(client)

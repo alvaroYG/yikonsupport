@@ -44,7 +44,7 @@ Los archivos de configuración ya están preparados en la carpeta [`deploy/`](de
 | Versiones | Python 3.14, PostgreSQL 18 |
 | Correo saliente | Brevo (`smtp-relay.brevo.com`, puerto 587), remitente `avisos@yikonsupport.com`; dominio verificado en Brevo (registros en la zona DNS de dondominio) |
 | DNS / dominio | dondominio |
-| Copias | Cada noche a las 3:15 (hora del servidor, UTC) en `/srv/yikonpo/copias` (14 días) + **Backups de Hetzner** (diarios, 7) |
+| Copias | Cada noche a las 3:15 (hora del servidor, UTC) en `/srv/yikonpo/copias` (14 días) + **Backups de Hetzner** (diarios, 7). Administración → Estado avisa si falla (`COPIA_SEGURIDAD_MARCA`) |
 | Actualizar | `sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && ./deploy/actualizar.sh"` |
 
 Diferencias con la guía de abajo: el código se subió la primera vez con un `.tar.gz` (no había Git) y

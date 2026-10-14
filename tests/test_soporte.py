@@ -245,7 +245,7 @@ def test_fas_en_los_tickets_de_sus_clientes(app, client):
     # notas internas: le llegan al equipo; el cliente no la ve
     correos.clear()
     assert client.post(f"/soporte/{ta.id}/nota", data={"nota-texto": "Sí, sale mañana"}).status_code == 302
-    assert confirmar_correos() == 1
+    assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
     assert "sop@ejemplo.com" in _destinatarios(correos) and "chra@ejemplo.com" not in _destinatarios(correos)
     # responde al cliente: el mensaje llega, el estado sigue igual y no se le asigna
     correos.clear()

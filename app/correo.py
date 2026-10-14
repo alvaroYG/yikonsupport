@@ -87,7 +87,8 @@ def _entregar(msg, reenvio_de=None, *, revisado=False):
         current_app.logger.info("Correo no enviado (ver como, solo lectura): %s", msg["Subject"])
         return
     from app.revision_correo import autor_revision, guardar_borrador
-    autor = None if revisado or getattr(msg, "revision_resuelta", False) else autor_revision(msg)
+    autor = (None if revisado or getattr(msg, "revision_resuelta", False)
+             else autor_revision(msg, reenvio=reenvio_de is not None))
     if autor:
         guardar_borrador(msg, autor, reenvio_de, independiente=True)
         return None
