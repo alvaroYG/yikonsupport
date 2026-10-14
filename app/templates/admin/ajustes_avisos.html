@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{# Ajustes → Avisos internos: quién de Yikon recibe cada email. Lógica: app/avisos_internos.py #}
+{% block contenido %}
+{% with activa='avisos' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
+<div class="card"><div class="card-body">
+  <p class="text-muted small">{{ _('Quién de Yikon recibe cada aviso por email. Soporte de cliente solo recibe los de sus clientes, y nadie recibe avisos de lo que no puede ver (Qué ve cada rol). Lo que hace uno mismo no le llega.') }}</p>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="table-responsive">
+    <table class="table tabla-apartados align-middle">
+      <thead><tr><th scope="col">{{ _('Aviso') }}</th>
+        {% for rol, nombre in roles %}<th scope="col" class="text-center">{{ nombre }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for clave, aviso, celdas in filas %}
+        <tr>
+          <th scope="row" class="fw-normal">
+            <span class="fw-semibold">{{ aviso.nombre }}</span>
+            <span class="badge {{ 'text-bg-light border' if aviso.existia else 'etiqueta-nuevo' }} ms-1">{{ _('Ya existía') if aviso.existia else _('Nuevo') }}</span>
+            {% if aviso.explicacion %}<div class="small text-muted">{{ aviso.explicacion }}</div>{% endif %}
+          </th>
+          {% for rol, nombre in roles %}{% set celda = celdas[rol] %}
+          <td class="text-center">
+            {% if celda is none %}
+              <span class="celda-nada" title="{{ _('Este rol no lo recibe') }}">—<span class="visually-hidden">{{ _('Este rol no lo recibe') }}</span></span>
+            {% else %}
+              <input class="form-check-input casilla-apartado" type="checkbox" name="recibe" value="{{ clave }}:{{ rol }}"
+                     id="recibe-{{ clave }}-{{ rol }}" {{ 'checked' if celda }}>
+              <label class="visually-hidden" for="recibe-{{ clave }}-{{ rol }}">{{ _('%(rol)s recibe «%(aviso)s»', rol=nombre, aviso=aviso.nombre) }}</label>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <button class="btn btn-primary" name="accion" value="guardar">{{ _('Guardar') }}</button>
+      <button class="btn btn-outline-secondary ms-auto" name="accion" value="fabrica">{{ _('Dejarlo como venía') }}</button>
+    </div>
+  </form>
+</div></div>
+{% endblock %}

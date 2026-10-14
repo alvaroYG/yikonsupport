@@ -1,0 +1,12 @@
+{{ _('✓ PEDIDO RECIBIDO') }}
+
+{{ _('%(quien)s (%(cliente)s) ha marcado como recibido el pedido %(referencia)s.', quien=quien, cliente=cliente, referencia=referencia) }}{% if referencia_cliente %}
+{{ _('Referencia del cliente: %(ref)s', ref=referencia_cliente) }}{% endif %}
+
+{{ _('Contenido del pedido:') }}
+{% for k in kits %}  - {{ k }}
+{% endfor %}
+{{ enlace }}
+
+--
+Yikon Genomics PO · {{ _('aviso automático') }}

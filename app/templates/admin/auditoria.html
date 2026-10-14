@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{# Auditoría: todo lo que ha pasado. El objeto sale con su nombre ("YK-2026-DiNA-010 · DiNA Genomics"),
+   enlazado a su ficha, y el icono del reloj filtra su historial. Lógica: app/auditoria.py (describir) #}
+{% from "_macros.html" import paginacion %}
+{% block contenido %}
+<h1 class="h3 mb-3">{{ _('Auditoría') }}</h1>
+
+{% if historial_de %}
+<div class="alert alert-info d-flex flex-wrap align-items-center gap-2 py-2">
+  <i class="fas fa-history" aria-hidden="true"></i>
+  <span>{{ _('Historial de') }} <span class="text-muted">{{ historial_de.tipo }}</span>
+    {% if historial_de.enlace %}<a href="{{ historial_de.enlace }}" class="fw-semibold">{{ historial_de.nombre }}</a>
+    {% else %}<strong>{{ historial_de.nombre }}</strong>{% endif %}
+    {% if not historial_de.existe %}<span class="text-muted">· {{ _('ya no existe') }}</span>{% endif %}</span>
+  <a href="{{ url_for('admin.auditoria') }}" class="ms-auto small">{{ _('Ver todo') }}</a>
+</div>
+{% endif %}
+
+<form method="get" class="card card-body mb-3 py-2" role="search">
+  {% if objeto_id %}<input type="hidden" name="id" value="{{ objeto_id }}">{% endif %}
+  <div class="row g-2 align-items-end">
+    <div class="col-md"><label class="form-label small mb-0" for="f-q">{{ _('Buscar') }}</label>
+      <div class="input-group input-group-sm">
+        <input type="search" name="q" id="f-q" value="{{ q }}" class="form-control" maxlength="100"
+               placeholder="{{ _('Nº de pedido, cliente, factura, producto, lo que cambió…') }}">
+        <button class="btn btn-outline-secondary"><i class="fas fa-search" aria-hidden="true"></i><span class="visually-hidden">{{ _('Buscar') }}</span></button></div></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-tipo">{{ _('Qué') }}</label>
+      <select name="tipo" id="f-tipo" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todo') }}</option>
+        {% for clave, nombre in tipos.items() %}<option value="{{ clave }}" {{ 'selected' if tipo == clave }}>{{ nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-accion">{{ _('Acción') }}</label>
+      <select name="accion" id="f-accion" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todas') }}</option>
+        {% for clave, nombre in acciones.items() %}<option value="{{ clave }}" {{ 'selected' if accion == clave }}>{{ nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-usuario">{{ _('Quién') }}</label>
+      <select name="usuario_id" id="f-usuario" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todos') }}</option>
+        {% for u in usuarios %}<option value="{{ u.id }}" {{ 'selected' if usuario_id == u.id }}>{{ u.nombre }}</option>{% endfor %}
+      </select></div>
+    {% if hay_filtros %}<div class="col-auto"><a href="{{ url_for('admin.auditoria') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Quitar filtros') }}</a></div>{% endif %}
+  </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-sm bg-white small align-middle tabla-auditoria">
+  <thead><tr><th>{{ _('Fecha') }}</th><th>{{ _('Usuario') }}</th><th>{{ _('Acción') }}</th><th>{{ _('Objeto') }}</th><th>{{ _('Detalle') }}</th></tr></thead>
+  <tbody>{% for r in pagina.items %}{% set o = objetos[r.id] %}
+    <tr><td class="text-nowrap">{{ r.fecha|fecha_hora }}</td>
+        <td>{{ r.usuario.nombre if r.usuario else '—' }}</td>
+        <td class="text-nowrap">{{ acciones.get(r.accion, r.accion) }}</td>
+        <td class="objeto-auditoria">
+          <span class="text-muted">{{ o.tipo }}</span>
+          {% if o.enlace %}<a href="{{ o.enlace }}">{{ o.nombre }}</a>{% else %}<span>{{ o.nombre }}</span>{% endif %}
+          {% if not o.existe %}<span class="text-muted">· {{ _('ya no existe') }}</span>{% endif %}
+          {% if r.entidad_id and not objeto_id %}
+          <a href="{{ url_for('admin.auditoria', tipo=r.entidad, id=r.entidad_id) }}" class="ms-1 text-muted"
+             title="{{ _('Todo lo que ha pasado con esto') }}"><i class="fas fa-history" aria-hidden="true"></i><span class="visually-hidden">{{ _('Todo lo que ha pasado con esto') }}</span></a>
+          {% endif %}
+        </td>
+        <td>{{ detalle_legible(r.detalle) }}</td></tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">{{ _('No hay nada con estos filtros.') }}</td></tr>
+  {% endfor %}</tbody></table>
+</div>
+{{ paginacion(pagina, 'admin.auditoria') }}
+{% endblock %}

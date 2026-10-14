@@ -1,0 +1,19 @@
+{# Formato de factura, IVA y envío pactado de un cliente (facturas.guardar_facturacion).
+   Se incluye en "Preparar factura" (con pedido_id, para volver allí) y en la ficha del cliente.
+   Necesita: cli (el cliente), formatos, regimenes y, opcional, pedido_id. #}
+  <form method="post" action="{{ url_for('facturas.guardar_facturacion', cliente_id=cli.id) }}" class="row g-3 align-items-end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% if pedido_id %}<input type="hidden" name="pedido_id" value="{{ pedido_id }}">{% endif %}
+    <fieldset class="col-md-5"><legend class="form-label small fw-semibold mb-1">{{ _('Formato de factura') }}</legend>
+      {% for k, v in formatos.items() %}<div class="form-check"><input class="form-check-input" type="radio" name="formato_factura" id="formato-{{ k }}" value="{{ k }}" {{ 'checked' if (cli.formato_factura or 'A') == k }}>
+        <label class="form-check-label" for="formato-{{ k }}">{{ v }}</label></div>{% endfor %}</fieldset>
+    <div class="col-md-3"><label class="form-label small fw-semibold mb-1" for="regimen-iva">{{ _('IVA') }}</label>
+      <select class="form-select form-select-sm" name="regimen_iva" id="regimen-iva">{% for k, v in regimenes.items() %}
+        <option value="{{ k }}" {{ 'selected' if (cli.regimen_iva or 'es') == k }}>{{ v }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label small fw-semibold mb-1" for="gastos-envio">{{ _('Envío pactado (€)') }}</label>
+      <input class="form-control form-control-sm" name="gastos_envio" id="gastos-envio" inputmode="decimal" value="{{ cli.gastos_envio|string|replace('.', ',') if cli.gastos_envio }}" placeholder="{{ _('no se cobra') }}"></div>
+    <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="revisar_facturas" value="1" id="revisar-facturas-{{ cli.id }}" {{ 'checked' if cli.revisar_facturas }}>
+      <label class="form-check-label small" for="revisar-facturas-{{ cli.id }}"><strong>{{ _('Sus facturas las revisa %(rol)s', rol=rol_fas) }}</strong>
+        <span class="text-muted">· {{ _('al registrar una factura, la casilla de revisión saldrá marcada (se puede quitar)') }}</span></label></div></div>
+    <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">{{ _('Guardar') }}</button></div>
+    <div class="col-12 small text-muted">{{ _('Se guarda en el cliente y vale para todas sus facturas. El envío lo pacta el comercial; el cliente solo lo ve en la factura.') }}</div>
+  </form>

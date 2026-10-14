@@ -1,0 +1,128 @@
+{% macro campo(f) %}
+  <div class="mb-3">
+    {% if f.type == 'BooleanField' %}
+      <div class="form-check">
+        {{ f(class_="form-check-input" ~ (" is-invalid" if f.errors else ""), **kwargs) }} {{ f.label(class_="form-check-label") }}
+        {% if f.description %}<div class="form-text">{{ f.description }}</div>{% endif %}
+        {# d-block: sin él, Bootstrap solo enseña el error si va justo después de la casilla #}
+        {% for e in f.errors %}<div class="invalid-feedback d-block">⚠ {{ e }}</div>{% endfor %}
+      </div>
+    {% else %}
+      {{ f.label(class_="form-label") }}
+      {% set clase = "form-select" if f.type in ("SelectField", "SelectMultipleField") else "form-control" %}
+      {{ f(class_=clase ~ (" is-invalid" if f.errors else ""), **kwargs) }}
+      {% if f.description %}<div class="form-text">{{ f.description }}</div>{% endif %}
+      {% for e in f.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro paginacion(pagina, endpoint, parametro='pagina', tamano='por_pagina', ancla='', url_args={}) %}
+  {# Pie de las listas: "1–10 de 312", cuántos por página y las páginas. Sale siempre que haya
+     más resultados que el tamaño más pequeño (si caben todos, no hay nada que elegir).
+     Para dos listas en la misma página (ficha del cliente): parametro/tamano con otros nombres,
+     url_args con lo de la ruta (id=...) y ancla para volver a esa lista (#pedidos). #}
+  {% set ancla = ('#' ~ ancla) if ancla else '' %}
+  {% if pagina.total > tamanos_de_pagina[0] %}
+  <div class="pie-lista">
+    <span class="text-muted small">{{ _('%(desde)s–%(hasta)s de %(total)s', desde=pagina.first, hasta=pagina.last, total=pagina.total) }}
+      <span class="ms-2">{% for n in tamanos_de_pagina %}{% if n == pagina.per_page %}<strong aria-current="true">{{ n }}</strong>{% else
+        %}<a href="{{ url_for(endpoint, **dict(url_args, **args_url(**{tamano: n, parametro: 1}))) ~ ancla }}">{{ n }}</a>{% endif %}{{ ' · ' if not loop.last }}{% endfor %}
+        {{ _('por página') }}</span></span>
+    {% if pagina.pages > 1 %}
+    <nav aria-label="{{ _('Páginas') }}"><ul class="pagination pagination-sm mb-0">
+      <li class="page-item {{ 'disabled' if not pagina.has_prev }}">
+        <a class="page-link" href="{{ url_for(endpoint, **dict(url_args, **args_url(**{parametro: pagina.prev_num}))) ~ ancla if pagina.has_prev else '#' }}"
+           aria-label="{{ _('Página anterior') }}">‹</a></li>
+      {% for n in pagina.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+        {% if n %}
+          <li class="page-item {{ 'active' if n == pagina.page }}">
+            <a class="page-link" href="{{ url_for(endpoint, **dict(url_args, **args_url(**{parametro: n}))) ~ ancla }}">{{ n }}</a></li>
+        {% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+      {% endfor %}
+      <li class="page-item {{ 'disabled' if not pagina.has_next }}">
+        <a class="page-link" href="{{ url_for(endpoint, **dict(url_args, **args_url(**{parametro: pagina.next_num}))) ~ ancla if pagina.has_next else '#' }}"
+           aria-label="{{ _('Página siguiente') }}">›</a></li>
+    </ul></nav>
+    {% endif %}
+  </div>
+  {% endif %}
+{% endmacro %}
+
+{# Estados con texto + icono + color de una paleta segura para daltonismo (azul/naranja/gris) #}
+{% macro estado_factura(f) %}
+  {# Antes de llegar al cliente: en revisión, devuelta o por enviar. Después, el estado de pago. #}
+  {% if f.fase == 'revision' %}<span class="badge est-en_validacion">{{ _('🔍 En revisión') }}</span>
+  {% elif f.fase == 'cambios' %}<span class="badge est-cambios_solicitados">{{ _('↩ Devuelta') }}</span>
+  {% elif f.fase == 'por_enviar' %}<span class="badge est-validado">{{ _('✉ Por enviar') }}</span>
+  {% elif f.esta_vencida %}<span class="badge est-alerta">{{ _('⚠ Vencida') }}</span>
+  {% elif f.estado == 'pagada' %}<span class="badge est-ok">{{ _('✓ Pagada') }}</span>
+  {% elif f.estado == 'anulada' %}<span class="badge est-neutro">{{ _('✕ Anulada') }}</span>
+  {% else %}<span class="badge est-pendiente">{{ _('● Pendiente') }}</span>{% endif %}
+{% endmacro %}
+
+{% macro estado_pedido(p) %}
+  {# El cliente ve el estado simplificado ("En preparación"), nunca el proceso interno.
+     Color + icono + nombre: se reconoce aunque no se distingan los colores. #}
+  {% set clave = p.estado_cliente if current_user.rol == 'cliente' else p.estado %}
+  <span class="badge est-estado est-{{ clave }}"><i class="fas {{ iconos_estado.get(clave, 'fa-circle') }}"></i>{{ p.estado_nombre_para(current_user) }}</span>
+  {%- if p.devuelto and current_user.rol != 'cliente' %} <span class="badge est-alerta">{{ _('⚠ devuelto') }}</span>{% endif %}
+{% endmacro %}
+
+{# Leyenda de colores de los estados (lista de pedidos) #}
+{% macro leyenda_estados(estados) %}
+  <div class="leyenda-estados small" aria-label="{{ _('Leyenda de estados') }}">
+    {% for clave, nombre in estados.items() %}
+    <span class="badge est-estado est-{{ clave }}"><i class="fas {{ iconos_estado.get(clave, 'fa-circle') }}"></i>{{ nombre }}</span>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{# Caducidad de un lote con su aviso. Nunca solo por color: texto + icono.
+   ⚠ caducado (marrón) · ⏳ caduca pronto (naranja) · fecha normal (gris) #}
+{% macro lote_caducidad(lote, hoy, dias_aviso) %}
+  {% if lote.caducidad is none %}
+    <span class="text-muted">· {{ _('sin caducidad registrada') }}</span>
+  {% elif lote.caducidad < hoy %}
+    <span class="badge est-alerta">{{ _('⚠ Caducado el %(fecha)s', fecha=lote.caducidad|fecha) }}</span>
+  {% elif (lote.caducidad - hoy).days <= dias_aviso %}
+    <span class="badge est-pendiente">{{ ngettext('⏳ Caduca en %(num)s día', '⏳ Caduca en %(num)s días', (lote.caducidad - hoy).days) if (lote.caducidad - hoy).days > 0 else _('⏳ Caduca hoy') }}</span>
+  {% else %}
+    <span class="text-muted">· {{ _('cad. %(fecha)s', fecha=lote.caducidad|fecha) }}</span>
+  {% endif %}
+{% endmacro %}
+
+{# Soporte ChromGo: estado y prioridad de un ticket. Color + icono + texto (deuteranopia). #}
+{% macro estado_ticket(t) %}
+  <span class="badge est-estado tk-{{ t.estado }}"><i class="fas {{ iconos_estado_ticket.get(t.estado, 'fa-circle') }}"></i>{{ t.estado_nombre }}</span>
+{%- endmacro %}
+{% macro prioridad_ticket(t) %}
+  <span class="badge prio prio-{{ t.prioridad }}" title="{{ _('Prioridad') }}"><i class="fas {{ iconos_prioridad_ticket.get(t.prioridad, 'fa-minus') }}"></i>{{ t.prioridad_nombre }}</span>
+{%- endmacro %}
+
+{# Una sección plegable de la ficha del pedido (pedidos/detalle.html). Se usa con {% call %}:
+     {% call seccion('documentos', _('Documentos'), 'fa-paperclip', resumen, contador=2) %} ...contenido... {% endcall %}
+   clave    → id de la sección (para enlazar con #clave y para recordar si está abierta)
+   resumen  → una línea que se ve en la cabecera, abierta o cerrada (lo importante sin abrirla)
+   abierta  → cómo llega la primera vez; luego manda lo que cada persona dejó (js/ficha_pedido.js)
+   forzar   → hay algo que hacer aquí: llega abierta aunque esa persona la tuviera cerrada
+   contador → número junto al título (documentos, mensajes sin leer…)
+   clase    → clases extra (p. ej. "destacada")
+   novedad  → marca "nuevo": algo ha cambiado aquí desde la última visita (pedidos/novedades.py) #}
+{% macro seccion(clave, titulo, icono, resumen='', abierta=true, forzar=false, contador=0, clase='', novedad=false) %}
+{% set llega_abierta = abierta or forzar %}
+<section class="seccion-ficha {{ clase }}" id="{{ clave }}" data-seccion="{{ clave }}"{{ ' data-forzar' if forzar }}>
+  <h2 class="seccion-cab-h">
+    <button type="button" class="seccion-cab {{ '' if llega_abierta else 'collapsed' }}" data-bs-toggle="collapse" data-bs-target="#sec-{{ clave }}"
+            aria-expanded="{{ 'true' if llega_abierta else 'false' }}" aria-controls="sec-{{ clave }}">
+      <i class="fas {{ icono }} seccion-icono" aria-hidden="true"></i>
+      <span class="seccion-titulo">{{ titulo }}</span>
+      {% if contador %}<span class="badge rounded-pill seccion-contador">{{ contador }}</span>{% endif %}
+      {% if novedad %}<span class="badge rounded-pill marca-nuevo" data-nuevo title="{{ _('Ha cambiado desde tu última visita a este pedido') }}"><i class="fas fa-bell" aria-hidden="true"></i> {{ _('nuevo') }}</span>{% endif %}
+      <span class="seccion-resumen">{{ resumen }}</span>
+      <i class="fas fa-chevron-down seccion-flecha" aria-hidden="true"></i>
+    </button>
+  </h2>
+  <div class="collapse {{ 'show' if llega_abierta }}" id="sec-{{ clave }}"><div class="seccion-cuerpo">{{ caller() }}</div></div>
+</section>
+{% endmacro %}

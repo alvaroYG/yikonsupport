@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Kits') }}</h1>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('productos.lista') }}" class="btn btn-outline-secondary">{{ _('Productos') }}</a>
+    {% if current_user.puede('productos.editar') %}<a href="{{ url_for('productos.nuevo_kit') }}" class="btn btn-primary">{{ _('+ Nuevo kit') }}</a>{% endif %}
+  </div></div>
+<p class="text-muted small">{{ _('Un kit agrupa varios productos. El cliente elige el kit y puede quitar productos o cambiar cantidades. El precio de cada cliente se puede personalizar desde su ficha.') }}</p>
+<table class="table bg-white align-middle">
+  <thead><tr><th>{{ _('Kit') }}</th><th>{{ _('Productos (por kit)') }}</th><th class="num">{{ _('Precio estándar') }}</th><th class="num">{{ _('IVA') }}</th><th></th></tr></thead>
+  <tbody>{% for k in kits %}
+    <tr class="{{ 'text-muted' if not k.activo }}">
+      <td><div class="fw-semibold">{{ k.nombre }}{% if not k.activo %} {{ _('(inactivo)') }}{% endif %}</div><div class="small text-muted">{{ k.referencia }} · {{ _('cerrado') if k.cerrado else _('montado en la oficina') }}</div></td>
+      <td class="small">{% for c in k.componentes %}<div>{{ c.cantidad }} × {{ c.producto.nombre }}</div>{% endfor %}</td>
+      <td class="num">{{ k.precio|euros }}</td><td class="num">{{ k.iva_pct|int }} %</td>
+      <td class="text-end">{% if current_user.puede('productos.editar') %}<a href="{{ url_for('productos.editar_kit', id=k.id) }}" class="btn btn-sm btn-outline-primary">{{ _('Editar') }}</a>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="5" class="text-muted">{{ _('Todavía no hay kits.') }}</td></tr>{% endfor %}</tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo, lote_caducidad %}
+
+{# Una fila de la tabla de stock (sirve igual para un kit cerrado y para un producto) #}
+{% macro fila_stock(f, es_kit=false) %}
+  {% set a = f.articulo %}
+  <tr>
+    <td><div class="fw-semibold">{{ a.nombre }}</div>
+        <div class="small text-muted">{{ a.referencia }}{{ ' · ' ~ a.categoria if not es_kit and a.categoria }}</div>
+        {% if es_kit and a.componentes %}<div class="small text-muted">{{ ngettext('%(num)s producto dentro', '%(num)s productos dentro', a.componentes|length) }}</div>{% endif %}
+        {% if f.solo_en_kits %}<div class="small text-muted">{{ _('Va dentro de kits cerrados') }}</div>{% endif %}</td>
+    <td class="small">
+      {# Un lote por línea, en orden FEFO: el primero es el que saldrá en el próximo envío #}
+      {% for lote, unidades in f.lotes %}
+        <div class="lote-fila"><span class="lote-codigo">{{ lote.codigo }}</span>
+          <span class="text-muted">· {{ _('%(n)s uds.', n=unidades) }}</span>
+          {{ lote_caducidad(lote, hoy, dias_aviso) }}
+          {% if reservado_lote[lote.id] %}<span class="badge est-reservado" title="{{ _('Apartadas para pedidos que aún no han salido') }}"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('%(n)s reservadas', n=reservado_lote[lote.id]) }}</span>{% endif %}</div>
+      {% else %}{% if not f.en_kits %}<span class="text-muted">—</span>{% endif %}{% endfor %}
+      {# Producto: además, lo que hay dentro de los kits cerrados (con el lote del kit) #}
+      {% if f.en_kits %}
+        <div class="text-muted mt-1"><i class="fas fa-boxes me-1"></i>{{ _('Dentro de kits cerrados:') }}</div>
+        {% for kit, lote, unidades in f.en_kits %}
+        <div class="lote-fila ps-3"><span class="lote-codigo">{{ lote.codigo }}</span>
+          <span class="text-muted">· {{ _('%(n)s uds.', n=unidades) }} · {{ kit.nombre }}</span>
+          {{ lote_caducidad(lote, hoy, dias_aviso) }}</div>
+        {% endfor %}
+      {% endif %}
+    </td>
+    <td class="num fw-semibold">{% if f.en_kits is defined and f.en_kits %}{{ f.total }}
+      <div class="small text-muted fw-normal text-nowrap">{{ _('%(sueltos)s sueltos + %(kits)s en kits', sueltos=f.stock, kits=f.en_kits_total) }}</div>
+      {% else %}{{ f.stock }}{% endif %}
+      {% if f.bajo %}<span class="badge est-alerta ms-1">{{ _('⚠ bajo') }}</span>{% endif %}
+      {% if f.reservado %}<div class="small text-muted fw-normal text-nowrap"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('%(r)s reservadas · %(l)s libres', r=f.reservado, l=f.libre) }}</div>{% endif %}
+      {% if f.caducado %}<div class="small text-muted fw-normal">{{ _('+ %(n)s caducadas', n=f.caducado) }}</div>{% endif %}</td>
+    <td class="num text-muted">{{ a.stock_minimo }}</td>
+    <td class="text-end text-nowrap">
+      {% if current_user.puede('inventario.editar') %}
+      {# Abre la ventana con este artículo ya elegido #}
+      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-movimiento"
+              data-articulo="{{ a.tipo_articulo }}-{{ a.id }}" title="{{ _('Registrar movimiento') }}"
+              aria-label="{{ _('Registrar movimiento') }}"><i class="fas fa-plus"></i></button>
+      {% if es_kit and f.lotes %}
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modal-abrir"
+              data-accion="{{ url_for('inventario.abrir', id=a.id) }}" data-kit="{{ a.nombre }}"
+              data-lotes="{{ f.lotes|map('first')|map(attribute='codigo')|list|tojson|forceescape }}"
+              data-lote-ids="{{ f.lotes|map('first')|map(attribute='id')|list|tojson|forceescape }}"
+              data-unidades="{{ f.lotes|map('last')|list|tojson|forceescape }}"
+              title="{{ _('Abrir un kit para sacar sus productos sueltos') }}"><i class="fas fa-box-open me-1"></i>{{ _('Abrir') }}</button>
+      {% endif %}
+      <a href="{{ url_for('inventario.corregir', tipo=a.tipo_articulo, id=a.id) }}" class="btn btn-sm btn-outline-secondary"
+         title="{{ _('Corregir lotes y entradas') }}"><i class="fas fa-pen me-1"></i>{{ _('Corregir') }}</a>{% endif %}
+      <a href="{{ url_for('inventario.movimientos', **{a.tipo_articulo ~ '_id': a.id}) }}" class="btn btn-sm btn-outline-secondary">{{ _('Historial') }}</a></td>
+  </tr>
+{% endmacro %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Inventario de la oficina') }}</h1>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ url_for('inventario.lista_reservas') }}" class="btn btn-outline-secondary"><i class="fas fa-lock me-1" aria-hidden="true"></i> {{ _('Reservas') }}{% if pedidos_con_reserva %} <span class="badge rounded-pill bg-secondary ms-1">{{ pedidos_con_reserva }}</span>{% endif %}</a>
+    <a href="{{ url_for('inventario.caducidades') }}" class="btn btn-outline-secondary"><i class="fas fa-hourglass-half me-1"></i> {{ _('Caducidades') }}</a>
+    <a href="{{ url_for('inventario.movimientos') }}" class="btn btn-outline-secondary">{{ _('Ver todos los movimientos') }}</a>
+    {% if current_user.puede('inventario.editar') %}
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-movimiento">
+      <i class="fas fa-plus me-1"></i> {{ _('Registrar movimiento') }}</button>{% endif %}
+  </div>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+  {# Dos pestañas: los kits (lo principal: llegan cerrados, con su lote) y los productos sueltos #}
+  <ul class="nav nav-tabs flex-grow-1" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-kits" type="button" role="tab"
+              aria-controls="tab-kits" aria-selected="true"><i class="fas fa-boxes me-1"></i> {{ _('Kits') }}
+        <span class="badge rounded-pill bg-secondary ms-1">{{ cerrados|length + kits|length }}</span></button></li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-productos" type="button" role="tab"
+              aria-controls="tab-productos" aria-selected="false"><i class="fas fa-box me-1"></i> {{ _('Productos') }}
+        <span class="badge rounded-pill bg-secondary ms-1">{{ filas|length }}</span></button></li>
+  </ul>
+  <div>
+    <a href="{{ url_for('inventario.lista') }}" class="btn btn-sm {{ 'btn-secondary' if not request.args.get('solo_bajo') else 'btn-outline-secondary' }}">{{ _('Todos') }}</a>
+    <a href="{{ url_for('inventario.lista', solo_bajo=1) }}" class="btn btn-sm {{ 'btn-secondary' if request.args.get('solo_bajo') else 'btn-outline-secondary' }}">{{ _('⚠ Solo stock bajo') }}</a>
+  </div>
+</div>
+
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="tab-kits" role="tabpanel">
+    <p class="small text-muted mt-2">{{ _('Kits cerrados: llegan del fabricante con una sola etiqueta de lote y caducidad (aunque vengan en varias cajas). Al enviar un pedido sale el kit entero.') }}</p>
+    <table class="table bg-white align-middle">
+      <thead><tr><th>{{ _('Kit') }}</th><th>{{ _('Lotes (el que caduca antes, primero)') }}</th>
+        <th class="num">{{ _('Disponible') }}</th><th class="num">{{ _('Mínimo') }}</th><th></th></tr></thead>
+      <tbody>{% for f in cerrados %}{{ fila_stock(f, true) }}
+      {% else %}<tr><td colspan="5" class="text-muted">{{ _('No hay kits con stock bajo.') if request.args.get('solo_bajo') else _('No hay kits cerrados activos.') }}</td></tr>{% endfor %}</tbody>
+    </table>
+
+    {% if kits and not request.args.get('solo_bajo') %}
+    <h2 class="h6 mt-4">{{ _('Kits montados en la oficina') }}</h2>
+    <p class="small text-muted">{{ _('Estos kits se juntan con productos sueltos: no tienen stock propio. "Se pueden montar" = kits completos con el stock disponible ahora (sin caducados); lo limita el producto que antes se acaba.') }}</p>
+    <table class="table bg-white align-middle">
+      <thead><tr><th>{{ _('Kit') }}</th><th>{{ _('Productos (por kit · disponible)') }}</th>
+        <th class="num">{{ _('Se pueden montar') }}</th></tr></thead>
+      <tbody>{% for k in kits %}
+        <tr>
+          <td><div class="fw-semibold">{{ k.kit.nombre }}</div><div class="small text-muted">{{ k.kit.referencia }}</div></td>
+          <td class="small">{% for x in k.componentes %}
+            <div>{{ x.c.cantidad }} × {{ x.c.producto.nombre }}
+              <span class="text-muted">· {% if x.hay is none %}{{ _('sin control de stock') }}{% else %}{{ _('%(n)s uds.', n=x.hay) }}{% endif %}</span>
+              {% if x.c.producto in k.limita and k.componentes|length > 1 %}<span class="badge est-pendiente ms-1" title="{{ _('Es el producto que limita cuántos kits se pueden montar') }}">{{ _('limita') }}</span>{% endif %}</div>
+          {% else %}<span class="text-muted">—</span>{% endfor %}</td>
+          <td class="num fw-semibold">{% if k.montables is none %}<span class="text-muted fw-normal">—</span>
+            {% else %}{{ k.montables }}{% if k.montables == 0 %} <span class="badge est-alerta ms-1">{{ _('⚠ sin stock') }}</span>{% endif %}{% endif %}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+    {% endif %}
+    <p class="small text-muted">{{ _('Que un kit sea cerrado o montado, y su mínimo, se cambia en Kits.') }}</p>
+  </div>
+
+  <div class="tab-pane fade" id="tab-productos" role="tabpanel">
+    <p class="small text-muted mt-2">{{ _('Unidades de cada producto: las sueltas más las que hay dentro de los kits cerrados (se calcula solo a partir del stock de kits). Para vender o usar un producto suelto que está dentro de un kit, abre el kit.') }}</p>
+    <table class="table bg-white align-middle">
+      <thead><tr><th>{{ _('Producto') }}</th><th>{{ _('Lotes (el que caduca antes, primero)') }}</th>
+        <th class="num">{{ _('Disponible') }}</th><th class="num">{{ _('Mínimo') }}</th><th></th></tr></thead>
+      <tbody>{% for f in filas %}{{ fila_stock(f) }}
+      {% else %}<tr><td colspan="5" class="text-muted">{{ _('No hay productos con stock bajo.') if request.args.get('solo_bajo') else _('No hay productos.') }}</td></tr>{% endfor %}</tbody>
+    </table>
+    <p class="small text-muted">{{ _('El mínimo de cada producto se cambia en Productos.') }}</p>
+  </div>
+</div>
+<p class="small text-muted">{{ _('El stock baja automáticamente cuando un pedido pasa a <strong>Enviado</strong> y vuelve a subir si ese envío se anula.')|safe }}
+  {{ _('Cada pedido tiene sus lotes reservados desde la proforma (o desde que se crea): al enviar salen exactamente esos. «Stock bajo» se calcula con lo libre, sin lo reservado. Los lotes caducados no se envían.') }}</p>
+
+{% if current_user.puede('inventario.editar') %}
+{# Ventana "Registrar movimiento". Los botones con data-articulo la abren con ese kit o producto elegido. #}
+<div class="modal fade" id="modal-movimiento" tabindex="-1" aria-labelledby="modal-movimiento-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+    <form method="post" action="{{ url_for('inventario.nuevo_movimiento') }}" novalidate id="form-movimiento"
+          data-lotes="{{ lotes_por_articulo|tojson|forceescape }}">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="modal-movimiento-titulo">{{ _('Registrar movimiento') }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+      </div>
+      <div class="modal-body">
+        {{ form.hidden_tag() }}
+        {{ campo(form.articulo) }}{{ campo(form.tipo) }}
+        {{ campo(form.lote, list="lotes-existentes", autocomplete="off") }}
+        <datalist id="lotes-existentes"></datalist>
+        {{ campo(form.caducidad) }}{{ campo(form.cantidad) }}{{ campo(form.nota) }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+        {{ form.submit(id=False, class_="btn btn-primary") }}
+      </div>
+    </form>
+  </div></div>
+</div>
+
+{# Ventana "Abrir kit": se rellena con el kit de la fila (lotes con stock) #}
+<div class="modal fade" id="modal-abrir" tabindex="-1" aria-labelledby="modal-abrir-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="" novalidate id="form-abrir" data-texto-kits="{{ _('kits') }}">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="modal-abrir-titulo">{{ _('Abrir kit') }} · <span data-nombre-kit></span></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+      </div>
+      <div class="modal-body">
+        {{ abrir_form.hidden_tag() }}
+        <p class="small">{{ _('Se resta el kit de su lote y sus productos pasan a stock suelto con el mismo lote y caducidad (la de la etiqueta). Queda registrado en la auditoría.') }}</p>
+        {{ campo(abrir_form.lote_id) }}{{ campo(abrir_form.cantidad, min=1) }}{{ campo(abrir_form.nota) }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+        {{ abrir_form.submit(id=False, class_="btn btn-primary") }}
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Sugerencias de lote: al elegir un kit o producto, el campo "Lote" propone sus lotes ya existentes.
+// Si eliges uno, rellena su caducidad (así una entrada de un lote conocido no se equivoca de fecha).
+(function () {
+  var form = document.getElementById('form-movimiento');
+  if (!form) return;
+  var lotes = JSON.parse(form.dataset.lotes || '{}');
+  var articulo = form.querySelector('[name=articulo]');
+  var lote = form.querySelector('[name=lote]');
+  var caducidad = form.querySelector('[name=caducidad]');
+  var lista = document.getElementById('lotes-existentes');
+  function rellenarLista() {
+    lista.innerHTML = '';
+    (lotes[articulo.value] || []).forEach(function (l) {
+      var op = document.createElement('option');
+      op.value = l.codigo;
+      op.label = l.caducidad;
+      lista.appendChild(op);
+    });
+  }
+  articulo.addEventListener('change', rellenarLista);
+  // Botón "+" de una fila: abre la ventana con ese artículo ya elegido
+  var modal = document.getElementById('modal-movimiento');
+  var conArticulo = false;
+  modal.addEventListener('show.bs.modal', function (e) {
+    var valor = e.relatedTarget && e.relatedTarget.dataset.articulo;
+    conArticulo = !!valor;
+    if (valor) { articulo.value = valor; rellenarLista(); }
+  });
+  // Con el artículo ya elegido, directo al lote; si no, primero el artículo
+  modal.addEventListener('shown.bs.modal', function () { (conArticulo ? lote : articulo).focus(); });
+  lote.addEventListener('change', function () {
+    var l = (lotes[articulo.value] || []).find(function (x) { return x.codigo === lote.value.trim(); });
+    if (l && l.caducidad) caducidad.value = l.caducidad;
+  });
+  rellenarLista();
+})();
+
+// "Abrir kit": la ventana toma el kit, sus lotes con stock y la dirección del botón de la fila
+(function () {
+  var modal = document.getElementById('modal-abrir');
+  if (!modal) return;
+  var form = document.getElementById('form-abrir');
+  var select = form.querySelector('[name=lote_id]');
+  modal.addEventListener('show.bs.modal', function (e) {
+    var b = e.relatedTarget; if (!b) return;
+    form.action = b.dataset.accion;
+    modal.querySelector('[data-nombre-kit]').textContent = b.dataset.kit;
+    var codigos = JSON.parse(b.dataset.lotes), ids = JSON.parse(b.dataset.loteIds), uds = JSON.parse(b.dataset.unidades);
+    select.innerHTML = '';
+    ids.forEach(function (id, i) {
+      var op = document.createElement('option');
+      op.value = id; op.textContent = codigos[i] + ' · ' + uds[i] + ' ' + form.dataset.textoKits;
+      select.appendChild(op);
+    });
+  });
+})();
+</script>
+{% endblock %}

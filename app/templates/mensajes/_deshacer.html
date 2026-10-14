@@ -1,0 +1,9 @@
+{# Aviso tras enviar un mensaje al cliente: unos segundos para deshacerlo (mensajes.deshacer).
+   La cuenta atrás la lleva js/chat_pedido.js; al llegar a 0 desaparece (ya le ha llegado). #}
+<div class="deshacer-aviso" data-deshacer data-segundos="{{ deshacer.segundos }}" role="status">
+  <span><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Enviado a %(cliente)s', cliente=deshacer.mensaje.cliente.nombre) }}</span>
+  <form method="post" action="{{ url_for('mensajes.deshacer', mensaje_id=deshacer.mensaje.id) }}" class="d-flex align-items-center gap-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-light fw-bold">{{ _('Deshacer') }}</button>
+    <span class="small" data-cuenta>{{ deshacer.segundos }} s</span></form>
+</div>

@@ -1,0 +1,9 @@
+Cambio: documento obligatorio al registrar pedidos, para clientes y equipo de Yikon.
+
+Extrae el contenido de este ZIP en la carpeta de tu proyecto que contiene app/, sustituyendo los tres archivos incluidos. Reinicia la aplicación y recarga el navegador con Ctrl+F5.
+
+Sin archivo: se muestra el error debajo del campo dentro del modal, no se envía el formulario y se conservan los datos. Al seleccionar un archivo, se limpia ese error. El servidor también exige documento en ambos perfiles.
+
+No requiere cambios en la base de datos. Los archivos se han preparado a partir del ZIP proporcionado; no se ha modificado tu carpeta de PyCharm.
+
+Verificación: cuatro pruebas del servidor superadas y comprobación del modal en navegador para cliente y administrador.

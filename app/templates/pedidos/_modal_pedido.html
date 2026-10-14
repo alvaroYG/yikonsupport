@@ -1,0 +1,27 @@
+{# Ventana emergente "Nuevo pedido". La abren los botones con
+   data-bs-toggle="modal" data-bs-target="#modal-pedido".
+   - Cliente: su empresa es fija; la insignia muestra la referencia que se le asignará.
+   - Yikon (admin, logística, FAS): eligen el cliente; la insignia cambia al elegirlo (ver pedido.js).
+     Un botón con data-cliente-id="3" abre la ventana con ese cliente ya elegido. #}
+{% set interno = form_pedido.cliente_id is defined %}
+<div class="modal fade" id="modal-pedido" tabindex="-1" aria-labelledby="modal-pedido-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+    <form method="post" action="{{ url_for('pedidos.nuevo') }}" enctype="multipart/form-data" novalidate>
+      <div class="modal-header">
+        <div><h2 class="modal-title h5" id="modal-pedido-titulo">{{ _('Nuevo pedido') }}
+            <span class="badge ref-interna ms-2" title="{{ _('Referencia interna que se asignará') }}" data-ref-interna
+                  {% if interno %}hidden{% endif %}>{{ current_user.empresa.proxima_referencia_interna if not interno }}</span></h2>
+          {% if not interno %}<div class="small text-muted">{{ current_user.empresa.nombre }}</div>{% endif %}</div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+      </div>
+      <div class="modal-body">
+        {% with form=form_pedido %}{% include "pedidos/_campos_pedido.html" %}{% endwith %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+        {{ form_pedido.submit(id=False, class_="btn btn-primary") }}
+      </div>
+    </form>
+  </div></div>
+</div>
+<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>

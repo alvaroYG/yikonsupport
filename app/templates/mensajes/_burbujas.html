@@ -1,0 +1,34 @@
+{# Los mensajes de una conversación como burbujas. Se usa al abrir la conversación y
+   también para los que llegan después sin recargar (mensajes.nuevos_*).
+   Tu lado (Yikon o tu empresa) va a la derecha; el otro lado, a la izquierda.
+   El texto se escapa (autoescape) y los saltos de línea se respetan con CSS. #}
+{% set soy_cliente = current_user.rol == 'cliente' %}
+{% for m in mensajes %}
+{# En una interna todos son de Yikon: a la derecha lo tuyo, a la izquierda lo de los demás #}
+{% set propia = (m.autor_id == current_user.id) if m.interno else (m.de_cliente == soy_cliente) %}
+<div class="burbuja {{ 'propia' if propia else 'ajena' }}{{ ' mia' if m.autor_id == current_user.id }}" data-id="{{ m.id }}" id="m{{ m.id }}">
+  <div class="burbuja-autor">{{ m.autor.nombre }}
+    <span class="text-muted">· {{ m.autor.rol_nombre if m.interno else (m.cliente.nombre if m.de_cliente else 'Yikon Genomics') }}</span></div>
+  {% if m.texto %}<div class="burbuja-texto">{{ m.texto }}</div>{% endif %}
+  {% for a in m.adjuntos %}
+  <a class="burbuja-adjunto" href="{{ url_for('mensajes.descargar_adjunto', adjunto_id=a.id) }}">
+    <i class="fas fa-paperclip" aria-hidden="true"></i> {{ a.nombre_original }} <span class="text-muted">({{ a.tamano_legible }})</span></a>
+  {% endfor %}
+  <div class="burbuja-hora">{{ m.fecha|fecha_hora }}</div>
+  {# Conversación general (privada con el Soporte de cliente): compartir con Logística. El cliente no ve nada de esto #}
+  {% if not soy_cliente and not m.interno and not m.pedido_id %}
+    {% if m.compartido_el %}
+    <div class="burbuja-compartido"><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartido con Logística') }}{% if m.compartido_por %} · {{ m.compartido_por.nombre }}{% endif %}
+      {% if m.compartido_nota %}<div class="fst-italic">«{{ m.compartido_nota }}»</div>{% endif %}</div>
+    {% elif current_user.puede('mensajes.compartir') %}
+    <details class="burbuja-compartir"><summary><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartir con Logística') }}</summary>
+      <form method="post" action="{{ url_for('mensajes.compartir', mensaje_id=m.id) }}" class="mt-1">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="visually-hidden" for="nota-{{ m.id }}">{{ _('Nota para Logística (opcional)') }}</label>
+        <input class="form-control form-control-sm mb-1" id="nota-{{ m.id }}" name="nota" maxlength="500" placeholder="{{ _('Nota para Logística (opcional)') }}">
+        <button class="btn btn-sm btn-outline-secondary">{{ _('Compartir') }}</button>
+      </form></details>
+    {% endif %}
+  {% endif %}
+</div>
+{% endfor %}

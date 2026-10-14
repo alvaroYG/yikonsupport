@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import estado_pedido, estado_factura, lote_caducidad %}
+{% block contenido %}
+{# En el móvil, quien prepara los paquetes va directo a lo suyo #}
+{% if current_user.puede('pedidos.fotos.subir') %}
+<a href="{{ url_for('pedidos.preparar') }}" class="btn btn-primary btn-lg w-100 mb-3 d-md-none">
+  <i class="fas fa-camera me-2"></i>{{ _('Preparar pedidos') }}{% if avisos.preparar %} ({{ avisos.preparar }}){% endif %}</a>
+{% endif %}
+{# Aviso para clientes (Administración → Ajustes → General): uno solo, en su idioma. Al cerrarlo no
+   vuelve a salir hasta que admin cambie el texto (app/aviso_clientes.py) #}
+{% if aviso_clientes %}
+<div class="aviso-clientes mb-3" role="status">
+  <i class="fas fa-bullhorn aviso-clientes-icono" aria-hidden="true"></i>
+  <div class="aviso-clientes-texto">{{ aviso_clientes.texto }}</div>
+  <form method="post" action="{{ url_for('main.cerrar_aviso') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="huella" value="{{ aviso_clientes.huella }}">
+    <button class="btn-close" aria-label="{{ _('Cerrar el aviso') }}" title="{{ _('Cerrar el aviso') }}"></button>
+  </form>
+</div>
+{% endif %}
+{# Cabecera de la página: saludo a la izquierda, acción principal a la derecha #}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-0">{{ _('Hola, %(nombre)s', nombre=current_user.nombre.split()[0]) }}</h1>
+    {% if current_user.rol == 'cliente' and current_user.empresa %}
+    {# El contacto del cliente va aquí, en la cabecera: siempre a la vista y sin gastar una casilla #}
+    <div class="text-muted" id="contacto-yikon">{{ current_user.empresa.nombre }}
+      {% if contactos %}· {{ _('Tu contacto en Yikon:') }}
+        {% for u in contactos %}<strong class="text-body" title="{{ u.email }}">{{ u.nombre }}</strong>{{ ', ' if not loop.last }}{% endfor %}{% endif %}
+      {# Abre directamente la conversación general con su responsable (lo de un pedido se escribe en el pedido) #}
+      {% if current_user.puede('mensajes.enviar') %}· <a href="{{ url_for('mensajes.conversacion', cliente_id=current_user.empresa.id) }}">{% if contactos|length == 1 %}{{ _('Escribir a %(nombre)s →', nombre=contactos[0].nombre.split()[0]) }}{% else %}{{ _('Escribir a tu contacto →') }}{% endif %}</a>{% endif %}</div>
+    {% endif %}
+  </div>
+  {% if current_user.rol == 'cliente' %}
+  <a href="{{ url_for('pedidos.nuevo') }}" class="btn btn-primary"
+     data-bs-toggle="modal" data-bs-target="#modal-pedido"><i class="fas fa-plus me-1"></i> {{ _('Hacer un pedido') }}</a>
+  {% elif current_user.puede('pedidos.crear') %}
+  <a href="{{ url_for('pedidos.nuevo') }}" class="btn btn-primary"
+     data-bs-toggle="modal" data-bs-target="#modal-pedido"><i class="fas fa-plus me-1"></i> {{ _('Hacer un pedido') }}</a>
+  {% endif %}
+</div>
+
+{% set cliente = current_user.rol == 'cliente' %}
+{# El cliente no ve tarjetas de números: ve sus pedidos en curso, su contacto y sus documentos #}
+{% if cliente %}{% include "main/_inicio_cliente.html" %}{% endif %}
+{# Yikon: mosaico con Pendientes, parados, alertas y actividad. (El cliente lleva el suyo, arriba.) #}
+{% if not cliente %}{% include "main/_inicio_yikon.html" %}{% endif %}
+
+{% endblock %}

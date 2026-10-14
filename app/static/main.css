@@ -1,0 +1,1072 @@
+/* ==========================================================================
+   Yikon Genomics PO · estilos propios
+   Base: Bootstrap 5.3 normal (vendor/bootstrap.min.css).
+   Estructura y aspecto inspirados en la plantilla "SB Admin 2" (Start Bootstrap, MIT),
+   reescritos para Bootstrap 5 y sin jQuery.
+   ========================================================================== */
+
+/* --- Tipografía local (licencia OFL). Local = no depende de Google ni de internet ---
+   Se usa la de --fuente (más abajo, en :root). Están las dos cargadas: para volver a Nunito
+   basta con cambiar "Figtree" por "Nunito" en esa línea. */
+@font-face { font-family: "Figtree"; font-weight: 400; font-display: swap; src: url("vendor/fonts/figtree-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-weight: 600; font-display: swap; src: url("vendor/fonts/figtree-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-weight: 700; font-display: swap; src: url("vendor/fonts/figtree-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-weight: 800; font-display: swap; src: url("vendor/fonts/figtree-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: "Nunito"; font-weight: 400; font-display: swap; src: url("vendor/fonts/nunito-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Nunito"; font-weight: 600; font-display: swap; src: url("vendor/fonts/nunito-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Nunito"; font-weight: 700; font-display: swap; src: url("vendor/fonts/nunito-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Nunito"; font-weight: 800; font-display: swap; src: url("vendor/fonts/nunito-latin-800-normal.woff2") format("woff2"); }
+
+/* --- Paleta. Pensada para daltonismo: azul / naranja / marrón / gris, SIEMPRE con texto o icono --- */
+:root {
+  --marca: #a61c92;         /* color corporativo Yikon */
+  --marca-oscuro: #8a1679;  /* hover / pulsado */
+  --marca-profundo: #5e1053;/* final del degradado del menú */
+  /* Colores del logotipo (solo decorativos: nunca transmiten información por sí solos) */
+  --logo-rosa: #e3006d;
+  --logo-turquesa: #00abb7;
+  --logo-marino: #1d3f8f;
+  --ok: #1f6fb2;            /* azul */
+  --pendiente: #b35c00;     /* naranja oscuro */
+  --alerta: #7a3e00;        /* marrón, siempre con icono ⚠ */
+  --neutro: #6c757d;
+  --fondo: #f8f9fc;
+  --texto: #3a3b45;
+  --texto-suave: #858796;
+  --borde: #e3e6f0;
+
+  --ancho-menu: 14rem;
+  --ancho-menu-plegado: 6.5rem;
+
+  --fuente: "Figtree";      /* la tipografía de toda la plataforma: "Figtree" o "Nunito" */
+  --bs-body-font-family: var(--fuente), -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bs-body-font-size: .9375rem;
+  --bs-body-line-height: 1.55;
+  --bs-body-color: var(--texto);
+  --bs-link-color-rgb: 166, 28, 146;
+  --bs-link-hover-color-rgb: 138, 22, 121;
+}
+body { background: var(--fondo); }
+.bg-marca { background: var(--marca); }
+.text-marca { color: var(--marca) !important; }
+.est-ok { background: var(--ok); }
+.est-pendiente { background: var(--pendiente); }
+.est-alerta { background: var(--alerta); }
+.est-neutro { background: var(--neutro); }
+/* --- Estados de los pedidos ---
+   Tonos pastel: fondo suave (--e), texto e icono en el mismo color pero oscuro (--t, contraste
+   ≥ 5,5:1) y un borde fino algo más intenso (--b). Los fondos se eligieron con un script para que
+   se distingan lo máximo posible entre sí con visión normal Y con deuteranopia (simulación de
+   Machado 2009), sin salir de los pasteles; "Aceptado" lleva el morado Yikon.
+   Siempre van con su icono y su nombre. --k = "tinta" para usar sobre blanco (tarjetas del inicio). */
+:root {
+  --e-proforma_solicitada: #c9e9fb; --t-proforma_solicitada: #0a527b; --b-proforma_solicitada: #71c5f4;
+  --e-proforma_enviada: #c1caf7;    --t-proforma_enviada: #0f2075;    --b-proforma_enviada: #778bee;
+  --e-cambios_solicitados: #fadcc6; --t-cambios_solicitados: #7a3a0b; --b-cambios_solicitados: #f3a972;
+  --e-aceptado: #edbde4;            --t-aceptado: #8a1679;            --b-aceptado: #de87ce;
+  --e-en_preparacion: #f9fed1;      --t-en_preparacion: #5d6808;      --b-en_preparacion: #e8f76e;
+  --e-en_validacion: #e5cefb;       --t-en_validacion: #440a7b;       --b-en_validacion: #b472f3;
+  --e-validado: #c3f5dc;            --t-validado: #11693d;            --b-validado: #7ce9b3;
+  --e-enviado: #dde1ee;             --t-enviado: #1e2f67;             --b-enviado: #8c9ed9;
+  --e-entregado: #d6d6d6;           --t-entregado: #424242;           --b-entregado: #a8a8a8;
+  --e-cancelado: #f7f7f7;           --t-cancelado: #5c5c5c;             --b-cancelado: #d1d1d1;
+  /* el cliente ve "En preparación" (clave "preparacion"): mismo color */
+  --e-preparacion: var(--e-en_preparacion); --t-preparacion: var(--t-en_preparacion); --b-preparacion: var(--b-en_preparacion);
+  /* tinta de las tarjetas del inicio = el tono oscuro de cada estado */
+  --k-proforma_solicitada: var(--t-proforma_solicitada); --k-aceptado: var(--t-aceptado);
+  --k-en_preparacion: var(--t-en_preparacion); --k-enviado: var(--t-enviado); --k-entregado: var(--t-entregado);
+}
+.est-estado { font-weight: 700; border: 1px solid transparent; }
+.est-estado i { margin-right: .3em; }
+.est-proforma_solicitada { background: var(--e-proforma_solicitada); color: var(--t-proforma_solicitada); border-color: var(--b-proforma_solicitada); }
+.est-proforma_enviada { background: var(--e-proforma_enviada); color: var(--t-proforma_enviada); border-color: var(--b-proforma_enviada); }
+.est-cambios_solicitados { background: var(--e-cambios_solicitados); color: var(--t-cambios_solicitados); border-color: var(--b-cambios_solicitados); }
+.est-aceptado { background: var(--e-aceptado); color: var(--t-aceptado); border-color: var(--b-aceptado); }
+.est-en_preparacion, .est-preparacion { background: var(--e-en_preparacion); color: var(--t-en_preparacion); border-color: var(--b-en_preparacion); }
+.est-en_validacion { background: var(--e-en_validacion); color: var(--t-en_validacion); border-color: var(--b-en_validacion); }
+.est-validado { background: var(--e-validado); color: var(--t-validado); border-color: var(--b-validado); }
+.est-enviado { background: var(--e-enviado); color: var(--t-enviado); border-color: var(--b-enviado); }
+.est-entregado { background: var(--e-entregado); color: var(--t-entregado); border-color: var(--b-entregado); }
+.est-cancelado { background: var(--e-cancelado); color: var(--t-cancelado); border-color: var(--b-cancelado); }
+/* Tarjetas del inicio con el color de su estado (la "tinta", legible sobre blanco) */
+.tarjeta-resumen.color-e-proforma_solicitada { --color: var(--k-proforma_solicitada); }
+.tarjeta-resumen.color-e-aceptado { --color: var(--k-aceptado); }
+.tarjeta-resumen.color-e-en_preparacion { --color: var(--k-en_preparacion); }
+.tarjeta-resumen.color-e-enviado { --color: var(--k-enviado); }
+.tarjeta-resumen.color-e-entregado { --color: var(--k-entregado); }
+.leyenda-estados { display: flex; flex-wrap: wrap; gap: .35rem; }
+.ref-interna { background: var(--marca); font-weight: 700; letter-spacing: .02em; }
+.foto-pedido { height: 140px; width: auto; max-width: 220px; object-fit: cover; }
+
+/* ==========================================================================
+   1. ESTRUCTURA: menú lateral + zona de contenido
+   ========================================================================== */
+.envoltorio { display: flex; min-height: 100vh; background: var(--marca-profundo); }  /* el fondo continúa el menú en páginas largas */
+.zona-contenido { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--fondo); }  /* min-width:0 → las tablas anchas no rompen el diseño */
+.contenido { flex: 1; width: 100%; max-width: 1480px; margin: 0 auto; padding: 1.75rem 1.75rem 2.5rem; }
+
+/* --- Menú lateral --- */
+.menu-lateral {
+  width: var(--ancho-menu); flex-shrink: 0;
+  background: linear-gradient(180deg, var(--marca) 10%, var(--marca-profundo) 100%);
+  display: flex; flex-direction: column; padding-bottom: 1rem;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;   /* se queda fijo al hacer scroll */
+  transition: width .15s ease;
+}
+.menu-marca {
+  display: flex; align-items: center; justify-content: center; gap: .6rem;
+  height: 4.375rem; padding: 0 1rem; color: #fff; text-decoration: none;
+  font-weight: 800; font-size: .95rem; letter-spacing: .03em; text-transform: uppercase;
+}
+.menu-marca:hover { color: #fff; }
+.menu-marca-icono {
+  width: 2.6rem; height: 2.6rem; border-radius: 50%; background: #fff; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .18);
+}
+.menu-marca-icono img { height: 1.75rem; width: auto; }
+.menu-marca small { font-weight: 800; opacity: .75; }
+.menu-separador { margin: 0 1rem .5rem; border-top: 1px solid rgba(255, 255, 255, .22); opacity: 1; }
+.menu-titulo {
+  padding: .25rem 1rem .35rem; color: rgba(255, 255, 255, .6);
+  font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+}
+.menu-enlace {
+  display: flex; align-items: center; gap: .6rem; padding: .7rem 1rem;
+  color: rgba(255, 255, 255, .82); text-decoration: none; font-weight: 600; font-size: .9rem;
+  border-left: 3px solid transparent;
+}
+.menu-enlace i { font-size: .9rem; opacity: .7; }
+.menu-enlace:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+.menu-enlace:hover i { opacity: 1; }
+/* Página actual: texto blanco, negrita y raya a la izquierda (no depende solo del color) */
+.menu-enlace.active { color: #fff; font-weight: 800; border-left-color: #fff; background: rgba(255, 255, 255, .1); }
+.menu-enlace.active i { opacity: 1; }
+.menu-contador {
+  margin-left: auto; background: #fff; color: var(--marca-oscuro);
+  font-size: .7rem; font-weight: 800; border-radius: 999px; padding: .1rem .5rem;
+}
+/* --- Secciones plegables del menú (app/navegacion.py) ---
+   Cabecera = botón (se usa con teclado); la sección abierta se ve como un "panel" más oscuro,
+   con sus enlaces sangrados. Con la sección cerrada, sus avisos se suman en la cabecera. */
+.menu-seccion-cabecera {
+  display: flex; align-items: center; gap: .6rem; width: 100%; padding: .7rem 1rem;
+  background: transparent; border: 0; border-left: 3px solid transparent; text-align: left;
+  color: rgba(255, 255, 255, .82); font-weight: 700; font-size: .9rem;
+}
+.menu-seccion-cabecera > i.fa-fw { font-size: .9rem; opacity: .7; }
+.menu-seccion-cabecera:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+.menu-seccion-cabecera:hover > i.fa-fw { opacity: 1; }
+.menu-seccion-cabecera:focus-visible, .menu-enlace:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+/* Contiene la página actual: blanco y con la raya a la izquierda (no solo color) */
+.menu-seccion-cabecera.contiene-actual { color: #fff; }
+.menu-seccion-cabecera.contiene-actual.collapsed { border-left-color: rgba(255, 255, 255, .6); }
+.menu-seccion-titulo { flex: 1; min-width: 0; }
+.menu-seccion-flecha { font-size: .65rem; opacity: .6; transition: transform .2s ease; }
+.menu-seccion-cabecera[aria-expanded="true"] .menu-seccion-flecha { transform: rotate(180deg); opacity: .9; }
+.menu-seccion-cabecera[aria-expanded="true"] .menu-contador-seccion { display: none; }   /* ya se ven en los enlaces */
+.menu-contador-seccion + .menu-seccion-flecha { margin-left: .1rem; }
+.menu-seccion-enlaces { background: rgba(0, 0, 0, .12); margin: 0 .6rem .35rem; border-radius: .6rem; padding: .2rem 0; overflow: hidden; }
+.menu-subenlace { padding: .55rem .9rem .55rem 1.7rem; font-size: .86rem; }
+.menu-subenlace.active { background: rgba(255, 255, 255, .14); }
+@media (prefers-reduced-motion: reduce) {
+  .menu-seccion-flecha, .menu-lateral .collapsing { transition: none; }
+}
+
+.menu-plegar {
+  align-self: center; width: 2.5rem; height: 2.5rem; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .2); color: #fff; align-items: center; justify-content: center;
+}
+.menu-plegar:hover { background: rgba(255, 255, 255, .3); }
+.menu-plegar::after { content: "\2039"; font-size: 1.4rem; line-height: 1; margin-top: -.15rem; }   /* ‹ */
+
+/* --- Menú plegado (solo iconos, texto pequeño debajo) --- */
+.menu-plegado .menu-lateral { width: var(--ancho-menu-plegado); }
+.menu-plegado .menu-marca-texto { display: none; }
+.menu-plegado .menu-titulo { text-align: center; padding-left: .25rem; padding-right: .25rem; font-size: .58rem; letter-spacing: .02em; }
+.menu-plegado .menu-enlace { flex-direction: column; gap: .25rem; text-align: center; font-size: .68rem; padding: .75rem .25rem; position: relative; }
+.menu-plegado .menu-enlace i { font-size: 1rem; }
+.menu-plegado .menu-contador { position: absolute; top: .35rem; right: .9rem; margin: 0; }
+.menu-plegado .menu-plegar::after { content: "\203A"; }   /* › */
+.menu-plegado .menu-seccion-cabecera { flex-direction: column; gap: .25rem; text-align: center; font-size: .68rem; padding: .75rem .25rem; position: relative; }
+.menu-plegado .menu-seccion-cabecera > i.fa-fw { font-size: 1rem; }
+.menu-plegado .menu-seccion-flecha { font-size: .55rem; }
+.menu-plegado .menu-seccion-enlaces { margin: 0 .35rem .35rem; }
+.menu-plegado .menu-subenlace { padding: .6rem .25rem; }
+
+/* En móvil el menú empieza estrecho; el botón ☰ lo oculta del todo */
+@media (max-width: 767.98px) {
+  .menu-lateral { width: var(--ancho-menu-plegado); }
+  .menu-marca-texto { display: none; }
+  .menu-titulo { text-align: center; font-size: .58rem; letter-spacing: .02em; padding: .25rem; }
+  .menu-enlace { flex-direction: column; gap: .25rem; text-align: center; font-size: .68rem; padding: .75rem .25rem; position: relative; }
+  .menu-contador { position: absolute; top: .35rem; right: .9rem; margin: 0; }
+  .menu-seccion-cabecera { flex-direction: column; gap: .25rem; text-align: center; font-size: .68rem; padding: .75rem .25rem; position: relative; }
+  .menu-seccion-cabecera > i.fa-fw { font-size: 1rem; }
+  .menu-seccion-flecha { font-size: .55rem; }
+  .menu-seccion-enlaces { margin: 0 .35rem .35rem; }
+  .menu-subenlace { padding: .6rem .25rem; }
+  .menu-plegado .menu-lateral { width: 0; overflow: hidden; }
+  .contenido { padding: 1.25rem 1rem 2rem; }
+}
+
+/* --- Barra superior --- */
+.barra-superior {
+  height: 4.375rem; background: #fff; display: flex; align-items: center; gap: 1rem;
+  padding: 0 1.75rem; box-shadow: 0 .15rem 1.75rem 0 rgba(58, 59, 69, .1);
+  position: sticky; top: 0; z-index: 1010;
+}
+.barra-derecha { list-style: none; display: flex; align-items: center; gap: .5rem; margin: 0 0 0 auto; padding: 0; height: 100%; }
+.barra-derecha > li { height: 100%; display: flex; align-items: center; }
+.barra-boton {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 2.6rem; height: 2.6rem; border-radius: 50%; color: #b7b9cc; font-size: 1.05rem; text-decoration: none;
+}
+.barra-boton:hover { color: var(--texto-suave); background: var(--fondo); }
+.barra-contador {
+  position: absolute; top: .15rem; right: .05rem; background: var(--pendiente); color: #fff;
+  font-size: .65rem; font-weight: 800; border-radius: 999px; padding: .12rem .38rem; line-height: 1.2;
+}
+.barra-divisor { width: 0; height: 2.4rem !important; border-right: 1px solid var(--borde); margin: auto .5rem; }
+.barra-usuario { display: flex; align-items: center; gap: .75rem; color: var(--texto); text-decoration: none; font-size: .88rem; }
+.barra-usuario:hover { color: var(--texto); }
+.avatar {
+  width: 2.3rem; height: 2.3rem; border-radius: 50%; flex-shrink: 0;
+  background: var(--marca); color: #fff; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.dropdown-menu { font-size: .88rem; border: 1px solid var(--borde); border-radius: .5rem; }
+.dropdown-header { background: var(--marca); color: #fff; font-weight: 800; text-transform: uppercase; font-size: .7rem; letter-spacing: .06em; border-radius: .45rem .45rem 0 0; margin-top: -.5rem; padding: .75rem 1rem; }
+.desplegable-avisos { width: 20rem; padding-bottom: 0; overflow: hidden; }
+.aviso { display: flex; gap: .8rem; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--borde); white-space: normal; }
+.aviso-icono { width: 2.4rem; height: 2.4rem; border-radius: 50%; color: #fff; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+
+.pie { padding: 1.5rem; text-align: center; font-size: .8rem; color: var(--texto-suave); background: #fff; border-top: 1px solid var(--borde); }
+
+/* --- Pantalla de login (sin sesión): fondo con degradado corporativo --- */
+/* Fondo de curvas corporativo; si no carga, queda blanco */
+body.sin-sesion { background: #fff url("img/fondo-login.jpg") center / cover no-repeat fixed; min-height: 100vh; }
+.contenido-login { padding: 1rem; }
+.login-caja { max-width: 400px; margin: 12vh auto; border: 0; border-radius: 1rem; box-shadow: 0 1rem 3rem rgba(94, 16, 83, .18) !important; }
+.login-caja .card-body { padding: 2.5rem !important; }
+.login-caja h1 { color: var(--marca); font-weight: 800; text-align: center; }
+.login-logo { margin: 0 0 1.75rem; display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+.login-logo img { width: 210px; max-width: 80%; height: auto; }
+.login-logo span { font-size: .78rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .18em; }
+/* Selector de idioma en las pantallas sin sesión (arriba a la derecha) */
+.idioma-flotante { position: fixed; top: 1rem; right: 1rem; z-index: 10; }
+.idioma-flotante .btn { background: rgba(255, 255, 255, .7); }
+body.sin-sesion .contenido-login > .alert { max-width: 400px; margin: 1rem auto -8vh; }
+
+/* ==========================================================================
+   2. COMPONENTES
+   ========================================================================== */
+/* --- Títulos de página --- */
+h1.h3, .h3 { font-size: 1.6rem; font-weight: 700; color: #5a5c69; letter-spacing: -.01em; }
+h1 .badge { font-size: .8rem; vertical-align: middle; }
+.h5 { font-size: 1.02rem; font-weight: 800; margin-bottom: .9rem; }
+
+/* --- Tarjetas: sin borde, con sombra --- */
+.card { border: 1px solid var(--borde); border-radius: .6rem; box-shadow: 0 .15rem 1.75rem 0 rgba(58, 59, 69, .08); }
+.card-body { padding: 1.35rem 1.5rem; }
+.card-header {
+  background: var(--fondo); border-bottom: 1px solid var(--borde); padding: .9rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.card-header:first-child { border-radius: .6rem .6rem 0 0; }
+.card-header .h5, .card-header h2 { margin: 0; font-size: .95rem; font-weight: 800; color: var(--marca); }
+/* Dentro de una tarjeta la tabla va de borde a borde */
+.card-body > .table:last-child { margin-bottom: 0; }
+.tabla-inicio td { white-space: nowrap; }            /* filas de una sola línea: más limpio */
+.tabla-inicio th { max-width: 9rem; }
+.card-body.p-0 > .table th:first-child, .card-body.p-0 > .table td:first-child,
+.card-body.p-0 > .table-responsive > .table th:first-child { padding-left: 1.5rem; }
+.card-body.p-0 > .table th:last-child, .card-body.p-0 > .table td:last-child { padding-right: 1.5rem; }
+
+/* --- Tarjetas de resumen (inicio): raya de color a la izquierda + icono grande --- */
+.tarjeta-resumen { border-left: .3rem solid var(--color, var(--marca)); height: 100%; }
+.tarjeta-resumen .card-body { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.35rem; }
+.tarjeta-resumen .etiqueta {
+  color: var(--color, var(--marca)); text-transform: uppercase; letter-spacing: .05em;
+  font-size: .72rem; font-weight: 800; margin-bottom: .25rem;
+}
+.tarjeta-resumen .valor { font-size: 1.6rem; font-weight: 800; color: #5a5c69; line-height: 1.1; }
+.tarjeta-resumen .icono { font-size: 2rem; color: #dddfeb; }
+.tarjeta-resumen.color-marca { --color: var(--marca); }
+.tarjeta-resumen.color-ok { --color: var(--ok); }
+.tarjeta-resumen.color-pendiente { --color: var(--pendiente); }
+.tarjeta-resumen.color-alerta { --color: var(--alerta); }
+.tarjeta-resumen.color-neutro { --color: #5a5c69; }
+a.tarjeta-enlace { text-decoration: none; display: block; height: 100%; }
+a.tarjeta-enlace:hover .card { box-shadow: 0 .3rem 2rem 0 rgba(58, 59, 69, .16); }
+
+/* --- Tablas: aire, cabeceras discretas, cifras alineadas --- */
+.table { font-size: .9rem; --bs-table-bg: transparent; --bs-table-color: var(--texto); }
+.table > :not(caption) > * > * { padding: .72rem .8rem; }
+.table thead th {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--texto-suave); font-weight: 800; border-bottom: 1px solid var(--borde); vertical-align: bottom;
+}
+.table td.num, .table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table.bg-white { border-radius: .6rem; overflow: hidden; box-shadow: 0 0 0 1px var(--borde), 0 .15rem 1.75rem 0 rgba(58, 59, 69, .08); }
+.table-hover > tbody > tr:hover > * { --bs-table-bg-state: #faf3f9; }   /* hover con un toque de marca */
+
+/* --- Etiquetas de estado (llevan texto/icono: no dependen del color) --- */
+.badge { font-weight: 700; font-size: .74rem; padding: .42em .75em; border-radius: 999px; letter-spacing: .01em; }
+
+/* --- Botones con el color corporativo (Bootstrap 5.3 usa variables CSS por botón) --- */
+.btn { font-size: .9rem; font-weight: 600; padding: .5rem 1rem; border-radius: .45rem; }
+.btn-sm { font-size: .8rem; padding: .3rem .7rem; }
+.btn-lg { font-size: 1.05rem; padding: .7rem 1.4rem; }
+.btn-primary {
+  --bs-btn-bg: var(--marca); --bs-btn-border-color: var(--marca);
+  --bs-btn-hover-bg: var(--marca-oscuro); --bs-btn-hover-border-color: var(--marca-oscuro);
+  --bs-btn-active-bg: var(--marca-oscuro); --bs-btn-active-border-color: var(--marca-oscuro);
+  --bs-btn-disabled-bg: var(--marca); --bs-btn-disabled-border-color: var(--marca);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--marca); --bs-btn-border-color: var(--marca);
+  --bs-btn-hover-bg: var(--marca); --bs-btn-hover-border-color: var(--marca);
+  --bs-btn-active-bg: var(--marca-oscuro); --bs-btn-active-border-color: var(--marca-oscuro);
+}
+.btn-outline-secondary {
+  --bs-btn-color: #4b5563; --bs-btn-border-color: #9ca3af;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #4b5563; --bs-btn-hover-border-color: #4b5563;
+}
+
+/* --- Formularios --- */
+.form-label { font-size: .85rem; font-weight: 700; color: #4e5160; margin-bottom: .35rem; }
+.form-control, .form-select { font-size: .92rem; padding: .5rem .8rem; border-color: #d1d3e2; border-radius: .45rem; }
+.form-control-sm, .form-select-sm { font-size: .85rem; padding: .35rem .65rem; }
+/* Los desplegables necesitan hueco a la derecha para la flecha (si no, el texto pasa por debajo) */
+.form-select { padding-right: 2.25rem; }
+.form-select-sm { padding-right: 2rem; }
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+  border-color: var(--marca); box-shadow: 0 0 0 .2rem rgba(166, 28, 146, .2);
+}
+.form-check-input:checked { background-color: var(--marca); border-color: var(--marca); }
+.page-item.active .page-link { background-color: var(--marca); border-color: var(--marca); }
+
+/* --- Avisos y ventanas --- */
+.alert { font-size: .92rem; border-radius: .6rem; }
+.modal-content { border-radius: .8rem; border: 0; box-shadow: 0 20px 50px rgba(16, 24, 40, .25); }
+.modal-header, .modal-footer { padding: 1rem 1.5rem; }
+.modal-body { padding: 1.25rem 1.5rem; }
+/* Ventana con scroll por dentro (modal-dialog-scrollable) cuyo contenido va dentro de un
+   <form>: Bootstrap solo sabe hacer scroll si cabecera, cuerpo y pie son hijos directos de
+   .modal-content. El form se pone en medio, así que le pasamos esa misma organización
+   (columna flexible que no crece más que la ventana). Resultado: la cabecera y el botón
+   "Enviar pedido" se quedan siempre visibles y solo se desplaza el cuerpo. */
+.modal-dialog-scrollable .modal-content > form {
+  display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; max-height: 100%; overflow: hidden;
+}
+.modal-dialog-scrollable .modal-content > form > .modal-body { overflow-y: auto; }
+
+/* ==========================================================================
+   3. ESTÉTICA "LIQUID GLASS" (inspirada en Apple)
+   Idea: superficies translúcidas que difuminan lo que tienen detrás
+   (backdrop-filter), un borde claro que simula el canto del cristal y un
+   brillo en la parte superior. Para que el cristal "se note" hace falta algo
+   detrás: un fondo suave con manchas de los colores del logo.
+   Todo lo de este bloque se puede borrar y la web vuelve al estilo anterior.
+   ========================================================================== */
+:root {
+  --vidrio: rgba(255, 255, 255, .58);          /* relleno de las tarjetas */
+  --vidrio-fuerte: rgba(255, 255, 255, .78);   /* ventanas, menús desplegables */
+  --vidrio-borde: rgba(255, 255, 255, .75);    /* el "canto" del cristal */
+  --vidrio-desenfoque: blur(22px) saturate(170%);
+  --vidrio-sombra: 0 8px 32px rgba(94, 16, 83, .10), 0 1px 2px rgba(94, 16, 83, .06);
+  --vidrio-brillo: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(255, 255, 255, .25);
+}
+
+/* --- Fondo: manchas difuminadas con los colores del logo, fijas al hacer scroll --- */
+body.con-menu {
+  background:
+    radial-gradient(40rem 30rem at 8% 0%,   rgba(227, 0, 109, .16), transparent 70%),
+    radial-gradient(38rem 32rem at 100% 12%, rgba(0, 171, 183, .16), transparent 70%),
+    radial-gradient(44rem 36rem at 70% 100%, rgba(166, 28, 146, .16), transparent 70%),
+    radial-gradient(30rem 26rem at 0% 100%,  rgba(29, 63, 143, .10), transparent 70%),
+    #f4f1f6;
+  background-attachment: fixed;
+}
+.envoltorio, .zona-contenido { background: transparent; }
+
+/* --- La "receta" del cristal, aplicada a todas las superficies --- */
+.card, .table.bg-white, .dropdown-menu, .modal-content, .pie {
+  background: var(--vidrio) !important;
+  -webkit-backdrop-filter: var(--vidrio-desenfoque);
+  backdrop-filter: var(--vidrio-desenfoque);
+  border: 1px solid var(--vidrio-borde);
+  box-shadow: var(--vidrio-brillo), var(--vidrio-sombra);
+}
+.card { border-radius: 1.1rem; }
+.card-header { background: rgba(255, 255, 255, .35); border-bottom-color: rgba(255, 255, 255, .6); }
+.card-header:first-child { border-radius: 1.1rem 1.1rem 0 0; }
+.table.bg-white { border-radius: 1.1rem; box-shadow: var(--vidrio-brillo), var(--vidrio-sombra); }
+.table > :not(caption) > * > * { border-bottom-color: rgba(58, 59, 69, .08); }
+.table-hover > tbody > tr:hover > * { --bs-table-bg-state: rgba(166, 28, 146, .06); }
+.tarjeta-resumen { border-left-width: .3rem; border-left-color: var(--color, var(--marca)); }
+a.tarjeta-enlace .card { transition: transform .15s ease, box-shadow .15s ease; }
+a.tarjeta-enlace:hover .card { transform: translateY(-2px); box-shadow: var(--vidrio-brillo), 0 14px 40px rgba(94, 16, 83, .16); }
+
+/* --- Barra superior: flota sobre el contenido (se ve difuminado al hacer scroll) ---
+   OJO: el cristal va en una capa aparte (::before) y NO en la barra misma.
+   Si la barra tuviera backdrop-filter, su menú desplegable (que va dentro)
+   solo podría difuminar lo que hay dentro de la barra y dejaría ver sin
+   difuminar lo que tiene debajo (p. ej. el botón "Nuevo pedido"). */
+.barra-superior {
+  margin: 0 .75rem; border-radius: 0 0 1.1rem 1.1rem; height: 4.25rem;
+  background: none; box-shadow: none; isolation: isolate;
+}
+.barra-superior::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  /* capa 1: línea fina con los colores del logo arriba · capa 2: el cristal */
+  background: linear-gradient(90deg, var(--logo-rosa), var(--marca) 45%, var(--logo-marino) 80%, var(--logo-turquesa)) top / 100% 3px no-repeat,
+              rgba(255, 255, 255, .68);
+  -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--vidrio-borde); border-top: 0;
+  box-shadow: var(--vidrio-brillo), var(--vidrio-sombra);
+}
+/* Los desplegables, casi opacos: se leen bien encima de cualquier cosa */
+.dropdown-menu { background: rgba(255, 255, 255, .92) !important; }
+.pie { margin: 0 .75rem .75rem; border-radius: 1.1rem; }
+
+/* --- Menú lateral: panel flotante de cristal magenta --- */
+.menu-lateral {
+  margin: .75rem 0 .75rem .75rem; height: calc(100vh - 1.5rem); top: .75rem; border-radius: 1.4rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 30%),   /* brillo superior */
+    linear-gradient(180deg, rgba(176, 20, 140, .88) 0%, rgba(94, 16, 83, .92) 100%);
+  -webkit-backdrop-filter: var(--vidrio-desenfoque);
+  backdrop-filter: var(--vidrio-desenfoque);
+  border: 1px solid rgba(255, 255, 255, .28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 10px 40px rgba(94, 16, 83, .28);
+}
+.menu-separador { border-top-color: rgba(255, 255, 255, .18); }
+/* Página actual: "pastilla" de cristal claro (más negrita + raya: no depende solo del color) */
+.menu-enlace { margin: .1rem .6rem; border-radius: .8rem; padding: .6rem .8rem; }
+.menu-enlace.active {
+  background: rgba(255, 255, 255, .2); border-left-color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.menu-plegado .menu-enlace { margin: .1rem .4rem; }
+/* Cabeceras de sección con la misma forma que los enlaces (alineadas con ellos) */
+.menu-seccion-cabecera { margin: .1rem .6rem; width: calc(100% - 1.2rem); border-radius: .8rem; padding: .6rem .8rem; }
+.menu-seccion-enlaces .menu-enlace { margin: .1rem .35rem; }
+.menu-seccion-enlaces .menu-subenlace { padding-left: 1.3rem; }
+.menu-plegado .menu-seccion-cabecera { margin: .1rem .4rem; width: calc(100% - .8rem); }
+.menu-plegado .menu-seccion-enlaces .menu-subenlace { padding-left: .25rem; }
+.menu-marca { font-size: .82rem; gap: .55rem; padding: 0 .75rem; letter-spacing: .02em; white-space: nowrap; }
+@media (max-width: 767.98px) {
+  .menu-lateral { margin: .5rem 0 .5rem .5rem; height: calc(100vh - 1rem); top: .5rem; }
+  .menu-enlace { margin: .1rem .35rem; }
+  .menu-seccion-cabecera { margin: .1rem .35rem; width: calc(100% - .7rem); }
+  .menu-seccion-enlaces .menu-subenlace { padding-left: .25rem; }
+  .menu-plegado .menu-lateral { margin: 0; border: 0; }
+  .barra-superior { margin: 0 .5rem; padding: 0 .75rem; gap: .5rem; }
+  .barra-derecha { gap: .25rem; margin-left: auto; }
+}
+
+/* --- Botones: cristal tintado con brillo --- */
+.btn-primary {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, 0));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 4px 14px rgba(166, 28, 146, .30);
+  border-radius: .75rem;
+}
+.btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 6px 18px rgba(166, 28, 146, .38); }
+.btn-outline-primary, .btn-outline-secondary {
+  --bs-btn-bg: rgba(255, 255, 255, .5);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-radius: .75rem;
+}
+.btn-sm { border-radius: .6rem; }
+
+/* --- Campos de formulario: cristal más opaco para que el texto se lea perfecto --- */
+.form-control, .form-select {
+  background-color: rgba(255, 255, 255, .72); border-color: rgba(58, 59, 69, .14); border-radius: .7rem;
+}
+.form-control:focus, .form-select:focus { background-color: #fff; }
+
+/* --- Ventanas, desplegables y avisos --- */
+.modal-content { background: var(--vidrio-fuerte) !important; border-radius: 1.2rem; }
+.dropdown-menu { border-radius: 1.2rem; }
+.modal-backdrop.show { opacity: 1; background: rgba(40, 10, 36, .28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.dropdown-header { border-radius: 1.1rem 1.1rem 0 0; }
+.alert { border-radius: 1rem; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-width: 1px; }
+.badge { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25); }
+.avatar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 2px 8px rgba(166, 28, 146, .35); }
+
+/* --- Login: tarjeta de cristal sobre el fondo de curvas --- */
+body.sin-sesion .login-caja {
+  background: rgba(255, 255, 255, .62) !important; border-radius: 1.6rem;
+  border: 1px solid rgba(255, 255, 255, .8);
+  box-shadow: inset 0 1px 0 #fff, 0 20px 60px rgba(94, 16, 83, .25) !important;
+}
+
+/* --- Accesibilidad y navegadores antiguos ---
+   Quien tenga activado "reducir transparencia" en su sistema, o un navegador
+   sin backdrop-filter, ve superficies blancas opacas (misma estructura). */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card, .table.bg-white, .dropdown-menu, .modal-content, .pie,
+  body.sin-sesion .login-caja, .barra-superior::before { background: rgba(255, 255, 255, .96) !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .card, .table.bg-white, .dropdown-menu, .modal-content, .pie,
+  body.sin-sesion .login-caja, .barra-superior::before { background: #fff !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .menu-lateral { background: linear-gradient(180deg, var(--marca), var(--marca-profundo)); }
+}
+
+/* --- Lotes en inventario --- */
+.lote-fila { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .1rem 0; }
+.lote-codigo { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 600; font-size: .8rem;
+  background: rgba(166, 28, 146, .08); color: var(--marca-oscuro); border-radius: .4rem; padding: .05rem .4rem; }
+
+/* --- Seguimiento del envío (ficha del pedido) --- */
+.seguimiento { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .35rem; font-size: .9rem;
+  background: rgba(31, 111, 178, .08); border: 1px solid rgba(31, 111, 178, .2); border-radius: .7rem; padding: .35rem .75rem; }
+
+/* --- Historial del pedido (línea de tiempo) --- */
+.historial { list-style: none; margin: 0; padding: 0; position: relative; }
+.historial::before { content: ""; position: absolute; left: 1rem; top: .5rem; bottom: .5rem; width: 2px; background: rgba(166, 28, 146, .18); }
+.historial li { position: relative; display: flex; gap: .85rem; padding: .45rem 0; }
+.historial-icono { position: relative; z-index: 1; flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; font-size: .8rem;
+  background: #fff; color: var(--texto-suave); border: 1px solid var(--borde); }
+.historial li.es-estado .historial-icono { background: var(--marca); color: #fff; border-color: var(--marca); }
+
+/* --- Estadísticas: gráficos de barras hechos con CSS ---
+   Barras finas con la punta redondeada (4px) y 2px de separación; una sola serie
+   por gráfico en el color corporativo; el valor siempre escrito (no solo el color). */
+.grafico-meses { display: flex; align-items: stretch; gap: 2px; height: 230px; }
+.gm-col { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.gm-valor { font-size: .68rem; font-weight: 700; color: var(--texto); white-space: nowrap; line-height: 1.3; }
+.gm-barra-zona { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  border-bottom: 1px solid var(--borde); }
+.gm-barra { width: min(70%, 28px); background: var(--marca); border-radius: 4px 4px 0 0; min-height: 0; transition: opacity .15s; }
+.gm-col:hover .gm-barra { opacity: .75; }
+.gm-mes { font-size: .68rem; color: var(--texto-suave); text-align: center; line-height: 1.2; margin-top: .3rem; text-transform: capitalize; }
+.gm-mes span { font-weight: 700; }
+.gh-fila { display: grid; grid-template-columns: minmax(0, 38%) 1fr auto; align-items: center; gap: .6rem; padding: .3rem 0; }
+.gh-etiqueta { font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gh-zona { height: 14px; background: rgba(58, 59, 69, .05); border-radius: 4px; overflow: hidden; }
+.gh-barra { height: 100%; background: var(--marca); border-radius: 0 4px 4px 0; }
+.gh-fila:hover .gh-barra { opacity: .75; }
+.gh-valor { font-size: .85rem; font-weight: 700; text-align: right; min-width: 4.5rem; }
+
+/* --- Pedido por kits (ventana de nuevo pedido) --- */
+.kit-bloque { border: 1px solid var(--borde); border-radius: .9rem; padding: .75rem .9rem; margin-bottom: .6rem;
+  background: rgba(255, 255, 255, .55); }
+.kit-cabecera { display: flex; gap: .5rem; align-items: center; }
+.kit-select { flex: 1; min-width: 0; }
+.kit-numero { width: 11rem; flex-shrink: 0; }
+.kit-componentes { margin-top: .5rem; }
+.componente { display: grid; grid-template-columns: 1fr auto 6.5rem; gap: .6rem; align-items: center;
+  padding: .3rem .25rem; border-top: 1px dashed rgba(58, 59, 69, .12); }
+.componente-nombre { display: flex; align-items: center; margin: 0; font-size: .9rem; cursor: pointer; }
+.componente.quitado .componente-nombre { text-decoration: line-through; color: var(--texto-suave); }
+.componente.quitado .componente-por-kit { visibility: hidden; }
+
+/* --- Tabla del pedido con kits --- */
+.tabla-pedido .fila-kit-pedido > td { background: rgba(166, 28, 146, .05); border-top: 2px solid rgba(166, 28, 146, .15); }
+.tabla-pedido .fila-componente > td { font-size: .86rem; padding-top: .35rem; padding-bottom: .35rem; color: #4e5160; }
+.tabla-pedido .fila-separador > td { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--texto-suave); padding-top: 1rem; }
+.input-precio { width: 7.5rem; margin-left: auto; }
+.input-cantidad { width: 5.5rem; margin-left: auto; }
+
+/* ==========================================================================
+   Mensajes (conversación del pedido y conversación general del cliente)
+   Tu lado va a la derecha y tintado de magenta; el otro, a la izquierda y blanco.
+   El color no es la única pista: posición y nombre del autor también lo dicen.
+   ========================================================================== */
+.conversacion-mensajes { max-height: 28rem; overflow-y: auto; padding: .25rem .25rem .75rem;
+  display: flex; flex-direction: column; gap: .6rem; }
+.burbuja { max-width: min(38rem, 85%); padding: .55rem .85rem; border-radius: 1rem;
+  background: rgba(255, 255, 255, .85); border: 1px solid var(--borde); align-self: flex-start;
+  border-bottom-left-radius: .3rem; }
+.burbuja.propia { align-self: flex-end; background: rgba(166, 28, 146, .09); border-color: rgba(166, 28, 146, .25);
+  border-bottom-left-radius: 1rem; border-bottom-right-radius: .3rem; }
+.burbuja.mia { background: rgba(166, 28, 146, .14); }
+.burbuja-autor { font-size: .78rem; font-weight: 700; margin-bottom: .1rem; }
+.burbuja-autor .text-muted { font-weight: 400; }
+.burbuja-texto { white-space: pre-wrap; overflow-wrap: anywhere; }   /* respeta los saltos de línea */
+.burbuja-hora { font-size: .72rem; color: var(--texto-suave); text-align: right; margin-top: .15rem; }
+.conversacion-form { border-top: 1px solid var(--borde); padding-top: .85rem; margin-top: .25rem; }
+.conversacion-form textarea { resize: vertical; min-height: 4.5rem; }
+.lista-conversaciones .conversacion-fila.sin-leer { border-left: 4px solid var(--marca); background: rgba(166, 28, 146, .04); }
+.lista-conversaciones .conversacion-fila.sin-leer strong { color: var(--marca-oscuro); }
+.burbuja-adjunto { display: block; font-size: .85rem; margin-top: .3rem; overflow-wrap: anywhere; }
+
+/* Pestañas (p. ej. Inventario: Productos / Kits) con el color de la marca */
+.nav-tabs .nav-link { color: var(--marca); }
+.nav-tabs .nav-link:hover { color: var(--marca-oscuro); }
+.nav-tabs .nav-link.active { color: var(--texto); font-weight: 600; }
+/* Catálogo del cliente */
+.tabla-catalogo td:last-child { min-width: 11rem; }
+
+/* Proforma en la ficha del pedido */
+.tarjeta-proforma.destacada { border-left: 4px solid var(--marca); }
+.tabla-proforma .fila-grupo td { background: rgba(166, 28, 146, .07); font-weight: 700; font-size: .85rem; }
+
+/* Interruptor sí/no (p. ej. "Ve precios" en Clientes). Con texto: el color no es la única pista. */
+.interruptor { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid var(--borde); border-radius: 2rem;
+  padding: .15rem .6rem .15rem .2rem; background: #fff; color: var(--texto-suave); font-weight: 600; line-height: 1.2; }
+.interruptor-bola { width: 1.05rem; height: 1.05rem; border-radius: 50%; background: var(--neutro); transition: transform .15s; }
+.interruptor.activo { background: rgba(166, 28, 146, .1); border-color: var(--marca); color: var(--marca-oscuro); }
+.interruptor.activo .interruptor-bola { background: var(--marca); }
+.interruptor:focus-visible { outline: 2px solid var(--marca); outline-offset: 2px; }
+
+/* Filtros de la lista de pedidos: una sola línea en pantallas anchas; en estrechas, varias */
+.filtros-linea { display: flex; flex-wrap: wrap; gap: .5rem; align-items: flex-end; }
+.filtros-linea .filtro { flex: 1 1 9rem; min-width: 0; }
+.filtros-linea .filtro-corto { flex: 0 0 6.5rem; }
+.filtros-linea .filtro-fecha { flex: 0 0 8.6rem; }
+.filtros-linea .filtro-botones { display: flex; gap: .35rem; flex: 0 0 auto; }
+.filtros-linea label { white-space: nowrap; }
+@media (min-width: 1200px) {
+  .filtros-linea { flex-wrap: nowrap; }
+  .filtros-linea .filtro:not(.filtro-corto):not(.filtro-fecha) { flex-basis: 0; }
+}
+
+/* Inicio: con 5 o 6 tarjetas en una línea, más compactas para que quepan */
+@media (min-width: 1200px) {
+  .fila-tarjetas.n-5 .tarjeta-resumen .card-body, .fila-tarjetas.n-6 .tarjeta-resumen .card-body { padding: 1rem 1rem; gap: .5rem; }
+  .fila-tarjetas.n-6 .tarjeta-resumen .icono { font-size: 1.5rem; }
+  .fila-tarjetas.n-6 .tarjeta-resumen .etiqueta { font-size: .68rem; }
+}
+
+/* ===================== Vista de móvil "Preparar" =====================
+   Para quien hace los paquetes con el móvil: sin menú lateral en pantallas
+   pequeñas, tarjetas a todo el ancho y botones grandes (fáciles de pulsar). */
+.preparar { max-width: 40rem; margin: 0 auto; padding-bottom: 6rem; }   /* hueco para el botón fijo */
+.preparar-tarjeta { transition: transform .1s ease; }
+.preparar-tarjeta:active { transform: scale(.98); }
+.preparar-revisar { border-left: .35rem solid var(--bs-warning, #f6c23e); }
+.preparar-check {
+  display: flex; align-items: flex-start; gap: .75rem; padding: .6rem .25rem;
+  border-bottom: 1px solid rgba(58, 59, 69, .08); cursor: pointer;
+}
+.preparar-check .form-check-input { width: 1.5rem; height: 1.5rem; flex: none; margin-top: .1rem; }
+/* marcado: tachado y atenuado (además del tick, no depende del color) */
+.preparar-check:has(input:checked) > span { text-decoration: line-through; opacity: .55; }
+.preparar-fotos { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.preparar-foto { position: relative; aspect-ratio: 1; }
+.preparar-foto img { width: 100%; height: 100%; object-fit: cover; border-radius: .6rem; }
+.preparar-quitar {
+  position: absolute; top: .25rem; right: .25rem; width: 2rem; height: 2rem; border: 0; border-radius: 50%;
+  background: rgba(0, 0, 0, .6); color: #fff; display: flex; align-items: center; justify-content: center;
+}
+.preparar-boton { padding-top: .9rem; padding-bottom: .9rem; }
+.preparar-boton.disabled { pointer-events: none; opacity: .6; }
+.preparar-pie {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1020; padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, .85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -.25rem 1rem rgba(58, 59, 69, .12);
+}
+.preparar-pie form { max-width: 40rem; margin: 0 auto; }
+@media (min-width: 768px) {
+  /* en ordenador el pie va dentro de la zona de contenido, no encima del menú */
+  .preparar-pie { position: sticky; background: transparent; box-shadow: none; backdrop-filter: none; padding: 0; margin-top: 1rem; }
+  .preparar { padding-bottom: 1rem; }
+}
+@media (max-width: 767.98px) {
+  .vista-movil .menu-lateral, .vista-movil .barra-superior [data-plegar-menu] { display: none; }
+  .vista-movil .contenido { padding: 1rem .75rem 2rem; }
+}
+
+
+/* ===================== Chat interno del pedido (admin ↔ logistics) =====================
+   A propósito distinto de los mensajes con el cliente: barra azul marino, fondo gris-azulado
+   y burbujas sin el magenta. Plegado arriba de la ficha. */
+.chat-interno { border-radius: 1rem; overflow: hidden; border: 1px solid #1f3a5f;
+  box-shadow: 0 .35rem 1.2rem rgba(31, 58, 95, .15); }
+.chat-interno-barra { width: 100%; display: flex; align-items: center; gap: .25rem; border: 0;
+  background: #1f3a5f; color: #fff; padding: .7rem 1.1rem; text-align: left; font-size: .95rem; }
+.chat-interno-barra:hover, .chat-interno-barra:focus-visible { background: #274a78; }
+.chat-interno-quien { color: #c9d4e6; font-size: .85rem; }
+.chat-interno-nuevos { background: #fff; color: #1f3a5f; font-weight: 800; }
+.chat-interno-flecha { transition: transform .2s ease; }
+.chat-interno-barra:not(.collapsed) .chat-interno-flecha { transform: rotate(180deg); }
+.chat-interno-cuerpo { background: #eef2f8; padding: .9rem 1.1rem 1rem; }
+.chat-interno .conversacion-mensajes { max-height: 18rem; }
+.chat-interno .burbuja { background: #fff; border-color: #c7d2e3; }
+.chat-interno .burbuja.propia, .chat-interno .burbuja.mia { background: #dde6f3; border-color: #a9b9d3; }
+.chat-interno .conversacion-form { border-top-color: #c7d2e3; }
+.chat-interno .btn-primary { background: #1f3a5f; border-color: #1f3a5f; background-image: none;
+  box-shadow: 0 4px 14px rgba(31, 58, 95, .25); }
+.chat-interno .btn-primary:hover { background: #274a78; border-color: #274a78; }
+
+/* ===================== Soporte ChromGo (tickets) =====================
+   Estados con la misma paleta pastel que los pedidos (probada con deuteranopía),
+   siempre con icono y texto: el color nunca va solo. */
+.tk-abierto { background: var(--e-proforma_solicitada); color: var(--t-proforma_solicitada); border-color: var(--b-proforma_solicitada); }
+.tk-en_curso { background: var(--e-en_preparacion); color: var(--t-en_preparacion); border-color: var(--b-en_preparacion); }
+.tk-esperando_cliente { background: var(--e-proforma_enviada); color: var(--t-proforma_enviada); border-color: var(--b-proforma_enviada); }
+.tk-resuelto { background: var(--e-validado); color: var(--t-validado); border-color: var(--b-validado); }
+.tk-cerrado { background: var(--e-entregado); color: var(--t-entregado); border-color: var(--b-entregado); }
+.aviso-icono.tk-abierto { border: 1px solid var(--b-proforma_solicitada); }
+/* Prioridad: de menos a más "peso" visual (borde, negrita y relleno), además del icono ↓ – ↑ ⇈ */
+.prio { font-weight: 600; border: 1px solid transparent; }
+.prio i { margin-right: .3em; }
+.prio-baja { background: #fff; color: #5c5c5c; border-color: #d1d1d1; font-weight: 500; }
+.prio-normal { background: #f3f3f3; color: #424242; border-color: #bdbdbd; }
+.prio-alta { background: var(--e-cambios_solicitados); color: var(--t-cambios_solicitados); border-color: var(--b-cambios_solicitados); font-weight: 700; }
+.prio-urgente { background: var(--alerta); color: #fff; border-color: var(--alerta); font-weight: 800; }
+.opcion-prioridad { margin-bottom: .35rem; }
+.opcion-prioridad .badge { min-width: 5.5rem; text-align: left; margin-right: .35rem; }
+.tabla-tickets tr.sin-leer td:first-child { box-shadow: inset 4px 0 0 var(--marca); }
+.contador-soporte:hover { border-color: var(--marca); }
+.burbuja-sistema { align-self: center; text-align: center; font-size: .8rem; color: #555; background: #f3f3f3;
+  border: 1px dashed #c9c9c9; border-radius: 1rem; padding: .2rem .8rem; margin: .35rem auto; max-width: 90%; }
+.datos-ticket dt { font-weight: 600; color: #555; }
+.datos-ticket dd { margin-bottom: .45rem; }
+
+/* ===================== Documentos internos ===================== */
+.carpetas-documentos .list-group-item.active { background: var(--marca); border-color: var(--marca); }
+.carpetas-documentos .list-group-item.active .badge { background: #fff !important; color: var(--marca) !important; }
+.tarjeta-documento-vista { display: flex; align-items: center; justify-content: center; flex-direction: column;
+  height: 9rem; background: #f6f3f6; border-bottom: 1px solid #eee; color: var(--marca); text-decoration: none;
+  border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0; overflow: hidden; }
+.tarjeta-documento-vista i { font-size: 2.6rem; }
+.tarjeta-documento-vista img { max-width: 90%; max-height: 8rem; object-fit: contain;
+  /* fondo a cuadros: se ven también los logos blancos o con transparencia */
+  background: repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 16px 16px; }
+.tarjeta-documento-ext { font-size: .75rem; font-weight: 700; color: #666; margin-top: .3rem; letter-spacing: .05em; }
+.texto-2-lineas { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.documento-vista-grande { width: 9rem; height: 9rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  background: #f6f3f6; border-radius: .75rem; color: var(--marca); overflow: hidden; }
+.documento-vista-grande i { font-size: 3rem; }
+.documento-vista-grande img { max-width: 100%; max-height: 9rem; object-fit: contain;
+  background: repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 16px 16px; }
+.roles-ayuda dt { color: var(--marca); }
+.roles-ayuda dd { margin-bottom: .6rem; }
+
+/* Catálogo: flecha de "Ver contenido" del kit (apunta arriba cuando está abierto) */
+.boton-contenido-kit { text-decoration: none; font-size: .82rem; }
+.boton-contenido-kit i { transition: transform .2s ease; }
+.boton-contenido-kit:not(.collapsed) i { transform: rotate(180deg); }
+
+/* Envío: reparto por lotes en la ventana de confirmación de stock */
+.reparto-lote { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .15rem 0; }
+.reparto-lote input { width: 4.5rem; text-align: right; flex-shrink: 0; }
+.reparto-estado { color: var(--t-validado); font-weight: 600; margin-top: .15rem; }
+.reparto-estado.reparto-mal { color: var(--alerta); }
+
+/* Lotes reservados para un pedido (tarjeta "Lotes de este pedido" e Inventario) */
+.est-reservado { background: #ece4f3; color: #4a2a6b; border: 1px solid #c9b3de; font-weight: 600; }
+.tabla-lotes-pedido .campo-lote { width: 5rem; text-align: right; }
+.tabla-lotes-pedido tbody + tbody { border-top: 2px solid var(--borde); }
+.tabla-lotes-pedido .celda-articulo { vertical-align: top; min-width: 12rem; }
+.tabla-lotes-pedido .fila-estado-lotes td { border-bottom: 0; padding-top: 0; }
+.reparto-estado.reparto-pendiente { color: #7a5200; }
+
+/* ¿Dónde está este lote? */
+.rastreo-cifra { background: #f6f3f6; border-radius: .6rem; padding: .45rem .5rem; }
+.lote-codigo-campo { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .02em; }
+
+/* ===================== Buscador global (barra superior) ===================== */
+.buscador-global { position: relative; flex: 1 1 22rem; max-width: 30rem; min-width: 0; }
+.buscador-global .form-control { padding-left: 2.2rem; padding-right: 2.2rem; border-radius: 999px; background: #f6f3f6; border-color: transparent; }
+.buscador-global .form-control:focus { background: #fff; border-color: var(--marca); }
+.buscador-lupa { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: #8a8a8a; pointer-events: none; font-size: .85rem; }
+.buscador-atajo { position: absolute; right: .7rem; top: 50%; transform: translateY(-50%); background: #fff; color: #777; border: 1px solid #ddd; font-size: .7rem; padding: .05rem .35rem; }
+.buscador-global .form-control:focus ~ .buscador-atajo { display: none !important; }
+.buscador-panel { position: absolute; top: calc(100% + .4rem); left: 0; right: 0; z-index: 1050; background: #fff; border: 1px solid #e3dce2;
+  border-radius: .9rem; box-shadow: 0 .8rem 2.2rem rgba(58, 59, 69, .22); max-height: min(70vh, 32rem); overflow-y: auto; padding: .35rem 0; min-width: 18rem; }
+.buscador-grupo-titulo { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--marca); padding: .5rem .9rem .2rem; }
+.buscador-grupo-titulo i { margin-right: .35rem; }
+.buscador-resultado, .buscador-todos { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .4rem .9rem; color: inherit; text-decoration: none; border-left: 3px solid transparent; }
+.buscador-resultado-texto { min-width: 0; }
+.buscador-resultado-titulo { display: block; font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.buscador-resultado-sub { display: block; font-size: .78rem; color: #6c6c6c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Resultado elegido con las flechas o el ratón: fondo + raya a la izquierda (no solo color) */
+.buscador-resultado:hover, .buscador-resultado.activo, .buscador-todos:hover, .buscador-todos.activo { background: #f7e8f5; border-left-color: var(--marca); color: inherit; }
+.buscador-todos { border-top: 1px solid #eee; margin-top: .3rem; font-size: .85rem; font-weight: 600; color: var(--marca); }
+.buscador-vacio { padding: .9rem; color: #6c6c6c; font-size: .9rem; }
+@media (max-width: 575.98px) { .buscador-global { flex-basis: 8rem; } .buscador-panel { position: fixed; left: .5rem; right: .5rem; top: 4.6rem; } }
+
+/* ---------- Ficha del pedido: dos columnas de secciones plegables ----------
+   Izquierda (ancha) lo que es el pedido; derecha (estrecha) lo de consulta.
+   Por debajo de 1200 px se apilan en una sola columna. Plantilla: pedidos/detalle.html,
+   macro `seccion` en _macros.html, comportamiento en js/ficha_pedido.js */
+.ficha-columnas { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1rem; align-items: start; }
+.ficha-principal, .ficha-lateral { display: flex; flex-direction: column; gap: .75rem; min-width: 0; }
+@media (max-width: 1199.98px) { .ficha-columnas { grid-template-columns: minmax(0, 1fr); } }
+
+.seccion-ficha { background: #fff; border: 1px solid var(--borde); border-radius: 1rem; scroll-margin-top: 5.5rem; }
+.seccion-ficha.destacada { border-color: var(--marca); box-shadow: inset 4px 0 0 var(--marca); }
+.seccion-cab-h { margin: 0; font-size: 1rem; }
+.seccion-cab { width: 100%; display: flex; align-items: center; gap: .5rem; min-height: 3rem; padding: .6rem 1rem;
+  border: 0; background: none; color: inherit; text-align: left; border-radius: 1rem; }
+.seccion-cab:hover { background: #faf5fa; }
+.seccion-cab:focus-visible { outline: 2px solid var(--marca); outline-offset: -2px; }
+.seccion-icono { color: var(--marca); width: 1.1rem; text-align: center; flex-shrink: 0; }
+.seccion-titulo { font-weight: 800; white-space: nowrap; }
+.seccion-contador { background: #4a2a6b; color: #fff; }
+.seccion-resumen { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: #6a5f70; font-size: .85rem; font-weight: 400; margin-left: .35rem; }
+.seccion-flecha { color: #6a5f70; flex-shrink: 0; transition: transform .2s ease; }
+.seccion-cab:not(.collapsed) .seccion-flecha { transform: rotate(180deg); }
+.seccion-cuerpo { padding: .25rem 1rem 1rem; }
+/* En el móvil el resumen baja a una segunda línea, debajo del título */
+@media (max-width: 575.98px) {
+  .seccion-cab { flex-wrap: wrap; row-gap: 0; }
+  .seccion-resumen { order: 5; flex-basis: 100%; margin-left: 1.6rem; }
+  .seccion-flecha { margin-left: auto; }
+}
+/* Filas de la columna estrecha (documentos, facturas): nombre arriba, detalles debajo */
+.doc-fila { padding: .5rem 0; border-top: 1px solid var(--borde); }
+.doc-fila:first-child { border-top: 0; padding-top: 0; }
+.doc-nombre { font-weight: 600; overflow-wrap: anywhere; }
+.ficha-lateral .chat-interno .conversacion-mensajes { max-height: 22rem; }
+.seccion-cuerpo { overflow-x: auto; }            /* una tabla ancha se desliza dentro de su sección */
+.ficha-lateral .chat-interno-barra > .chat-interno-quien { display: none; }   /* en la columna estrecha no cabe */
+@media (max-width: 1199.98px) { .ficha-lateral .chat-interno-barra > .chat-interno-quien { display: inline; } }
+
+/* Marca "nuevo": algo ha cambiado desde tu última visita (secciones de la ficha y lista de pedidos).
+   Fondo oscuro + campana + la palabra: no depende del color para entenderse. */
+.marca-nuevo { background: #1f3a5f; color: #fff; font-weight: 700; }
+a.marca-nuevo:hover { background: #274a78; color: #fff; }
+/* Pestaña de Pendientes con alguna línea con novedades: un punto del mismo color que la marca "nuevo" */
+.punto-nuevo { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: #1f3a5f; margin-right: .35rem; vertical-align: middle; }
+.pendientes-pestana.active .punto-nuevo { background: #fff; }
+
+/* Inicio: bloque "Pendientes". Los grupos se reparten en columnas según el ancho. */
+.pendientes-grupos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr)); gap: 1rem 1.5rem; }
+.pendientes-titulo { font-size: .9rem; font-weight: 800; margin: 0 0 .35rem; }
+.pendientes-titulo i { color: var(--marca); }
+.pendiente-fila { padding: .3rem 0; border-top: 1px solid var(--borde); }
+.pendiente-fila:first-child { border-top: 0; }
+
+/* ---------- Inicio del cliente: barra de pasos del pedido y documentos recientes ---------- */
+/* Mosaico: 4 columnas. La lista ocupa 3 y dos filas; a su derecha, dos casillas; debajo, una a todo el ancho.
+   Las casillas tienen altura fija (la de su fila): lo que no cabe se ve en su lista completa. */
+.mosaico { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; }
+.casilla { display: flex; flex-direction: column; min-width: 0; margin: 0; }
+.casilla > .card-body { flex: 1 1 auto; min-height: 0; }
+.casilla-lista { grid-column: span 3; grid-row: span 2; }
+.casilla-ancha { grid-column: 1 / -1; }
+.casilla-pie { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .6rem 1.5rem; border-top: 1px solid var(--borde); }
+.actividad-fila { display: flex; justify-content: space-between; gap: .75rem; padding: .4rem 0; border-top: 1px solid var(--borde); }
+.actividad-fila:first-child { border-top: 0; padding-top: 0; }
+@media (max-width: 991.98px) { .mosaico { grid-template-columns: repeat(2, minmax(0, 1fr)); } .casilla-lista { grid-column: 1 / -1; grid-row: auto; } }
+@media (max-width: 575.98px) { .mosaico { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }
+/* Pie de las listas paginadas: cuántos hay y cuántos por página, a la izquierda; las páginas, a la derecha */
+.pie-lista { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 1rem; margin-top: .75rem; }
+/* El historial de un pedido largo se recorre dentro de su sección, sin alargar la página */
+.historial { max-height: 24rem; overflow-y: auto; }
+/* Columnas de ancho fijo (menos la primera): así las barras y las etiquetas quedan alineadas de fila a fila */
+.en-curso-fila { display: grid; grid-template-columns: minmax(0, 1fr) 7rem 10.5rem; gap: .25rem .75rem; align-items: center;
+                 padding: .55rem 0; border-top: 1px solid var(--borde); }
+.en-curso-fila:first-child { border-top: 0; padding-top: 0; }
+.en-curso-fila .que { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* el contenido entero, en el title */
+.mini-pasos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+.mini-pasos i { height: 8px; border-radius: 4px; background: var(--borde); }
+/* mezcla del color de fondo y el del texto del estado: el borde solo se ve poco sobre blanco (p. ej. el amarillo) */
+.mini-pasos i.lleno { background: color-mix(in srgb, var(--relleno) 45%, var(--fondo)); }
+@media (max-width: 767.98px) {   /* móvil: una cosa debajo de otra (qué es, etiqueta, barra) */
+  .en-curso-fila { grid-template-columns: minmax(0, 1fr); }
+  .en-curso-fila .estado { order: 2; }
+  .en-curso-fila .mini-pasos { order: 3; }
+}
+.doc-reciente { display: flex; gap: .6rem; align-items: baseline; padding: .35rem 0; border-top: 1px solid var(--borde); }
+.doc-reciente:first-child { border-top: 0; }
+.doc-reciente .texto { min-width: 0; overflow-wrap: anywhere; }
+.en-curso-fila .punto { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--marca); margin-right: .4rem; vertical-align: middle; }
+.en-curso-fila .sin-punto { display: inline-block; width: .9rem; }
+.punto-leyenda { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--marca); margin-right: .35rem; }
+
+/* ---------- Inicio de Yikon: pestañas de "Pendientes", parados y alertas ---------- */
+.pendientes-pestanas { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+.pendientes-pestana { border: 1px solid var(--borde); background: transparent; border-radius: 999px; padding: .2rem .75rem; font-size: .85rem; font-weight: 700; color: #6a5f70; }
+.pendientes-pestana .cuenta { font-weight: 800; }
+.pendientes-pestana.active { background: var(--marca); border-color: var(--marca); color: #fff; }
+.pendientes-pestana:focus-visible { outline: 2px solid var(--marca); outline-offset: 2px; }
+#pendientes .pendiente-fila { display: flex; justify-content: space-between; gap: .75rem; align-items: baseline; }
+#pendientes .pendiente-fila .que { min-width: 0; overflow-wrap: anywhere; }
+.parado-fila { display: flex; justify-content: space-between; gap: .75rem; align-items: center; padding: .4rem 0; border-top: 1px solid var(--borde); }
+.parado-fila:first-child { border-top: 0; padding-top: 0; }
+.parado-fila .que { min-width: 0; overflow-wrap: anywhere; }
+/* Tira de fases: botones del color de cada estado (las clases .est-* ponen fondo, texto y borde) */
+.tira-fases { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .6rem; }
+.tira-fases .fase { display: flex; align-items: baseline; gap: .5rem; padding: .55rem .75rem; border: 1px solid; border-radius: .9rem;
+                    text-decoration: none; min-width: 0; transition: transform .15s ease, box-shadow .15s ease; }
+.tira-fases .fase:hover, .tira-fases .fase:focus-visible { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(94, 16, 83, .14); }
+.tira-fases .n { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+.tira-fases .nombre { font-weight: 700; font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pendientes .pendiente-fila .que { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.pendientes-grupo.active { display: flex; flex-direction: column; height: 100%; }
+.pendientes-pie { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-top: auto; padding-top: .75rem; }
+.pendientes-pestana.vacia:not(.active) { opacity: .65; font-weight: 600; }
+.casilla-alta { grid-row: span 2; }
+.espera-lenta { font-weight: 800; color: inherit; }
+.actividad-evento { display: flex; gap: .6rem; align-items: baseline; padding: .5rem 0; border-top: 1px solid var(--borde); }
+.actividad-evento:first-child { border-top: 0; padding-top: 0; }
+.actividad-evento > div { min-width: 0; overflow-wrap: anywhere; }
+.ajuste-fila { display: grid; grid-template-columns: minmax(0, 1fr) 8.5rem; gap: .25rem 1rem; align-items: center; padding: .5rem 0; border-top: 1px solid var(--borde); }
+.ajuste-fila:first-of-type { border-top: 0; }
+.ajuste-fila .ajuste-error { grid-column: 1 / -1; }
+.ajuste-fila-ancha { grid-template-columns: minmax(0, 1fr) 10.5rem; }
+@media (max-width: 991.98px) { .casilla-alta { grid-row: auto; grid-column: 1 / -1; } }
+
+/* ---------- Botón flotante de mensajes (Yikon) ---------- */
+.mensajes-flotante { position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 1040; display: flex; flex-direction: column; align-items: flex-end; gap: .75rem; }
+.mf-boton { position: relative; width: 3.4rem; height: 3.4rem; border-radius: 50%; border: 0; background: var(--marca); color: #fff; font-size: 1.3rem;
+            box-shadow: 0 10px 26px rgba(94, 16, 83, .38); transition: transform .15s ease; }
+.mf-boton:hover { transform: translateY(-2px); }
+.mf-boton:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px var(--marca); }
+.mf-contador { position: absolute; top: -.3rem; right: -.3rem; min-width: 1.4rem; padding: 0 .35rem; border-radius: 999px; background: #fff; color: var(--marca);
+               border: 2px solid var(--marca); font-size: .72rem; font-weight: 800; line-height: 1.15rem; }
+.mf-panel { width: 22rem; max-width: calc(100vw - 2.5rem); height: 28rem; max-height: calc(100vh - 7.5rem); background: #fff; border: 1px solid var(--borde);
+            border-radius: 1rem; box-shadow: 0 18px 48px rgba(94, 16, 83, .26); display: flex; flex-direction: column; overflow: hidden; }
+.mf-panel[hidden] { display: none; }
+.mf-cabecera { display: flex; align-items: center; gap: .5rem; background: var(--marca); color: #fff; font-weight: 800; padding: .6rem .9rem; }
+.mf-cabecera > span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-cerrar, .mf-volver { border: 0; background: transparent; color: #fff; padding: .1rem .35rem; border-radius: .4rem; }
+.mf-cerrar:focus-visible, .mf-volver:focus-visible { outline: 2px solid #fff; }
+.mf-cuerpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.mf-pestanas { display: flex; gap: .4rem; padding: .6rem .9rem .2rem; }
+.mf-conversacion { display: block; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--borde); background: transparent; padding: .5rem .9rem; }
+.mf-conversacion:hover, .mf-conversacion:focus-visible { background: #f8eef6; outline: 0; }
+.mf-conversacion .mf-titulo { display: block; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-conversacion.sin-leer .mf-titulo { font-weight: 800; }
+.mf-conversacion .punto { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--marca); margin-right: .35rem; }
+.mf-conversacion .mf-resumen { display: block; font-size: .8rem; color: #6a5f70; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-hilo { padding: .6rem .9rem; }
+.mf-mensaje { margin-bottom: .55rem; max-width: 88%; }
+.mf-mensaje.mio { margin-left: auto; text-align: right; }
+.mf-burbuja { display: inline-block; text-align: left; background: #f3ecf5; border-radius: .9rem; padding: .4rem .7rem; font-size: .88rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mf-mensaje.mio .mf-burbuja { background: var(--marca); color: #fff; }
+.mf-quien { font-size: .7rem; color: #6a5f70; }
+.mf-pie { border-top: 1px solid var(--borde); padding: .55rem .9rem; font-size: .88rem; }
+.mf-responder { display: flex; flex-wrap: wrap; gap: .5rem; align-items: flex-end; }
+.mf-responder textarea { flex: 1; min-width: 0; resize: none; max-height: 6rem; }
+@media (max-width: 575.98px) {   /* móvil: el panel ocupa la pantalla */
+  .mensajes-flotante.abierto { inset: 0; right: 0; bottom: 0; padding: .5rem; background: rgba(43, 35, 48, .35); }
+  .mensajes-flotante.abierto .mf-panel { width: 100%; max-width: none; height: auto; max-height: none; flex: 1; }
+}
+@media print { .mensajes-flotante { display: none; } }
+/* Inicio de Yikon: "Pendientes" y "Última actividad" en proporción 2 : 1 (para cambiarla, los dos números) */
+@media (min-width: 992px) {
+  .mosaico-yikon { grid-template-columns: minmax(0, 5fr) minmax(0, 2fr); }
+  .mosaico-yikon .casilla-lista { grid-column: auto; }
+}
+
+
+/* ---------- Chats de la ficha del pedido (botones de la cabecera; js/chat_pedido.js) ----------
+   Con el cliente: blanco y color de marca. Interno: cabecera oscura, fondo amarillo y borde
+   discontinuo, para que no se confunda nunca con el del cliente. */
+.boton-chat { position: relative; }
+.boton-chat-interno { border: 1px solid #3b2f40; color: #3b2f40; background: #fff; }
+.boton-chat-interno:hover, .boton-chat-interno[aria-expanded="true"] { background: #3b2f40; color: #fff; }
+.contador-chat { position: absolute; top: -.5rem; right: -.5rem; background: #1f3a5f; color: #fff; border-radius: 999px;
+  font-size: .7rem; font-weight: 800; line-height: 1.1rem; min-width: 1.1rem; padding: 0 .3rem; }
+.chat-panel { position: absolute; top: calc(100% + .25rem); right: 0; z-index: 1030; width: min(28rem, 100%);
+  max-height: 75vh; display: flex; flex-direction: column; background: var(--superficie, #fff);
+  border: 2px solid var(--marca); border-radius: 1rem; box-shadow: 0 .75rem 2rem rgba(60, 30, 60, .2); overflow: hidden; }
+.chat-panel[hidden] { display: none; }
+.chat-panel { scroll-margin-top: 6rem; }   /* al subir hasta él, que no lo tape la barra de arriba */
+.chat-panel-cab { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .6rem .9rem;
+  border-bottom: 1px solid var(--borde); }
+.chat-panel .conversacion { display: flex; flex-direction: column; min-height: 0; flex: 1; padding: .5rem .75rem .75rem; }
+.chat-panel .conversacion-mensajes { flex: 1; max-height: none; min-height: 6rem; }
+.chat-panel .conversacion-form textarea { min-height: 3.5rem; }
+.chat-panel-interno { border: 2px dashed #b8962a; background: #fff6d6; }
+.chat-panel-interno .chat-panel-cab { background: #3b2f40; color: #fff; border-bottom: 0; }
+.chat-panel-aviso { background: #fff0b3; color: #5a4500; font-size: .8rem; font-weight: 700; padding: .3rem .9rem;
+  border-bottom: 1px dashed #b8962a; }
+.chat-panel-interno .conversacion-form textarea { border-style: dashed; border-color: #b8962a; }
+.btn-interno { background: #3b2f40; color: #fff; }
+.btn-interno:hover { background: #2a2030; color: #fff; }
+.conversacion-para { color: var(--texto-suave); }
+.conversacion-para strong { color: var(--texto, inherit); }
+.deshacer-aviso { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap;
+  background: #1f3a5f; color: #fff; border-radius: .6rem; padding: .45rem .75rem; margin: .5rem .75rem 0; font-size: .9rem; }
+@media (max-width: 575.98px) {
+  .chat-panel { position: fixed; top: 4.5rem; left: .5rem; right: .5rem; width: auto; max-height: calc(100vh - 5.5rem); }
+}
+
+/* Barra "Modo pruebas · Entrar como…" (solo en desarrollo, app/pruebas) */
+.barra-pruebas { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: 1rem; padding: .45rem .8rem;
+  background: #fff6d6; color: #5a4500; border: 1px dashed #b8962a; border-radius: .75rem; font-size: .9rem; }
+.barra-pruebas select { width: auto; max-width: 100%; }
+
+/* ---------- Ajustes: pestañas y correos al cliente ---------- */
+.ajustes-nav { gap: .25rem; flex-wrap: wrap; }
+.ajustes-nav .nav-link { color: var(--marca); font-weight: 600; }
+.ajustes-nav .nav-link.active { background: var(--marca); color: #fff; }
+.texto-correo { font-size: .92rem; line-height: 1.5; }
+.datos-correo { display: flex; flex-direction: column; gap: .3rem; }
+.dato-correo { display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; }
+.dato-correo .btn { padding: .05rem .4rem; }
+.dato-correo code { color: inherit; font-size: .82rem; }
+.vista-correo { border: 1px solid var(--borde); border-radius: 1rem; overflow: hidden; background: #f6f2f7; position: sticky; top: 5.5rem; }
+.vista-correo-cab { padding: .6rem .9rem; background: var(--superficie, #fff); border-bottom: 1px solid var(--borde); }
+.vista-correo iframe { display: block; width: 100%; height: 36rem; border: 0; background: #f6f2f7; }
+.logo-correo-muestra img { max-height: 44px; width: auto; }
+.logo-correo-muestra.apagado img { opacity: .35; }
+@media (max-width: 991.98px) { .vista-correo { position: static; } }
+
+/* ---------- Ajustes: qué ve cada rol ---------- */
+.leyenda-apartados { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; }
+.tabla-apartados th[scope=row] { min-width: 16rem; max-width: 26rem; }
+.tabla-apartados thead th { white-space: nowrap; }
+.tabla-apartados .casilla-apartado { width: 1.3rem; height: 1.3rem; cursor: pointer; }
+.celda-fija { color: var(--texto-suave, #6a5f70); font-weight: 600; }
+.celda-nada { color: #b9b2bd; }
+.aviso-apartado { color: #5a4500; }
+
+/* ---------- Auditoría ---------- */
+.tabla-auditoria .objeto-auditoria { min-width: 14rem; }
+.etiqueta-nuevo { background: #e6f0fb; color: #1f3a5f; }
+
+/* ---------- Mensajes: compartir con Logística (conversación general) ---------- */
+.burbuja-compartido, .burbuja-compartir { font-size: .75rem; color: var(--texto-suave, #6a5f70); margin-top: .3rem; }
+.burbuja-compartir summary { cursor: pointer; }
+.burbuja-compartir form { max-width: 18rem; }
+
+/* ---------- Correos enviados y Estado ---------- */
+.est-correo-ok { background: #e6f0fb; color: #1f3a5f; }
+.est-correo-mal { background: #fde8d7; color: #7a3b00; }
+.texto-correo-registro { white-space: pre-wrap; font-size: .85rem; background: var(--fondo, #f6f2f7); border-radius: .5rem; padding: .75rem 1rem; }
+.tarjetas-estado { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.filas-estado { display: grid; grid-template-columns: 1fr auto; gap: .15rem 1rem; font-size: .85rem; margin: 0 0 .5rem; }
+.filas-estado dt { font-weight: 400; color: var(--texto-suave, #6a5f70); }
+.filas-estado dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ---------- Paso 92 ---------- */
+/* Aviso para clientes (Ajustes → General): franja arriba del inicio del cliente */
+.aviso-clientes { display: flex; align-items: flex-start; gap: .85rem; padding: .85rem 1rem; border-radius: .6rem;
+                  background: #fbeff9; border: 1px solid #e7b9dd; border-left: 4px solid var(--marca); color: var(--texto); }
+.aviso-clientes-icono { color: var(--marca); font-size: 1.15rem; margin-top: .15rem; }
+.aviso-clientes-texto { flex: 1; white-space: pre-line; }
+.aviso-clientes .btn-close { margin-top: .15rem; }
+/* "Ver como un usuario": franja fija arriba del contenido mientras admin ve como otro */
+.franja-ver-como { position: sticky; top: 0; z-index: 1030; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem;
+                   margin: -.25rem 0 1rem; padding: .65rem 1rem; border-radius: .6rem; color: #fff;
+                   background: repeating-linear-gradient(135deg, #3a3b45 0 14px, #474853 14px 28px); box-shadow: 0 6px 18px rgba(0, 0, 0, .18); }
+.franja-ver-como-icono { font-size: 1.4rem; }
+/* Incidencias del pedido ("Hay un problema con este pedido") */
+.incidencia { padding: .75rem 0; border-top: 1px solid var(--borde); }
+.incidencia:first-child { border-top: 0; padding-top: 0; }
+.incidencia-abierta { border-left: 3px solid var(--alerta); padding-left: .75rem; }
+.incidencia-resuelta { background: var(--fondo); border-radius: .4rem; padding: .5rem .65rem; }
+.texto-incidencia { white-space: pre-line; }
+.motivos-incidencia { display: flex; flex-wrap: wrap; gap: .4rem; }
+/* Ficha del cliente → Avisos por email */
+.tabla-avisos th[scope="col"] { font-size: .75rem; line-height: 1.2; vertical-align: bottom; }
+.tabla-avisos th[scope="col"]:not(:first-child) { width: 6.5rem; }
+.tabla-avisos td:first-child, .tabla-avisos th[scope="row"] { min-width: 11rem; }
+.tabla-avisos-separador th { border-bottom: 0; }
+/* Ficha del cliente (Yikon): franja con los datos principales y el resto en pestañas */
+.franja-cliente-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .75rem 1.5rem; align-items: start; }
+.franja-etiqueta { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); margin-bottom: .15rem; }
+.ficha-pestanas > .card-header { background: #fcfbfd; }
+.ficha-pestanas .nav-tabs .nav-link { font-weight: 500; color: var(--texto); }
+.ficha-pestanas .nav-tabs .nav-link.active { font-weight: 700; color: var(--marca-oscuro); border-bottom: 3px solid var(--marca); }
+.cuenta-pestana { background: #eceef4; color: #4a4b57; font-weight: 600; margin-left: .25rem; }
+.nav-link.active .cuenta-pestana { background: #edbde4; color: var(--marca-oscuro); }
+/* Dentro de una pestaña, las tarjetas de siempre sin marco (ya están dentro de la tarjeta de pestañas) */
+.ficha-pestanas .tab-pane > .card { border: 0; box-shadow: none; background: transparent; margin-bottom: 1.5rem !important; }
+.ficha-pestanas .tab-pane > .card:last-child { margin-bottom: 0 !important; }
+.ficha-pestanas .tab-pane > .card > .card-body { padding: 0; }

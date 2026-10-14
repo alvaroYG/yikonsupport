@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{# Modo mantenimiento (app/mantenimiento.py): lo ve todo el que no es admin #}
+{% block contenido %}
+<div class="login-caja card text-center"><div class="card-body p-4">
+  <p class="mb-2"><i class="fas fa-tools fa-2x text-marca" aria-hidden="true"></i></p>
+  <h1 class="h4">{{ _('Estamos actualizando la plataforma') }}</h1>
+  <p class="mb-3" style="white-space:pre-line">{{ mensaje or _('Volvemos en un rato. Gracias por la paciencia.') }}</p>
+  <form method="post" action="{{ url_for('auth.logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-outline-secondary btn-sm">{{ _('Salir') }}</button></form>
+</div></div>
+{% endblock %}

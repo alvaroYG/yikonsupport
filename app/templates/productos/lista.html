@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Productos') }}</h1>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('productos.kits') }}" class="btn btn-outline-secondary">{{ _('Kits') }}</a>
+    {% if current_user.puede('productos.editar') %}<a href="{{ url_for('productos.nuevo') }}" class="btn btn-primary">{{ _('+ Nuevo producto') }}</a>{% endif %}
+  </div></div>
+<form class="row g-2 mb-3"><div class="col-md-4"><input name="q" value="{{ q }}" class="form-control" placeholder="{{ _('Buscar') }}"></div>
+  <div class="col-auto"><button class="btn btn-outline-secondary">{{ _('Buscar') }}</button></div></form>
+<table class="table table-hover bg-white align-middle">
+  <thead><tr><th>{{ _('Referencia') }}</th><th>{{ _('Nombre') }}</th><th>{{ _('Marca') }}</th><th class="num">{{ _('Precio') }}</th><th class="num">{{ _('IVA') }}</th><th>{{ _('SDS') }}</th><th></th></tr></thead>
+  <tbody>{% for p in pagina.items %}
+    <tr class="{{ 'text-muted' if not p.activo }}"><td>{{ p.referencia }}</td><td>{{ p.nombre }}{% if not p.activo %} {{ _('(inactivo)') }}{% endif %}</td>
+      <td>{{ p.categoria or '—' }}</td><td class="num">{{ p.precio|euros }}</td><td class="num">{{ p.iva_pct|int }} %</td>
+      <td>{% if p.sds_archivo %}<a href="{{ url_for('productos.descargar_sds', id=p.id) }}" title="{{ p.sds_nombre }}"><i class="fas fa-file-pdf"></i> SDS</a>
+        {% else %}<span class="small text-muted">—</span>{% endif %}</td>
+      <td>{% if current_user.puede('productos.editar') %}<a href="{{ url_for('productos.editar', id=p.id) }}" class="btn btn-sm btn-outline-primary">{{ _('Editar') }}</a>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="7" class="text-muted">{{ _('No hay productos.') }}</td></tr>{% endfor %}</tbody></table>
+{{ paginacion(pagina, 'productos.lista') }}
+{% endblock %}

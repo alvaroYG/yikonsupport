@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{#
+  Resultados del buscador global, agrupados por tipo. Solo sale lo que el usuario puede ver
+  (app/buscador.py aplica los mismos permisos y alcance que cada lista).
+#}
+{% block contenido %}
+<h1 class="h3 mb-3"><i class="fas fa-search me-2 text-marca" aria-hidden="true"></i>{{ _('Buscar') }}</h1>
+<form method="get" action="{{ url_for('main.buscar') }}" class="card card-body mb-3 py-3" role="search">
+  <input type="hidden" name="lista" value="1">
+  <div class="input-group">
+    <input type="search" name="q" value="{{ q }}" class="form-control" maxlength="80" autocomplete="off" {{ 'autofocus' if not grupos }}
+           placeholder="{{ _('Referencia de pedido, cliente, lote, producto…') }}" aria-label="{{ _('Buscar') }}">
+    <button class="btn btn-primary">{{ _('Buscar') }}</button>
+  </div>
+</form>
+
+{% if corto %}
+<div class="card card-body text-muted">{{ _('Escribe al menos 2 letras o números.') }}</div>
+{% elif q and not grupos %}
+<div class="card card-body text-center text-muted py-5">
+  <i class="fas fa-search fa-2x mb-2" aria-hidden="true"></i>{{ _('Sin resultados para «%(q)s».', q=q) }}
+  <div class="small">{{ _('Prueba con parte de la referencia, del nombre o del código.') }}</div></div>
+{% endif %}
+
+<div class="row g-3">
+{% for g in grupos %}
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><h2 class="h5"><i class="fas fa-fw {{ g.icono }} me-2 text-marca" aria-hidden="true"></i>{{ g.titulo }}</h2>
+        <span class="small text-muted">{{ g.total }}</span></div>
+      <div class="list-group list-group-flush">
+        {% for r in g.resultados %}
+        <a href="{{ r.url }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-2">
+          <span class="text-truncate"><span class="fw-semibold">{{ r.titulo }}</span>
+            {% if r.subtitulo %}<span class="d-block small text-muted text-truncate">{{ r.subtitulo }}</span>{% endif %}</span>
+          {% if r.insignia %}<span class="badge text-bg-light border flex-shrink-0">{{ r.insignia }}</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+      {% if g.total > g.resultados|length and g.url_todos %}
+      <div class="card-footer bg-transparent small"><a href="{{ g.url_todos }}">{{ _('Ver los %(n)s →', n=g.total) }}</a></div>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

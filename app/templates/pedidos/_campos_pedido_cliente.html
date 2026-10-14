@@ -1,0 +1,30 @@
+{# Campos del pedido del cliente. Se usa en la página normal y en la ventana emergente. #}
+{% from "_macros.html" import campo %}
+{{ form.hidden_tag() }}
+<label class="form-label">{{ _('Kits') }} <span class="text-danger" aria-hidden="true">*</span></label>
+{% for e in form.lineas.errors if e is string %}<div class="text-danger small mb-2">✕ {{ e }}</div>{% endfor %}
+<div class="text-danger small mb-2" data-error-kits hidden>✕ {{ _('Añade al menos un kit con su cantidad.') }}</div>
+<div data-filas-kits>
+  {% for fila in form.lineas %}
+  <div class="row g-2 mb-2 fila-kit">
+    <div class="col-8">{{ fila.form.producto_id(class_="form-select", **{"aria-label": _("Kit")}) }}</div>
+    <div class="col-3">{{ fila.form.cantidad(class_="form-control", min=1, **{"aria-label": _("Cantidad")}) }}</div>
+    <div class="col-1"><button type="button" class="btn btn-outline-secondary w-100 quitar-fila" title="{{ _('Quitar este kit') }}">✕</button></div>
+  </div>
+  {% endfor %}
+</div>
+<button type="button" class="btn btn-sm btn-outline-primary mb-3" data-anadir-fila>{{ _('＋ Añadir otro kit') }}</button>
+<div class="row">
+  <div class="col-md-6">{{ campo(form.fecha) }}</div>
+  <div class="col-md-6 mb-3">
+    {# Pintado a mano (no con la macro) para controlar el mensaje de error desde JavaScript #}
+    <label class="form-label" for="referencia">{{ form.referencia.label.text }} <span class="text-danger" aria-hidden="true">*</span></label>
+    {{ form.referencia(class_="form-control" ~ (" is-invalid" if form.referencia.errors else ""),
+                       required=True, **{"aria-describedby": "referencia-ayuda referencia-error"}) }}
+    <div class="form-text" id="referencia-ayuda">{{ form.referencia.description }}</div>
+    <div class="text-danger small" id="referencia-error" data-error-referencia
+         {% if not form.referencia.errors %}hidden{% endif %}>✕ {{ form.referencia.errors[0] if form.referencia.errors
+         else _("El nº de referencia de su empresa es obligatorio.") }}</div>
+  </div>
+</div>
+{{ campo(form.documento, accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.odt,.ods,.rtf,.txt,.jpg,.jpeg,.png,.eml,.msg,.zip") }}

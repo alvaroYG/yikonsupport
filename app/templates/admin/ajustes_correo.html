@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+{# Editar un correo al cliente (o la firma) en un idioma, con la vista previa al lado.
+   Lógica: app/admin/ajustes_correos.py · Datos y textos de fábrica: app/correos_cliente.py #}
+{% block contenido %}
+{% with activa='correos' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
+<a class="small" href="{{ url_for('admin.ajustes_correos') }}"><i class="fas fa-arrow-left me-1" aria-hidden="true"></i>{{ _('Correos al cliente') }}</a>
+<h2 class="h4 mt-2 mb-1">{{ nombre }}</h2>
+{% if caso %}<p class="text-muted small mb-3">{{ _('Se envía cuando:') }} {{ caso.cuando }}</p>{% endif %}
+
+<ul class="nav nav-tabs mb-3">
+  {% for codigo, nombre_idioma in idiomas.items() %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if codigo == idioma }}" {{ 'aria-current=page' if codigo == idioma }}
+      href="{{ url_for('admin.ajustes_correo', clave=clave, idioma=codigo) }}">{{ nombre_idioma }}
+      <span class="small text-muted">· {{ _('cambiado') if otros[codigo] else _('original') }}</span></a></li>
+  {% endfor %}
+</ul>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <form method="post" id="form-correo" data-vista-url="{{ url_for('admin.ajustes_correo_vista_previa', clave=clave, idioma=idioma) }}" novalidate>
+      {{ form.hidden_tag() }}
+      <input type="hidden" name="idioma" value="{{ idioma }}">
+      <div class="alert alert-danger small {{ 'd-none' if not errores }}" id="correo-errores" role="alert">
+        <ul class="mb-0 ps-3">{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul></div>
+      {% if clave != 'firma' %}
+      <div class="mb-3">
+        <label class="form-label" for="asunto">{{ _('Asunto') }}</label>
+        <input class="form-control" id="asunto" name="asunto" value="{{ asunto }}" maxlength="200" data-campo-correo>
+      </div>
+      {% endif %}
+      <div class="mb-2">
+        <label class="form-label" for="cuerpo">{{ _('Texto') if clave != 'firma' else _('Firma') }}</label>
+        <textarea class="form-control texto-correo" id="cuerpo" name="cuerpo" rows="{{ 16 if clave != 'firma' else 7 }}" data-campo-correo>{{ cuerpo }}</textarea>
+      </div>
+      {% if datos %}
+      {% if clave in ('invitacion', 'restablecer') %}
+      <p class="small text-muted mb-2">{{ _('Los datos entre llaves se cambian por los de cada usuario. No quites {enlace_acceso}: sin él no podrá elegir su contraseña.') }}</p>
+      {% else %}
+      <p class="small text-muted mb-2">{{ _('Los datos entre llaves se cambian por los de cada pedido. Si un pedido no tiene un dato, su línea no sale; y si un párrafo se queda sin ninguno, no sale el párrafo.') }}</p>
+      {% endif %}
+      <div class="datos-correo mb-3">
+        <div class="small fw-semibold mb-1">{{ _('Datos que puedes usar (pulsa para ponerlo donde está el cursor):') }}</div>
+        {% for dato, descripcion in datos %}
+        <div class="dato-correo"><button type="button" class="btn btn-sm btn-outline-secondary" data-insertar="{{ '{' ~ dato ~ '}' }}"><code>{{ '{' ~ dato ~ '}' }}</code></button>
+          <span class="small text-muted">{{ descripcion }}</span></div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="small text-muted mb-3">{{ _('Una línea por dato: nombre, dirección, teléfono, email, web… Los enlaces (https://…) se pueden pulsar.') }}</p>
+      {% endif %}
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <button class="btn btn-primary" name="accion" value="guardar">{{ _('Guardar') }}</button>
+        <button class="btn btn-outline-primary" name="accion" value="prueba"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i>{{ _('Enviarme una prueba') }}</button>
+        {% if actual.cambiado %}
+        <button class="btn btn-outline-secondary ms-auto" name="accion" value="original"
+                data-confirmar="{{ _('¿Volver al texto original? Se pierde el texto cambiado en este idioma.') }}">{{ _('Volver al texto original') }}</button>
+        {% endif %}
+      </div>
+      {% if actual.cambiado and actual.por %}
+      <p class="small text-muted mt-2 mb-0">{{ _('Cambiado por %(quien)s el %(fecha)s.', quien=actual.por.nombre, fecha=actual.el|fecha_hora('%d/%m/%Y %H:%M')) }}</p>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="vista-correo">
+      <div class="vista-correo-cab small"><span class="text-muted">{{ _('Vista previa, con datos de ejemplo') }}</span>
+        {% if clave != 'firma' %}<div><span class="text-muted">{{ _('Asunto:') }}</span> <strong id="vista-asunto">{{ vista.asunto }}</strong></div>
+        {% else %}<div class="text-muted">{{ _('(la firma, debajo del correo «Enviado»)') }}</div>{% endif %}</div>
+      <iframe id="vista-html" title="{{ _('Vista previa del correo') }}" sandbox srcdoc="{{ vista.html }}"></iframe>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/correos_admin.js') }}"></script>
+{% endblock %}

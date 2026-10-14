@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{# Ajustes → Correos al cliente: la lista de avisos (con lo cambiado en cada idioma), la firma y el logo.
+   Lo que hay detrás: app/correos_cliente.py (CASOS) y app/admin/ajustes_correos.py #}
+{% block contenido %}
+{% with activa='correos' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
+
+{% macro idiomas_de(cambiados, clave) %}
+  {% for idioma, cambiado in cambiados.items() %}
+  <a class="btn btn-sm {{ 'btn-outline-primary' if cambiado else 'btn-outline-secondary' }} me-1 mb-1"
+     href="{{ url_for('admin.ajustes_correo', clave=clave, idioma=idioma) }}">
+    <span class="fw-bold">{{ idioma|upper }}</span> ·
+    {% if cambiado %}<i class="fas fa-pen me-1" aria-hidden="true"></i>{{ _('Cambiado') }}{% else %}{{ _('Original') }}{% endif %}</a>
+  {% endfor %}
+{% endmacro %}
+
+<div class="row g-3">
+  <div class="col-xl-8">
+    <div class="card">
+      <div class="card-header"><h2 class="h5 mb-0"><i class="fas fa-envelope me-2 text-marca" aria-hidden="true"></i>{{ _('Avisos que reciben los clientes') }}</h2></div>
+      <div class="card-body">
+        <p class="text-muted small">{{ _('Cada cliente los recibe en el idioma que tiene elegido en la plataforma. Pulsa el idioma para cambiar el texto; «Original» es el que viene con la plataforma.') }}</p>
+        <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr><th>{{ _('Correo') }}</th><th>{{ _('Cuándo se envía') }}</th><th>{{ _('Texto') }}</th></tr></thead>
+          {% for titulo, filas in grupos %}
+          <tbody>
+            <tr class="table-light"><th colspan="3" class="small text-uppercase text-muted">{{ titulo }}</th></tr>
+          {% for f in filas %}
+            <tr><td class="fw-semibold">{{ f.caso.nombre }}
+                  {% if f.tipo %}<div class="small text-muted fw-normal" title="{{ _('Tipo de aviso: cada usuario del cliente elige si lo recibe (ficha del cliente → Avisos por email)') }}"><i class="fas fa-tag me-1" aria-hidden="true"></i>{{ f.tipo }}</div>{% endif %}</td>
+                <td class="small text-muted">{{ f.caso.cuando }}</td>
+                <td class="text-nowrap">{{ idiomas_de(f.idiomas, f.clave) }}</td></tr>
+          {% endfor %}
+          </tbody>
+          {% endfor %}
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4 d-flex flex-column gap-3">
+    <div class="card">
+      <div class="card-header"><h2 class="h5 mb-0"><i class="fas fa-signature me-2 text-marca" aria-hidden="true"></i>{{ _('Firma y datos de contacto') }}</h2></div>
+      <div class="card-body">
+        <p class="text-muted small">{{ _('Va al final de todos estos correos (también la invitación y el cambio de contraseña), debajo del logo: nombre, teléfono, email, web…') }}</p>
+        {{ idiomas_de(firma, 'firma') }}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2 class="h5 mb-0"><i class="fas fa-image me-2 text-marca" aria-hidden="true"></i>{{ _('Logo') }}</h2></div>
+      <div class="card-body">
+        <div class="logo-correo-muestra mb-3 {{ 'apagado' if not con_logo }}">
+          <img src="{{ url_for('admin.ajustes_correo_logo', v=1 if logo_propio else 0) }}" alt="{{ _('Logo de los correos') }}">
+          <div class="small text-muted mt-1">{% if not con_logo %}{{ _('Desactivado: los correos salen sin logo.') }}
+            {% elif logo_propio %}{{ _('Logo subido por admin.') }}{% else %}{{ _('El logo de la plataforma.') }}{% endif %}</div>
+        </div>
+        <form method="post" action="{{ url_for('admin.ajustes_correo_guardar_logo') }}" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="con_logo" value="1" id="con_logo" {{ 'checked' if con_logo }}>
+            <label class="form-check-label" for="con_logo">{{ _('Poner el logo al final de los correos') }}</label>
+          </div>
+          <label class="form-label small" for="logo">{{ _('Usar otro logo') }}</label>
+          <input class="form-control form-control-sm" type="file" name="logo" id="logo" accept="image/png,image/jpeg,.png,.jpg,.jpeg">
+          <div class="form-text">{{ _('PNG o JPG, de 1 MB como mucho. Sale a 44 px de alto.') }}</div>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <button class="btn btn-primary btn-sm" name="accion" value="guardar">{{ _('Guardar') }}</button>
+            {% if logo_propio %}<button class="btn btn-outline-secondary btn-sm" name="accion" value="quitar_propio">{{ _('Volver al logo de la plataforma') }}</button>{% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

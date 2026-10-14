@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import lote_caducidad %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Caducidades') }}</h1>
+  <a href="{{ url_for('inventario.lista') }}" class="btn btn-outline-secondary">{{ _('← Inventario') }}</a>
+</div>
+<p class="text-muted">{{ ngettext('Lotes con stock que ya han caducado o caducan en el próximo %(num)s día.', 'Lotes con stock que ya han caducado o caducan en los próximos %(num)s días.', dias_aviso) }}
+  {{ _('Los caducados no se envían: retíralos con un ajuste negativo cuando los deseches.') }}</p>
+<table class="table bg-white align-middle">
+  <thead><tr><th>{{ _('Artículo') }}</th><th>{{ _('Lote') }}</th><th>{{ _('Caducidad') }}</th><th class="num">{{ _('Unidades') }}</th></tr></thead>
+  <tbody>{% for a in lotes_aviso %}
+    <tr><td>{{ a.lote.articulo.nombre }} <span class="small text-muted">{{ a.lote.articulo.referencia }}{{ ' · ' ~ _('kit') if a.lote.articulo.tipo_articulo == 'kit' }}</span></td>
+      <td><span class="lote-codigo">{{ a.lote.codigo }}</span></td>
+      <td>{{ lote_caducidad(a.lote, hoy_fecha(), dias_aviso) }} <span class="small text-muted">{{ a.lote.caducidad|fecha }}</span></td>
+      <td class="num fw-semibold">{{ a.unidades }}</td></tr>
+  {% else %}<tr><td colspan="4" class="text-muted">{{ _('✓ Ningún lote caducado ni a punto de caducar.') }}</td></tr>{% endfor %}</tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import lote_caducidad, estado_pedido %}
+{#
+  Qué pedidos tienen lotes apartados. Sirve para ver por qué "no queda libre" un lote y para
+  LIBERAR a mano la reserva de una proforma que el cliente no contesta.
+  Lógica: app/inventario/reservas.py (pedidos_con_reserva, se_puede_liberar)
+#}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-0"><i class="fas fa-lock me-2 text-marca" aria-hidden="true"></i>{{ _('Lotes reservados') }}</h1>
+    <div class="small text-muted">{{ _('Unidades que siguen en la oficina pero ya están apartadas para un pedido o una proforma.') }}</div>
+  </div>
+  <a href="{{ url_for('inventario.lista') }}" class="btn btn-outline-secondary">{{ _('← Inventario') }}</a>
+</div>
+
+{% if filas %}
+<div class="table-responsive"><table class="table bg-white align-middle">
+  <thead><tr><th>{{ _('Pedido') }}</th><th>{{ _('Cliente') }}</th><th>{{ _('Estado') }}</th><th>{{ _('Reservado desde') }}</th>
+    <th>{{ _('Lotes') }}</th><th class="num">{{ _('Unidades') }}</th><th></th></tr></thead>
+  <tbody>{% for f in filas %}
+    {% set p = f.pedido %}
+    <tr>
+      <td><a href="{{ url_for('pedidos.detalle', id=p.id) }}#lotes" class="fw-semibold">{{ p.referencia_interna or '#' ~ p.id }}</a></td>
+      <td>{{ p.cliente.nombre }}</td>
+      <td>{{ estado_pedido(p) }}
+        {% if p.estado == 'proforma_enviada' and p.proforma_actual %}
+        <div class="small text-muted">{{ _('Proforma válida hasta el %(fecha)s', fecha=p.proforma_actual.valida_hasta|fecha) }}
+          {% if p.proforma_actual.caducada %}<span class="badge est-alerta ms-1"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('caducada') }}</span>{% endif %}</div>{% endif %}</td>
+      <td class="text-nowrap">{{ f.desde|fecha_hora('%d/%m/%Y') }}
+        <div class="small text-muted">{{ ngettext('hace %(num)s día', 'hace %(num)s días', f.dias) if f.dias else _('hoy') }}</div></td>
+      <td class="small">{% for lote, n in f.lineas %}
+        <div class="lote-fila">{{ lote.articulo.nombre }} · <span class="lote-codigo">{{ lote.codigo }}</span> × {{ n }} {{ lote_caducidad(lote, hoy, dias_aviso) }}</div>{% endfor %}</td>
+      <td class="num fw-semibold">{{ f.unidades }}</td>
+      <td class="text-end">
+        {% if current_user.puede('inventario.editar') %}
+          {% if f.liberable %}
+          <form method="post" action="{{ url_for('inventario.liberar_reserva', pedido_id=p.id) }}"
+                onsubmit='return confirm({{ (_("¿Liberar los lotes de %(ref)s? Se retirará la proforma enviada: el cliente no podrá aceptarla hasta que le envíes otra.", ref=p.referencia_interna) if p.estado == "proforma_enviada" else _("¿Liberar los lotes de %(ref)s? Esas unidades quedarán libres para otros pedidos.", ref=p.referencia_interna))|tojson }})'>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-secondary text-nowrap"><i class="fas fa-lock-open me-1" aria-hidden="true"></i>{{ _('Liberar') }}</button>
+          </form>
+          {% else %}<span class="small text-muted" title="{{ _('El cliente ya aceptó la proforma con estas caducidades. Para soltar los lotes, cancela el pedido o rehaz la proforma.') }}"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Aprobado por el cliente') }}</span>{% endif %}
+        {% endif %}</td>
+    </tr>
+  {% endfor %}</tbody>
+</table></div>
+{% else %}
+<div class="card card-body text-center text-muted py-5">
+  <i class="fas fa-lock-open fa-2x mb-2" aria-hidden="true"></i>{{ _('No hay ningún lote reservado: todo el stock está libre.') }}
+</div>
+{% endif %}
+
+<div class="card card-body small text-muted">
+  <strong class="text-body mb-1">{{ _('¿Cómo funciona?') }}</strong>
+  {{ _('El lote de cada pedido se decide al preparar la proforma (o al crear el pedido, si lo crea Yikon) y queda reservado: ningún otro pedido puede llevárselo y al enviar salen exactamente esos lotes. La reserva se suelta sola al enviar o al cancelar el pedido. Si un cliente no contesta una proforma, libérala aquí para que ese stock vuelva a estar libre.') }}
+</div>
+{% endblock %}

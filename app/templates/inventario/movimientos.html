@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Movimientos') }}{{ ' · ' ~ producto.nombre if producto }}</h1>
+  <a href="{{ url_for('inventario.lista') }}" class="btn btn-outline-secondary">{{ _('← Inventario') }}</a>
+</div>
+{% if producto %}<p class="text-muted">{{ _('Stock actual: %(stock)s unidades', stock='<strong>%s</strong>'|safe|format(producto.stock)) }}</p>{% endif %}
+<table class="table table-sm bg-white align-middle">
+  <thead><tr><th>{{ _('Fecha') }}</th>{% if not producto %}<th>{{ _('Artículo') }}</th>{% endif %}<th>{{ _('Tipo') }}</th><th>{{ _('Lote') }}</th>
+    <th class="num">{{ _('Cantidad') }}</th><th>{{ _('Pedido') }}</th><th>{{ _('Nota') }}</th><th>{{ _('Usuario') }}</th></tr></thead>
+  <tbody>{% for m in pagina.items %}
+    <tr><td class="text-nowrap">{{ m.fecha|fecha_hora }}</td>
+      {% if not producto %}<td>{{ m.articulo.nombre }}{% if m.kit_id %} <span class="small text-muted">· {{ _('kit') }}</span>{% endif %}</td>{% endif %}
+      <td>{{ m.tipo_nombre }}</td>
+      <td>{% if m.lote %}<span class="lote-codigo">{{ m.lote.codigo }}</span>{% else %}—{% endif %}</td>
+      {# signo explícito (+/−) además del color: legible sin depender del color #}
+      <td class="num fw-semibold">{{ '%+d'|format(m.cantidad) }}</td>
+      <td>{% if m.pedido %}<a href="{{ url_for('pedidos.detalle', id=m.pedido.id) }}">{{ m.pedido.referencia_interna }}</a>{% else %}—{% endif %}</td>
+      <td class="small">{{ m.nota or '' }}</td><td class="small">{{ m.usuario.nombre if m.usuario else '—' }}</td></tr>
+  {% else %}<tr><td colspan="8" class="text-muted">{{ _('Sin movimientos todavía.') }}</td></tr>{% endfor %}</tbody>
+</table>
+{{ paginacion(pagina, 'inventario.movimientos') }}
+{% endblock %}

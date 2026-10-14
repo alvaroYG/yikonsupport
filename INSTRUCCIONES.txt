@@ -1,0 +1,1 @@
+Sustituye app/templates/clientes/detalle.html y recarga la ficha. Una tarjeta de Precios especiales con pestañas Kits y Productos sueltos. Al guardar o borrar un precio de producto se vuelve a su pestaña. No requiere migración.

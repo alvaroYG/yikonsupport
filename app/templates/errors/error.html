@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block contenido %}
+{# Tarjeta centrada: se lee bien tanto con sesión (fondo gris) como sin ella (fondo magenta) #}
+<div class="login-caja card text-center"><div class="card-body">
+  <div class="display-4 fw-bold text-marca">{{ codigo }}</div>
+  <p class="lead mb-4">{{ mensaje }}</p>
+  <a href="{{ url_for('main.inicio') }}" class="btn btn-primary">{{ _('Volver al inicio') }}</a>
+</div></div>
+{% endblock %}

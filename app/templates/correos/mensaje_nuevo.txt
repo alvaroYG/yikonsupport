@@ -1,0 +1,16 @@
+{{ _('Hola,') }}
+
+{{ _('%(quien)s ha escrito un mensaje sobre %(sobre)s:', quien=quien, sobre=sobre) }}
+
+{{ texto }}
+{% if adjuntos %}
+{{ _('Archivos adjuntos (descárguelos desde la plataforma):') }}
+{% for a in adjuntos %}- {{ a }}
+{% endfor %}{% endif %}
+{{ _('Para responder, entre en la plataforma:') }}
+{{ enlace }}
+
+{{ _('Si escriben más mensajes en esta conversación antes de que la abra, no le enviaremos otro aviso.') }}
+
+--
+Yikon Genomics España · {{ _('Este es un aviso automático, no responda a este correo.') }}

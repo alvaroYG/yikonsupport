@@ -1,0 +1,12 @@
+{{ texto }}
+{% if comentario %}
+{{ _('Comentario:') }}
+  «{{ comentario }}»
+{% endif %}{% if lineas %}
+{{ _('Contenido del pedido:') }}
+{% for k in lineas %}  - {{ k }}
+{% endfor %}{% endif %}
+{{ enlace }}
+
+--
+Yikon Genomics PO · {{ _('aviso automático') }} · {{ _('Quién recibe cada aviso lo decide admin en Ajustes → Avisos internos.') }}

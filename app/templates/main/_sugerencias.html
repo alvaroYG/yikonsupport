@@ -1,0 +1,20 @@
+{# Sugerencias del buscador global (desplegable). Lo pide static/js/buscador.js mientras se escribe.
+   Cada resultado es un enlace con role="option" para poder moverse con las flechas. #}
+{% for g in grupos %}
+<div class="buscador-grupo">
+  <div class="buscador-grupo-titulo"><i class="fas fa-fw {{ g.icono }}" aria-hidden="true"></i>{{ g.titulo }}
+    {% if g.total > g.resultados|length %}<span class="text-muted fw-normal">· {{ g.total }}</span>{% endif %}</div>
+  {% for r in g.resultados %}
+  <a class="buscador-resultado" href="{{ r.url }}" role="option">
+    <span class="buscador-resultado-texto"><span class="buscador-resultado-titulo">{{ r.titulo }}</span>
+      {% if r.subtitulo %}<span class="buscador-resultado-sub">{{ r.subtitulo }}</span>{% endif %}</span>
+    {% if r.insignia %}<span class="badge text-bg-light border">{{ r.insignia }}</span>{% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="buscador-vacio">{{ _('Sin resultados para «%(q)s».', q=q) }}</div>
+{% endfor %}
+{% if grupos %}
+<a class="buscador-todos" href="{{ url_for('main.buscar', q=q, lista=1) }}" role="option">{{ _('Ver todos los resultados') }} <span class="text-muted">↵</span></a>
+{% endif %}

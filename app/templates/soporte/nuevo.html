@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{#
+  Abrir un ticket de ChromGo. El cliente lo abre para su empresa; el equipo de soporte elige
+  para qué cliente (p. ej. si le han llamado por teléfono). Aviso de protección de datos:
+  en ChromGo hay datos de pacientes y aquí no deben entrar.
+#}
+{% block contenido %}
+<a href="{{ url_for('soporte.lista') }}" class="btn btn-link px-0 mb-2"><i class="fas fa-arrow-left me-1" aria-hidden="true"></i>{{ _('Soporte ChromGo') }}</a>
+<h1 class="h3">{{ _('Nuevo ticket de ChromGo') }}</h1>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card"><div class="card-body">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+        {% if form.cliente_id %}{{ campo(form.cliente_id) }}{% endif %}
+        {{ campo(form.asunto) }}
+        <div class="row">
+          <div class="col-md-6">{{ campo(form.categoria) }}</div>
+          <div class="col-md-6">{{ campo(form.referencia) }}</div>
+        </div>
+        <fieldset class="mb-3">
+          <legend class="form-label fs-6">{{ form.prioridad.label.text }}</legend>
+          {% for opcion in form.prioridad %}
+          <div class="form-check opcion-prioridad">
+            {{ opcion(class_="form-check-input") }}
+            <label class="form-check-label" for="{{ opcion.id }}">
+              <span class="badge prio prio-{{ opcion.data }}"><i class="fas {{ iconos_prioridad_ticket[opcion.data] }}" aria-hidden="true"></i>{{ opcion.label.text }}</span>
+              <span class="small text-muted">{{ ayuda_prioridad[opcion.data] }}</span></label>
+          </div>
+          {% endfor %}
+          {% for e in form.prioridad.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </fieldset>
+        {{ campo(form.texto, rows=7) }}
+        {{ campo(form.adjuntos) }}
+        {{ form.submit(id=False, class_="btn btn-primary") }}
+        <a href="{{ url_for('soporte.lista') }}" class="btn btn-link">{{ _('Cancelar') }}</a>
+      </form>
+    </div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="alert alert-warning">
+      <strong><i class="fas fa-user-shield me-1" aria-hidden="true"></i>{{ _('Protección de datos') }}</strong><br>
+      {{ _('No escriba nombres, fechas de nacimiento ni otros datos de pacientes. Para identificar un caso, use solo el ID de la muestra o del análisis en ChromGo.') }}
+      {{ _('Si adjunta capturas de pantalla, tape antes los datos personales.') }}
+    </div>
+    <div class="card card-body small">
+      <strong class="mb-1">{{ _('Para resolverlo antes, indíquenos:') }}</strong>
+      <ul class="mb-0 ps-3">
+        <li>{{ _('qué estaba haciendo y en qué pantalla;') }}</li>
+        <li>{{ _('el mensaje de error, tal cual (o una captura);') }}</li>
+        <li>{{ _('si le pasa siempre o solo a veces, y desde cuándo.') }}</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

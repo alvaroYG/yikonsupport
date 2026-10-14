@@ -1,0 +1,12 @@
+{{ _('Hola %(nombre)s,', nombre=nombre) }}
+
+{{ _('%(invita)s te ha dado de alta en la plataforma de pedidos de Yikon Genomics.', invita=invita) }}
+
+{{ ngettext('Para activar tu cuenta y elegir tu contraseña, abre este enlace (caduca en %(num)s día y solo sirve una vez):', 'Para activar tu cuenta y elegir tu contraseña, abre este enlace (caduca en %(num)s días y solo sirve una vez):', dias) }}
+
+{{ enlace }}
+
+{{ _('Tu usuario para entrar es tu email: %(email)s', email=email) }}
+
+--
+Yikon Genomics PO · {{ _('aviso automático') }}

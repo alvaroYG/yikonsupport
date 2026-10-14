@@ -1,0 +1,30 @@
+{{ _('Hola,') }}
+
+{% if referencia_cliente %}{{ _('Su pedido %(referencia)s (su referencia: %(referencia_cliente)s) ha cambiado de estado:', referencia=referencia, referencia_cliente=referencia_cliente) }}{% else %}{{ _('Su pedido %(referencia)s ha cambiado de estado:', referencia=referencia) }}{% endif %}
+
+    {{ estado }}
+{% if clave_estado == 'proforma_enviada' %}
+{{ _('Hemos preparado la proforma de su pedido. Puede descargarla y aceptarla (o pedirnos cambios) en la plataforma.') }}
+{% elif clave_estado == 'aceptado' and motivo == 'proforma_aceptada' %}
+{{ _('Hemos recibido su aceptación de la proforma: ya es un pedido. Le avisaremos cuando empecemos a prepararlo.') }}
+{% elif clave_estado == 'aceptado' %}
+{{ _('Hemos registrado su pedido. Le avisaremos cuando empecemos a prepararlo.') }}
+{% elif clave_estado == 'preparacion' %}
+{{ _('Estamos preparando su pedido.') }}
+{% elif clave_estado == 'enviado' %}
+{{ _('Su pedido ha salido de nuestras instalaciones.') }}{% if entrega_estimada %}
+{{ _('Fecha estimada de entrega: %(fecha)s', fecha=entrega_estimada) }}{% endif %}{% include "correos/_seguimiento.txt" %}
+{{ _('Cuando lo reciba, márquelo como «Recibido» en la plataforma (botón en la ficha del pedido).') }}
+{% elif clave_estado == 'entregado' %}
+{{ _('Su pedido consta como recibido. Gracias por su confianza.') }}
+{% elif clave_estado == 'cancelado' %}
+{{ _('Si no esperaba esta cancelación, póngase en contacto con nosotros.') }}
+{% endif %}
+{{ _('Contenido:') }}
+{% for k in kits %}  - {{ k }}
+{% endfor %}
+{{ _('Puede consultarlo en:') }}
+{{ enlace }}
+
+--
+Yikon Genomics España · {{ _('Este es un aviso automático, no responda a este correo.') }}

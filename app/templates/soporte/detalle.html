@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo, estado_ticket, prioridad_ticket %}
+{#
+  Un ticket de ChromGo. De arriba abajo:
+    - cabecera: número, asunto, estado, prioridad, tipo, cliente, ID de muestra;
+    - (equipo de soporte y FAS) notas internas desplegables, igual que en los pedidos: el cliente no las ve;
+    - la conversación con el cliente y el cuadro para responder;
+    - (equipo, a la derecha) panel para cambiar estado, prioridad, tipo y quién lo lleva;
+    - (cliente) botón "Ya está solucionado" para cerrarlo.
+#}
+{% block contenido %}
+<a href="{{ url_for('soporte.lista') }}" class="btn btn-link px-0 mb-2"><i class="fas fa-arrow-left me-1" aria-hidden="true"></i>{{ _('Soporte ChromGo') }}</a>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+  <div>
+    <div class="small text-muted fw-semibold">{{ ticket.numero }}</div>
+    <h1 class="h3 mb-2">{{ ticket.asunto }}</h1>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      {{ estado_ticket(ticket) }} {{ prioridad_ticket(ticket) }}
+      <span class="badge text-bg-light border"><i class="fas fa-tag me-1" aria-hidden="true"></i>{{ ticket.categoria_nombre }}</span>
+    </div>
+  </div>
+  {% if current_user.es_cliente and ticket.estado != 'cerrado' %}
+  <form method="post" action="{{ url_for('soporte.cerrar', id=ticket.id) }}"
+        onsubmit='return confirm({{ _("¿Cerrar el ticket? Si el problema vuelve, podrá abrir uno nuevo.")|tojson }})'>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-outline-success"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Ya está solucionado: cerrar ticket') }}</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="{{ 'col-lg-8' if yikon else 'col-12' }}">
+    {# ---------- Chat interno del equipo (desplegable) ---------- #}
+    {% if nota_form %}
+    <div class="chat-interno mb-3" id="interno">
+      <button type="button" class="chat-interno-barra {{ '' if internos_sin_leer else 'collapsed' }}" data-bs-toggle="collapse"
+              data-bs-target="#chat-interno-cuerpo" aria-expanded="{{ 'true' if internos_sin_leer else 'false' }}" aria-controls="chat-interno-cuerpo">
+        <i class="fas fa-lock me-2" aria-hidden="true"></i><strong>{{ _('Notas internas') }}</strong>
+        <span class="chat-interno-quien">· {{ _('solo Yikon (soporte y %(rol)s)', rol=rol_fas) }}</span>
+        <span class="ms-auto d-flex align-items-center gap-2">
+          {% if internos_sin_leer %}<span class="badge rounded-pill chat-interno-nuevos">{{ ngettext('%(num)s nueva', '%(num)s nuevas', internos_sin_leer) }}</span>
+          {% elif internos %}<span class="chat-interno-quien">{{ ngettext('%(num)s nota', '%(num)s notas', internos|length) }}</span>{% endif %}
+          <i class="fas fa-chevron-down chat-interno-flecha" aria-hidden="true"></i></span>
+      </button>
+      <div class="collapse {{ 'show' if internos_sin_leer or nota_form.errors }}" id="chat-interno-cuerpo">
+        <div class="chat-interno-cuerpo">
+          {% with mensajes=internos, form=nota_form, interno=True, accion=url_for('soporte.nota', id=ticket.id),
+                  url_nuevos=url_for('soporte.nuevos_internos', id=ticket.id) %}
+            {% include "soporte/_conversacion.html" %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ---------- Conversación con el cliente ---------- #}
+    <div class="card" id="conversacion">
+      <div class="card-header"><h2 class="h5"><i class="fas fa-comments me-2 text-marca" aria-hidden="true"></i>
+        {{ _('Conversación con el cliente') if yikon else _('Conversación con Soporte Yikon') }}</h2></div>
+      <div class="card-body">
+        {% with mensajes=mensajes, form=respuesta_form, interno=False, accion=url_for('soporte.responder', id=ticket.id),
+                url_nuevos=url_for('soporte.nuevos', id=ticket.id) %}
+          {% include "soporte/_conversacion.html" %}
+        {% endwith %}
+        {% if respuesta_form and yikon and not equipo %}
+        <p class="small text-muted mb-0 mt-2"><i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+          {{ _('El estado del ticket lo cambia el equipo de soporte.') }}</p>
+        {% elif not respuesta_form and yikon %}
+        <div class="alert alert-light border small mb-0 mt-3"><i class="fas fa-lock me-1" aria-hidden="true"></i>
+          {{ _('Este ticket está cerrado: solo el equipo de soporte puede reabrirlo.') }}</div>
+        {% elif not respuesta_form %}
+        <div class="alert alert-light border small mb-0 mt-3"><i class="fas fa-lock me-1" aria-hidden="true"></i>
+          {{ _('Este ticket está cerrado.') }} <a href="{{ url_for('soporte.nuevo') }}">{{ _('Abrir un ticket nuevo') }}</a></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if yikon %}
+  {# ---------- Panel del equipo (gestión solo el equipo de soporte; datos, también el FAS) ---------- #}
+  <div class="col-lg-4">
+    {% if gestion_form %}
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="h5">{{ _('Gestión') }}</h2></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('soporte.gestion', id=ticket.id) }}" novalidate>
+          {{ gestion_form.hidden_tag() }}
+          {{ campo(gestion_form.estado) }}{{ campo(gestion_form.prioridad) }}{{ campo(gestion_form.asignado_a_id) }}{{ campo(gestion_form.categoria) }}
+          {{ gestion_form.submit(id=False, class_="btn btn-primary w-100") }}
+        </form>
+        <p class="small text-muted mt-2 mb-0">{{ _('El cambio de estado lo ve el cliente (y le avisamos si pasa a «Resuelto»). Prioridad, tipo y asignación quedan en las notas internas.') }}</p>
+      </div>
+    </div>
+    {% endif %}
+    <div class="card">
+      <div class="card-header"><h2 class="h5">{{ _('Datos') }}</h2></div>
+      <div class="card-body small">
+        <dl class="row mb-0 datos-ticket">
+          <dt class="col-5">{{ _('Cliente') }}</dt><dd class="col-7">{{ ticket.cliente.nombre }}</dd>
+          <dt class="col-5">{{ _('Abierto por') }}</dt><dd class="col-7">{{ ticket.creado_por.nombre }}<br><span class="text-muted">{{ ticket.creado_por.email }}</span></dd>
+          <dt class="col-5">{{ _('Lo lleva') }}</dt><dd class="col-7">{{ ticket.asignado_a.nombre if ticket.asignado_a else '—' }}</dd>
+          <dt class="col-5">{{ _('Abierto') }}</dt><dd class="col-7">{{ ticket.creado|fecha_hora }}</dd>
+          <dt class="col-5">{{ _('ID de muestra / análisis') }}</dt><dd class="col-7">{% if ticket.referencia %}<span class="lote-codigo">{{ ticket.referencia }}</span>{% else %}—{% endif %}</dd>
+          {% if ticket.resuelto %}<dt class="col-5">{{ _('Resuelto') }}</dt><dd class="col-7">{{ ticket.resuelto|fecha_hora }}</dd>{% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 small text-muted">
+    {{ _('Abierto por %(quien)s el %(fecha)s.', quien=ticket.creado_por.nombre, fecha=ticket.creado|fecha_hora) }}
+    {% if ticket.referencia %}{{ _('ID de muestra / análisis:') }} <span class="lote-codigo">{{ ticket.referencia }}</span>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/mensajes.js') }}"></script>{% endblock %}

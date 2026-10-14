@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion, estado_pedido, leyenda_estados %}
+{% set es_cliente = current_user.rol == 'cliente' %}
+{% set ver_importes = current_user.puede('pedidos.ver_importes') %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Mis pedidos') if es_cliente else _('Pedidos') }}</h1>
+  <div class="d-flex gap-2">
+    {% if current_user.puede('pedidos.exportar') %}
+      {# Pasa los mismos filtros de la URL al PDF: exporta lo que estás viendo #}
+      <a href="{{ url_for('pedidos.exportar_pdf', **args_url()) }}" target="_blank"
+         class="btn btn-outline-secondary">{{ _('⤓ Exportar PDF') }}</a>
+      <a href="{{ url_for('pedidos.exportar_excel', **args_url()) }}"
+         class="btn btn-outline-secondary"><i class="fas fa-file-excel me-1"></i> Excel</a>{% endif %}
+    {% if current_user.puede('pedidos.crear') %}<a href="{{ url_for('pedidos.nuevo') }}" class="btn btn-primary"
+       {% if nuevo_pedido_form %}data-bs-toggle="modal" data-bs-target="#modal-pedido"{% endif %}><i class="fas fa-plus me-1"></i> {{ _('Hacer un pedido') }}</a>{% endif %}
+  </div></div>
+
+{# Filtros: un formulario GET normal. Los valores viajan en la URL (?estado=...&desde=...),
+   así se pueden guardar como favorito, compartir, paginar y exportar con los mismos filtros. #}
+<form method="get" class="card card-body mb-3 py-2">
+  {# Todos los filtros en una sola línea en pantallas anchas (ver .filtros-linea en main.css);
+     en pantallas estrechas bajan a varias líneas solos. #}
+  {# Filtro que llega del buscador global ("pedidos que llevan..."): se conserva al cambiar los demás #}
+  {% if f.contiene %}<input type="hidden" name="contiene" value="{{ f.contiene }}">{% endif %}
+  <div class="filtros-linea">
+    <div class="filtro filtro-corto"><label class="form-label small mb-0" for="f-q">{{ _('Referencia') }}</label>
+      <input name="q" id="f-q" value="{{ f.q }}" class="form-control form-control-sm" placeholder="{{ _('Ref.') }}"></div>
+    {% if not es_cliente %}
+    <div class="filtro"><label class="form-label small mb-0" for="f-cliente">{{ _('Cliente') }}</label>
+      <select name="cliente_id" id="f-cliente" class="form-select form-select-sm"><option value="">{{ _('Todos') }}</option>
+        {% for c in clientes %}<option value="{{ c.id }}" {{ 'selected' if f.cliente_id == c.id }}>{{ c.nombre }}</option>{% endfor %}
+      </select></div>{% endif %}
+    <div class="filtro"><label class="form-label small mb-0" for="f-kit">{{ _('Kit') }}</label>
+      <select name="kit_id" id="f-kit" class="form-select form-select-sm"><option value="">{{ _('Todos') }}</option>
+        {% for k in kits %}<option value="{{ k.id }}" {{ 'selected' if f.kit_id == k.id }}>{{ k.nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="filtro"><label class="form-label small mb-0" for="f-producto">{{ _('Productos') }}</label>
+      <select name="producto_id" id="f-producto" class="form-select form-select-sm"><option value="">{{ _('Todos') }}</option>
+        {% for p in productos %}<option value="{{ p.id }}" {{ 'selected' if f.producto_id == p.id }}>{{ p.nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="filtro"><label class="form-label small mb-0" for="f-estado">{{ _('Estado') }}</label>
+      <select name="estado" id="f-estado" class="form-select form-select-sm"><option value="">{{ _('Todos') }}</option>
+        {% for k, v in estados.items() %}<option value="{{ k }}" {{ 'selected' if f.estado == k }}>{{ v }}</option>{% endfor %}
+      </select></div>
+    <div class="filtro filtro-fecha"><label class="form-label small mb-0" for="f-desde">{{ _('Desde') }}</label>
+      <input type="date" name="desde" id="f-desde" value="{{ f.desde or '' }}" class="form-control form-control-sm"></div>
+    <div class="filtro filtro-fecha"><label class="form-label small mb-0" for="f-hasta">{{ _('Hasta') }}</label>
+      <input type="date" name="hasta" id="f-hasta" value="{{ f.hasta or '' }}" class="form-control form-control-sm"></div>
+    <div class="filtro-botones">
+      <button class="btn btn-sm btn-primary">{{ _('Filtrar') }}</button>
+      {% if hay_filtros %}<a href="{{ url_for('pedidos.lista') }}" class="btn btn-sm btn-outline-secondary">{{ _('Limpiar') }}</a>{% endif %}
+    </div>
+  </div>
+</form>
+
+{% if f.contiene %}
+<p class="mb-2"><span class="badge text-bg-light border fw-normal fs-6"><i class="fas fa-box-open me-1 text-marca" aria-hidden="true"></i>
+  {{ _('Llevan un kit o producto con «%(texto)s»', texto=f.contiene) }}
+  <a href="{{ url_for('pedidos.lista', **args_url(contiene=None, pagina=None)) }}" class="ms-1 text-reset" title="{{ _('Quitar este filtro') }}"
+     aria-label="{{ _('Quitar este filtro') }}"><i class="fas fa-times" aria-hidden="true"></i></a></span></p>
+{% endif %}
+<p class="small text-muted mb-2">{% if hay_filtros %}{{ ngettext('%(num)s pedido con los filtros aplicados', '%(num)s pedidos con los filtros aplicados', pagina.total) }}{% else %}{{ ngettext('%(num)s pedido', '%(num)s pedidos', pagina.total) }}{% endif %}</p>
+<table class="table table-hover bg-white align-middle">
+  <thead><tr><th>{{ _('Ref. interna') }}</th><th>{{ _('Fecha') }}</th>{% if not es_cliente %}<th>{{ _('Cliente') }}</th>{% endif %}
+    <th>{{ _('Ref. empresa') }}</th><th>{{ _('Productos') }}</th><th>{{ _('Estado') }}</th><th>{{ _('Entrega estimada') }}</th>{% if ver_importes %}<th class="num">{{ _('Total') }}</th>{% endif %}</tr></thead>
+  <tbody>{% for p in pagina.items %}
+    <tr><td><a href="{{ url_for('pedidos.detalle', id=p.id) }}">{{ p.referencia_interna or '#' ~ p.id }}</a>
+      {% if p.documentos %}<span title="{{ _('%(n)s documento(s) adjunto(s)', n=p.documentos|length) }}">📎</span>{% endif %}
+      {% if sin_leer.get(p.id) %}<a href="{{ url_for('pedidos.detalle', id=p.id) }}#mensajes" class="badge rounded-pill bg-marca text-decoration-none"
+         title="{{ _('Mensajes sin leer') }}"><i class="fas fa-comment" aria-hidden="true"></i> {{ sin_leer[p.id] }}</a>{% endif %}
+      {# Algo ha cambiado en el pedido desde la última vez que lo abriste (app/pedidos/novedades.py) #}
+      {% if novedades.get(p.id) %}
+      <a href="{{ url_for('pedidos.detalle', id=p.id) }}#{{ novedades[p.id].ancla }}" class="badge rounded-pill marca-nuevo text-decoration-none"
+         title="{{ _('Novedades desde tu última visita: %(que)s', que=novedades[p.id].texto) }}"><i class="fas fa-bell" aria-hidden="true"></i> {{ _('nuevo') }}</a>{% endif %}</td>
+      <td>{{ p.fecha|fecha }}</td>{% if not es_cliente %}<td>{{ p.cliente.nombre }}</td>{% endif %}
+      <td>{{ p.referencia or '—' }}</td>
+      {# Kits en negrita (con sus productos al pasar el ratón) y, debajo, los productos sueltos #}
+      <td class="small">{% for kp in p.kits %}<div title="{{ kp.lineas|map(attribute='producto.nombre')|join(', ') }}"><strong>{{ kp.cantidad }} × {{ kp.kit.nombre }}</strong>{% if kp.modificado and not es_cliente %} <span class="text-muted" title="{{ _('Lleva productos o cantidades distintos del kit estándar') }}">✎</span>{% endif %}</div>{% endfor %}
+        {% for l in p.lineas_sueltas %}<div>{{ l.cantidad }} × {{ l.producto.nombre }}</div>{% endfor %}
+        {% if not p.lineas %}—{% endif %}</td>
+      <td>{{ estado_pedido(p) }}</td>
+      <td class="text-nowrap">{{ p.fecha_entrega_estimada|fecha if p.fecha_entrega_estimada and p.estado == 'enviado' else '—' }}</td>{% if ver_importes %}<td class="num">{{ p.total|euros }}</td>{% endif %}</tr>
+  {% else %}<tr><td colspan="8" class="text-muted">{{ _('No hay pedidos que cumplan los filtros.') if hay_filtros else _('No hay pedidos.') }}</td></tr>{% endfor %}</tbody></table>
+{{ paginacion(pagina, 'pedidos.lista') }}
+{# Qué significa cada color (con su icono), en el orden del flujo #}
+<div class="mt-3">{{ leyenda_estados(estados) }}</div>
+{% endblock %}

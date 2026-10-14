@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import lote_caducidad, estado_pedido %}
+{#
+  ¿Dónde está este lote? Se escribe el código (o parte) y se ve:
+    - a qué clientes llegó (resumen arriba, para avisarles) y un Excel con sus contactos;
+    - por cada lote: qué queda en la oficina (solo admin y Logística) y a qué pedidos fue.
+  El FAS solo ve los envíos a sus clientes. Lógica: app/inventario/rastreo.py
+#}
+{% block contenido %}
+{% set con_oficina = current_user.puede('inventario.ver') %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-0"><i class="fas fa-search-location me-2 text-marca" aria-hidden="true"></i>{{ _('¿Dónde está este lote?') }}</h1>
+    <div class="small text-muted">{{ _('Escribe el código de un lote para ver a qué clientes y pedidos se envió.') }}</div>
+  </div>
+  {% if rastros and clientes %}
+  <a href="{{ url_for('inventario.rastrear_lote_excel', q=q) }}" class="btn btn-outline-secondary">
+    <i class="fas fa-file-excel me-1" aria-hidden="true"></i>{{ _('Excel con los contactos') }}</a>
+  {% endif %}
+</div>
+
+<form method="get" class="card card-body mb-3 py-3" role="search">
+  <label class="form-label small mb-1" for="f-lote">{{ _('Código de lote') }}</label>
+  <div class="input-group">
+    <span class="input-group-text"><i class="fas fa-barcode" aria-hidden="true"></i></span>
+    <input type="search" name="q" id="f-lote" value="{{ q }}" class="form-control lote-codigo-campo" maxlength="60" autocomplete="off"
+           placeholder="{{ _('P. ej. YK2411-B2 (vale una parte del código)') }}" {{ 'autofocus' if not q }}>
+    <button class="btn btn-primary">{{ _('Buscar') }}</button>
+  </div>
+</form>
+
+{% if q and not rastros %}
+<div class="card card-body text-center text-muted py-5">
+  <i class="fas fa-search fa-2x mb-2" aria-hidden="true"></i>
+  {{ _('No hay ningún lote que contenga «%(q)s».', q=q) }}
+  {% if not con_oficina %}<div class="small">{{ _('Solo aparecen los lotes enviados a tus clientes.') }}</div>{% endif %}
+</div>
+{% endif %}
+
+{% if rastros %}
+{# ---------- Resumen: a quién avisar ---------- #}
+<div class="card mb-3">
+  <div class="card-header"><h2 class="h5"><i class="fas fa-bullhorn me-2 text-marca" aria-hidden="true"></i>{{ _('Clientes que lo recibieron') }}</h2>
+    <span class="small text-muted">{{ ngettext('%(num)s cliente', '%(num)s clientes', clientes|length) }}</span></div>
+  {% if clientes %}
+  <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+    <thead><tr><th>{{ _('Cliente') }}</th><th>{{ _('Contacto') }}</th><th class="num">{{ _('Unidades') }}</th><th>{{ _('Pedidos') }}</th><th></th></tr></thead>
+    <tbody>{% for c in clientes %}
+      <tr><td class="fw-semibold">{{ c.cliente.nombre }}</td>
+        <td class="small">{{ c.cliente.persona_contacto or '—' }}{% if c.cliente.email %}<br><a href="mailto:{{ c.cliente.email }}">{{ c.cliente.email }}</a>{% endif %}</td>
+        <td class="num fw-semibold">{{ c.unidades }}</td>
+        <td class="small">{% for p in c.pedidos %}<a href="{{ url_for('pedidos.detalle', id=p.id) }}">{{ p.referencia_interna or '#' ~ p.id }}</a>{{ ', ' if not loop.last }}{% endfor %}</td>
+        <td class="text-end">{% if current_user.puede('mensajes.enviar') %}<a href="{{ url_for('mensajes.conversacion', cliente_id=c.cliente.id) }}" class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-comment me-1" aria-hidden="true"></i>{{ _('Escribirle') }}</a>{% endif %}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}
+  <div class="card-body text-muted"><i class="fas fa-check-circle me-1" aria-hidden="true"></i>{{ _('Este lote no se ha enviado a ningún cliente.') }}</div>
+  {% endif %}
+</div>
+
+{% if hay_mas %}<div class="alert alert-info small">{{ _('Hay más lotes que coinciden: escribe el código más completo para afinar.') }}</div>{% endif %}
+
+{# ---------- Cada lote ---------- #}
+{% for r in rastros %}
+{% set lote = r.lote %}
+<div class="card mb-3">
+  <div class="card-header">
+    <h2 class="h5 mb-0"><span class="lote-codigo">{{ lote.codigo }}</span>
+      <span class="fw-normal">· {{ lote.articulo.nombre }}</span>
+      {% if lote.kit_id %}<span class="badge bg-marca ms-1">{{ _('Kit') }}</span>{% endif %}</h2>
+    <span class="small">{{ lote_caducidad(lote, hoy, dias_aviso) }}</span>
+  </div>
+  <div class="card-body pb-2">
+    <div class="row g-2 text-center rastreo-cifras">
+      {% if con_oficina %}
+      <div class="col-6 col-md-3"><div class="rastreo-cifra"><div class="small text-muted">{{ _('Entraron') }}</div><div class="fs-5 fw-bold">{{ r.entradas }}</div></div></div>
+      <div class="col-6 col-md-3"><div class="rastreo-cifra"><div class="small text-muted"><i class="fas fa-warehouse me-1" aria-hidden="true"></i>{{ _('En la oficina') }}</div><div class="fs-5 fw-bold">{{ r.en_oficina }}</div></div></div>
+      {% endif %}
+      <div class="col-6 col-md-3"><div class="rastreo-cifra"><div class="small text-muted"><i class="fas fa-truck me-1" aria-hidden="true"></i>{{ _('Enviadas a clientes') }}</div><div class="fs-5 fw-bold">{{ r.enviadas }}</div></div></div>
+      {% if con_oficina and (r.abiertos or r.ajustes) %}
+      <div class="col-6 col-md-3"><div class="rastreo-cifra"><div class="small text-muted">{{ _('Aperturas de kit y ajustes') }}</div><div class="fs-5 fw-bold">{{ '%+d'|format(r.abiertos + r.ajustes) }}</div></div></div>
+      {% endif %}
+    </div>
+    {% if con_oficina %}
+    <div class="small mt-2"><a href="{{ url_for('inventario.movimientos', **{lote.articulo.tipo_articulo ~ '_id': lote.articulo.id}) }}">{{ _('Ver todos los movimientos de este artículo →') }}</a></div>
+    {% endif %}
+  </div>
+  {% if r.envios %}
+  <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+    <thead><tr><th>{{ _('Pedido') }}</th><th>{{ _('Cliente') }}</th><th>{{ _('Fecha de envío') }}</th><th>{{ _('Estado') }}</th><th class="num">{{ _('Unidades') }}</th></tr></thead>
+    <tbody>{% for e in r.envios %}
+      <tr><td><a href="{{ url_for('pedidos.detalle', id=e.pedido.id) }}" class="fw-semibold">{{ e.pedido.referencia_interna or '#' ~ e.pedido.id }}</a></td>
+        <td>{{ e.pedido.cliente.nombre }}</td><td>{{ e.fecha|fecha_hora('%d/%m/%Y') }}</td>
+        <td>{{ estado_pedido(e.pedido) }}</td><td class="num fw-semibold">{{ e.unidades }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}
+  <div class="card-body pt-0 small text-muted">{{ _('No ha salido en ningún pedido.') }}</div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not q %}
+<div class="card card-body small text-muted">
+  <strong class="text-body mb-1">{{ _('¿Para qué sirve?') }}</strong>
+  {{ _('Si un fabricante retira un lote o un cliente pregunta por uno, aquí ves en un momento a quién se envió, en qué pedido y cuántas unidades. El Excel trae el contacto de cada cliente para avisarles.') }}
+</div>
+{% endif %}
+{% endblock %}

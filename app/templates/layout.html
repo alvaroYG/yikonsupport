@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="{{ idioma_actual() }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{{ title ~ " · " if title }}Yikon Genomics PO</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" sizes="any">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+  <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
+  {# Antes de pintar nada: si el usuario plegó el menú la última vez, se aplica ya
+     (así no "salta" al cargar). try/catch por si el navegador bloquea localStorage. #}
+  <script>try { if (localStorage.getItem('menuPlegado') === '1') document.documentElement.classList.add('menu-plegado'); } catch (e) {}</script>
+</head>
+<body class="{{ 'con-menu' if current_user.is_authenticated else 'sin-sesion' }} {% block clase_body %}{% endblock %}">
+{% if current_user.is_authenticated %}
+{# ==================== ESTRUCTURA TIPO "SB ADMIN 2" ====================
+   <div.envoltorio>
+     <nav.menu-lateral>   barra lateral magenta con las secciones
+     <div.zona-contenido>
+       <header.barra-superior>   avisos + usuario
+       <main>                    el contenido de cada página
+       <footer>
+   ===================================================================== #}
+<div class="envoltorio">
+
+  <nav class="menu-lateral" id="menu-lateral" aria-label="{{ _('Menú principal') }}">
+    <a class="menu-marca" href="{{ url_for('main.inicio') }}">
+      {# Símbolo de Yikon dentro de un círculo blanco: sobre el magenta del menú se perdería #}
+      <span class="menu-marca-icono"><img src="{{ url_for('static', filename='img/yikon-simbolo.png') }}" alt=""></span>
+      <span class="menu-marca-texto">Yikon Genomics <small>PO</small></span>
+    </a>
+    <hr class="menu-separador">
+    <a class="menu-enlace {{ 'active' if request.endpoint == 'main.inicio' }}" href="{{ url_for('main.inicio') }}">
+      <i class="fas fa-fw fa-home"></i><span>{{ _('Inicio') }}</span></a>
+
+    {# Secciones plegables (app/navegacion.py decide qué ve cada uno, cuál va abierta y los
+       contadores). La sección de la página actual llega abierta; las demás, cerradas.
+       Una sección con un solo enlace se pinta como enlace directo. #}
+    {% macro enlace_menu(e, dentro=False) %}
+      <a class="menu-enlace {{ 'active' if e.activo }} {{ 'menu-subenlace' if dentro }}" href="{{ url_for(e.endpoint) }}"
+         {{ 'aria-current=page' if e.activo }}>
+        <i class="fas fa-fw {{ e.icono }}" aria-hidden="true"></i><span>{{ e.texto }}</span>
+        {% if e.contador %}<span class="menu-contador" title="{{ e.titulo_contador }}">{{ e.contador }}</span>{% endif %}
+      </a>
+    {% endmacro %}
+    {% for s in menu_lateral(current_user, request.endpoint, request.blueprint, avisos) %}
+      {% if s.directo %}
+        {{ enlace_menu(s.enlaces[0]) }}
+      {% else %}
+      <div class="menu-seccion {{ 'abierta' if s.abierta }}">
+        <button type="button" class="menu-seccion-cabecera {{ '' if s.abierta else 'collapsed' }} {{ 'contiene-actual' if s.abierta }}"
+                data-bs-toggle="collapse" data-bs-target="#menu-{{ s.clave }}"
+                aria-expanded="{{ 'true' if s.abierta else 'false' }}" aria-controls="menu-{{ s.clave }}">
+          <i class="fas fa-fw {{ s.icono }}" aria-hidden="true"></i>
+          <span class="menu-seccion-titulo">{{ s.titulo }}</span>
+          {# Con la sección cerrada, sus avisos se ven en la cabecera #}
+          {% if s.contador %}<span class="menu-contador menu-contador-seccion" title="{{ _('Avisos en esta sección') }}">{{ s.contador }}</span>{% endif %}
+          <i class="fas fa-chevron-down menu-seccion-flecha" aria-hidden="true"></i>
+        </button>
+        <div class="collapse {{ 'show' if s.abierta }}" id="menu-{{ s.clave }}">
+          <div class="menu-seccion-enlaces">
+            {% for e in s.enlaces %}{{ enlace_menu(e, dentro=True) }}{% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+
+    <hr class="menu-separador d-none d-md-block">
+    <button class="menu-plegar d-none d-md-inline-flex" type="button" data-plegar-menu
+            aria-label="{{ _('Plegar o desplegar el menú') }}" title="{{ _('Plegar / desplegar menú') }}"></button>
+  </nav>
+
+  <div class="zona-contenido">
+    <header class="barra-superior">
+      <button class="btn btn-link barra-boton d-md-none" type="button" data-plegar-menu aria-label="{{ _('Mostrar u ocultar el menú') }}">
+        <i class="fas fa-bars"></i></button>
+      {# Buscador global: sugerencias mientras se escribe (js/buscador.js); Intro → página de resultados.
+         Solo encuentra lo que el usuario puede ver (app/buscador.py). #}
+      <form class="buscador-global" method="get" action="{{ url_for('main.buscar') }}" role="search"
+            data-buscador data-url="{{ url_for('main.buscar_sugerencias') }}">
+        <i class="fas fa-search buscador-lupa" aria-hidden="true"></i>
+        <input type="search" name="q" class="form-control" maxlength="80" autocomplete="off"
+               placeholder="{{ _('Buscar…') }}" aria-label="{{ _('Buscar en toda la plataforma') }}"
+               role="combobox" aria-expanded="false" aria-controls="buscador-panel" aria-autocomplete="list"
+               title="{{ _('Buscar pedidos, clientes, lotes… (atajo: / o Ctrl+K)') }}">
+        <kbd class="buscador-atajo d-none d-lg-inline" aria-hidden="true">/</kbd>
+        <div class="buscador-panel" id="buscador-panel" data-buscador-panel role="listbox" hidden></div>
+      </form>
+      <ul class="barra-derecha">
+        {# Inventario (admin): dos iconos propios, separados de la campana, para que no se mezclen
+           con los mensajes. Cada uno con su contador y la lista en el desplegable. #}
+        {% if aviso_stock is defined %}
+        {% from "_macros.html" import lote_caducidad %}
+        <li class="dropdown">
+          <a class="barra-boton" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+             aria-label="{{ _('Stock bajo (%(n)s)', n=aviso_stock|length) }}" title="{{ _('Stock bajo en la oficina') }}">
+            <i class="fas fa-box-open"></i>
+            {% if aviso_stock %}<span class="barra-contador">{{ aviso_stock|length }}</span>{% endif %}
+          </a>
+          <div class="dropdown-menu dropdown-menu-end shadow desplegable-avisos">
+            <h6 class="dropdown-header">{{ _('Stock bajo en la oficina') }}</h6>
+            {% for p, uds in aviso_stock[:8] %}
+            <a class="dropdown-item aviso" href="{{ url_for('inventario.movimientos', **{p.tipo_articulo ~ '_id': p.id}) }}">
+              <span class="aviso-icono est-alerta"><i class="fas fa-box-open"></i></span>
+              <span><strong>{{ p.nombre }}</strong>{% if p.tipo_articulo == 'kit' %} <small class="text-muted">· {{ _('kit') }}</small>{% endif %}<br>
+                <small class="text-muted">{{ _('%(n)s uds.', n=uds) }} · {{ _('(mín. %(n)s)', n=p.stock_minimo) }}</small></span></a>
+            {% else %}
+            <span class="dropdown-item-text text-muted small py-3">{{ _('✓ Todo el stock está por encima del mínimo.') }}</span>
+            {% endfor %}
+            <a class="dropdown-item text-center small py-2" href="{{ url_for('inventario.lista', solo_bajo=1 if aviso_stock else None) }}">
+              {% if aviso_stock|length > 8 %}{{ _('y %(n)s más · ', n=aviso_stock|length - 8) }}{% endif %}{{ _('Ir al inventario →') }}</a>
+          </div>
+        </li>
+        <li class="dropdown">
+          <a class="barra-boton" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+             aria-label="{{ _('Caducidades (%(n)s)', n=aviso_caducidades|length) }}" title="{{ _('Caducidades') }}">
+            <i class="fas fa-hourglass-half"></i>
+            {% if aviso_caducidades %}<span class="barra-contador">{{ aviso_caducidades|length }}</span>{% endif %}
+          </a>
+          <div class="dropdown-menu dropdown-menu-end shadow desplegable-avisos">
+            <h6 class="dropdown-header">{{ _('Caducidades') }}</h6>
+            {% for a in aviso_caducidades[:8] %}
+            <a class="dropdown-item aviso" href="{{ url_for('inventario.caducidades') }}">
+              <span class="aviso-icono {{ 'est-alerta' if a.dias < 0 else 'est-pendiente' }}"><i class="fas fa-hourglass-half"></i></span>
+              <span><strong>{{ a.lote.articulo.nombre }}</strong><br>
+                <small><span class="lote-codigo">{{ a.lote.codigo }}</span> · {{ _('%(n)s uds.', n=a.unidades) }}</small><br>
+                {{ lote_caducidad(a.lote, hoy_fecha(), config.DIAS_AVISO_CADUCIDAD) }}</span></a>
+            {% else %}
+            <span class="dropdown-item-text text-muted small py-3">{{ _('✓ Ningún lote caducado ni a punto de caducar.') }}</span>
+            {% endfor %}
+            <a class="dropdown-item text-center small py-2" href="{{ url_for('inventario.caducidades') }}">
+              {% if aviso_caducidades|length > 8 %}{{ _('y %(n)s más · ', n=aviso_caducidades|length - 8) }}{% endif %}{{ _('Ver caducidades →') }}</a>
+          </div>
+        </li>
+        {% endif %}
+
+        {# Campana de avisos: mensajes sin leer (todos) y pedidos por revisar o validar (Yikon (admin, logística, FAS)) #}
+        {% if avisos %}
+        {# Los mensajes de Yikon no cuentan aquí: tienen su botón flotante (abajo a la derecha).
+           Los del cliente sí: salen en la campana, una línea por conversación. #}
+        {% set total_avisos = (avisos.revisar or 0) + (avisos.validar or 0) + ((avisos.mensajes or 0) if current_user.rol == 'cliente' else 0) + (avisos.proformas or 0) + (avisos.soporte or 0) + (avisos.recibir or 0) + (avisos.facturas_revisar or 0) + (avisos.facturas_devueltas or 0) + (avisos.incidencias or 0) %}
+        <li class="dropdown">
+          <a class="barra-boton" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+             aria-label="{{ _('Avisos (%(n)s)', n=total_avisos) }}">
+            <i class="fas fa-bell"></i>
+            {% if total_avisos %}<span class="barra-contador">{{ total_avisos }}</span>{% endif %}
+          </a>
+          <div class="dropdown-menu dropdown-menu-end shadow desplegable-avisos">
+            <h6 class="dropdown-header">{{ _('Avisos') }}</h6>
+            {# Incidencias abiertas (Yikon): una línea por cada una, que lleva a su pedido #}
+            {% for inc in (avisos_incidencias or [])[:5] %}
+            <a class="dropdown-item aviso" href="{{ url_for('pedidos.detalle', id=inc.pedido_id) }}#incidencias">
+              <span class="aviso-icono est-alerta"><i class="fas fa-exclamation-triangle"></i></span>
+              <span><strong>{{ _('Problema en %(ref)s: %(motivo)s', ref=inc.pedido.referencia_interna or '#' ~ inc.pedido_id, motivo=inc.motivo_nombre) }}</strong><br>
+                <small class="text-muted">{{ inc.pedido.cliente.nombre }} · {{ _('contesta en el chat y márcala como resuelta') }}</small></span></a>
+            {% endfor %}
+            {% if (avisos_incidencias or [])|length > 5 %}
+            <a class="dropdown-item small text-center" href="{{ url_for('main.inicio') }}#pendientes">{{ _('y %(n)s incidencias más →', n=avisos_incidencias|length - 5) }}</a>
+            {% endif %}
+            {% if avisos.proformas %}
+            <a class="dropdown-item aviso" href="{{ url_for('main.inicio') ~ '#en-curso' if current_user.rol == 'cliente' else url_for('pedidos.lista', estado='proforma_pendiente') }}">
+              <span class="aviso-icono est-{{ 'proforma_enviada' if current_user.rol == 'cliente' else 'proforma_solicitada' }}"><i class="fas fa-file-signature"></i></span>
+              {% if current_user.rol == 'cliente' %}
+              <span><strong>{{ ngettext('%(num)s proforma por responder', '%(num)s proformas por responder', avisos.proformas) }}</strong><br>
+                <small class="text-muted">{{ _('Revísela y acéptela para hacer el pedido') }}</small></span>
+              {% else %}
+              <span><strong>{{ ngettext('%(num)s proforma por preparar', '%(num)s proformas por preparar', avisos.proformas) }}</strong><br>
+                <small class="text-muted">{{ _('Nuevas o con cambios pedidos por el cliente') }}</small></span>
+              {% endif %}</a>
+            {% endif %}
+            {% if avisos.recibir %}
+            <a class="dropdown-item aviso" href="{{ url_for('main.inicio') }}#en-curso">
+              <span class="aviso-icono est-enviado"><i class="fas fa-flag-checkered"></i></span>
+              <span><strong>{{ ngettext('%(num)s envío por confirmar', '%(num)s envíos por confirmar', avisos.recibir) }}</strong><br>
+                <small class="text-muted">{{ _('Márquelo como recibido cuando llegue') }}</small></span></a>
+            {% endif %}
+            {# Mensajes (solo el cliente): una línea por conversación con algo nuevo, que abre su sitio exacto #}
+            {% for m in avisos_mensajes or [] %}
+            <a class="dropdown-item aviso" href="{{ m.url }}">
+              <span class="aviso-icono bg-marca"><i class="fas fa-envelope"></i></span>
+              <span><strong>{{ m.titulo }}</strong><br><small class="text-muted">{{ m.resumen }}</small></span></a>
+            {% endfor %}
+            {% if avisos.soporte %}
+            <a class="dropdown-item aviso" href="{{ url_for('soporte.lista', estado='todos') }}">
+              <span class="aviso-icono tk-abierto"><i class="fas fa-life-ring"></i></span>
+              <span><strong>{{ ngettext('%(num)s ticket de ChromGo con novedades', '%(num)s tickets de ChromGo con novedades', avisos.soporte) }}</strong><br>
+                <small class="text-muted">{{ _('Nuevos tickets, respuestas o notas internas') if not current_user.es_cliente else _('Respuestas de Soporte Yikon') }}</small></span></a>
+            {% endif %}
+            {% if avisos.revisar %}
+            <a class="dropdown-item aviso" href="{{ url_for('pedidos.preparar') }}">
+              <span class="aviso-icono est-alerta"><i class="fas fa-exclamation-triangle"></i></span>
+              <span><strong>{{ ngettext('⚠ %(num)s devuelto por %(rol)s', '⚠ %(num)s devueltos por %(rol)s', avisos.revisar, rol=rol_fas) }}</strong><br>
+                <small class="text-muted">{{ _('Han vuelto a preparación: mira su comentario') }}</small></span></a>
+            {% endif %}
+            {% if avisos.validar %}
+            <a class="dropdown-item aviso" href="{{ url_for('pedidos.lista', estado='en_validacion') }}">
+              <span class="aviso-icono est-en_validacion"><i class="fas fa-eye"></i></span>
+              <span><strong>{{ _('%(n)s por validar', n=avisos.validar) }}</strong><br>
+                <small class="text-muted">{{ _('Esperan tu visto bueno a las fotos') }}</small></span></a>
+            {% endif %}
+            {% if avisos.facturas_revisar %}
+            <a class="dropdown-item aviso" href="{{ url_for('facturas.lista', estado='en_revision') }}">
+              <span class="aviso-icono est-en_validacion"><i class="fas fa-search"></i></span>
+              <span><strong>{{ ngettext('%(num)s factura por revisar', '%(num)s facturas por revisar', avisos.facturas_revisar) }}</strong><br>
+                <small class="text-muted">{{ _('Apruébalas o pide cambios antes de que se envíen') }}</small></span></a>
+            {% endif %}
+            {% if avisos.facturas_devueltas %}
+            <a class="dropdown-item aviso" href="{{ url_for('facturas.lista', estado='devueltas') }}">
+              <span class="aviso-icono est-alerta"><i class="fas fa-undo"></i></span>
+              <span><strong>{{ ngettext('↩ %(num)s factura devuelta', '↩ %(num)s facturas devueltas', avisos.facturas_devueltas) }}</strong><br>
+                <small class="text-muted">{{ _('Mira el comentario y sube el PDF corregido') }}</small></span></a>
+            {% endif %}
+            {% if not total_avisos %}
+            <span class="dropdown-item-text text-muted small py-3">{{ _('✓ Nada pendiente ahora mismo.') }}</span>
+            {% endif %}
+          </div>
+        </li>
+        <li class="barra-divisor d-none d-sm-block"></li>
+        {% endif %}
+
+        <li class="dropdown">
+          <a class="barra-usuario" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="text-end d-none d-lg-inline lh-sm">
+              <span class="d-block fw-semibold">{{ current_user.nombre }}</span>
+              <small class="text-muted">{{ current_user.rol_nombre }}{{ ' · ' ~ current_user.empresa.nombre if current_user.empresa }}</small>
+            </span>
+            <span class="avatar">{{ current_user.nombre[:1]|upper }}</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end shadow">
+            <span class="dropdown-item-text d-lg-none small"><strong>{{ current_user.nombre }}</strong><br>{{ current_user.rol_nombre }}</span>
+            <a class="dropdown-item" href="{{ url_for('auth.cuenta') }}"><i class="fas fa-user fa-fw me-2 text-muted"></i>{{ _('Mi cuenta') }}</a>
+            {% include "_selector_idioma.html" %}
+            <div class="dropdown-divider"></div>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="dropdown-item"><i class="fas fa-sign-out-alt fa-fw me-2 text-muted"></i>{{ _('Salir') }}</button>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </header>
+{% endif %}
+
+<main class="{{ 'contenido' if current_user.is_authenticated else 'contenido-login' }}">
+  {% if config.ENTORNO == 'dev' and usuarios_para_probar is defined %}
+  {# Solo en desarrollo (app/pruebas): cambiar de usuario de un clic para probar cada rol #}
+  <form method="post" action="{{ url_for('pruebas.entrar_como') }}" class="barra-pruebas">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="volver" value="{{ request.full_path if current_user.is_authenticated else '' }}">
+    <span><i class="fas fa-flask me-1" aria-hidden="true"></i><strong>{{ _('Modo pruebas') }}</strong> · {{ _('Entrar como') }}</span>
+    <select name="usuario_id" class="form-select form-select-sm" aria-label="{{ _('Entrar como') }}" onchange="this.form.submit()">
+      {% if not current_user.is_authenticated %}<option value="">—</option>{% endif %}
+      {% for u in usuarios_para_probar() %}<option value="{{ u.id }}" {{ 'selected' if current_user.is_authenticated and u.id == current_user.id }}>{{ u.rol_nombre }} · {{ u.nombre }}{{ ' (' ~ u.empresa.nombre ~ ')' if u.empresa }}</option>{% endfor %}
+    </select>
+    <span class="small">{{ _('Solo en tu ordenador: en producción no sale.') }}</span>
+  </form>
+  {% endif %}
+  {% if not current_user.is_authenticated %}
+    <div class="idioma-flotante">{% with clase_boton='btn btn-sm btn-outline-secondary' %}{% include "_selector_idioma.html" %}{% endwith %}</div>
+  {% endif %}
+  {# "Ver como un usuario" (solo admin, app/ver_como.py): a quién estás viendo y cómo volver #}
+  {% if ver_como %}
+  <div class="franja-ver-como" role="status">
+    <i class="fas fa-user-secret franja-ver-como-icono" aria-hidden="true"></i>
+    <span><strong>{{ _('Estás viendo la plataforma como %(nombre)s', nombre=ver_como.usuario.nombre) }}</strong>
+      <span class="small">· {{ ver_como.usuario.rol_nombre }}{{ ' · ' ~ ver_como.usuario.empresa.nombre if ver_como.usuario.empresa }}</span><br>
+      <span class="small">{{ _('Solo lectura: nada de lo que hagas se guarda ni se envía.') }}</span></span>
+    <form method="post" action="{{ url_for('auth.dejar_de_ver_como') }}" class="ms-auto">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-light"><i class="fas fa-undo me-1" aria-hidden="true"></i>{{ _('Volver a mi usuario (%(nombre)s)', nombre=ver_como.admin) }}</button>
+    </form>
+  </div>
+  {% endif %}
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in mensajes %}
+      {% set icono = {'success':'✓','danger':'✕','warning':'⚠','info':'ℹ'}.get(categoria, '') %}
+      <div class="alert alert-{{ categoria }} alert-dismissible fade show">
+        {{ icono }} {{ mensaje }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  {% endwith %}
+  {% if mantenimiento_activo and current_user.is_authenticated and current_user.rol == 'admin' %}
+  <div class="alert alert-warning py-2 small"><i class="fas fa-tools me-1" aria-hidden="true"></i>
+    <strong>{{ _('Modo mantenimiento activado:') }}</strong> {{ _('solo entra admin.') }}
+    <a href="{{ url_for('admin.ajustes') }}#mantenimiento">{{ _('Desactivarlo') }}</a></div>
+  {% endif %}
+  {% block contenido %}{% endblock %}
+</main>
+
+{% if current_user.is_authenticated %}
+    <footer class="pie">© Yikon Genomics España {{ anio_actual() }} · {{ _('Uso interno') }}</footer>
+  </div>{# /zona-contenido #}
+</div>{# /envoltorio #}
+{% endif %}
+
+{# Botón flotante de mensajes: solo Yikon (admin, logística y Soporte de cliente), en todas las páginas.
+   El panel lo rellena static/js/mensajes_flotante.js al abrirlo (app/mensajes/routes.py: flotante). #}
+{% if current_user.is_authenticated and not current_user.es_cliente and current_user.puede('mensajes.ver') %}
+{% set mf_sin_leer = (avisos.mensajes or 0) + (avisos.internos or 0) if avisos else 0 %}
+<div id="mensajes-flotante" class="mensajes-flotante" data-lista="{{ url_for('mensajes.flotante') }}" data-cuenta="{{ url_for('mensajes.flotante_cuenta') }}"
+     data-pagina="{{ url_for('mensajes.lista') }}" data-error="{{ _('No se han podido cargar los mensajes.') }}" data-enlace="{{ _('Abrir la página de mensajes') }}">
+  <div class="mf-panel" data-mf-panel role="dialog" aria-label="{{ _('Mensajes') }}" hidden></div>
+  <button type="button" class="mf-boton" data-mf-boton aria-expanded="false" title="{{ _('Mensajes') }}"
+          data-etiqueta="{{ _('Mensajes ({n} sin leer)') }}" aria-label="{{ _('Mensajes ({n} sin leer)')|replace('{n}', mf_sin_leer|string) }}">
+    <i class="fas fa-comments" aria-hidden="true"></i>
+    <span class="mf-contador" data-mf-contador {{ 'hidden' if not mf_sin_leer }}>{{ mf_sin_leer }}</span></button>
+</div>
+{% endif %}
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/menu.js') }}"></script>
+{% if current_user.is_authenticated %}<script src="{{ url_for('static', filename='js/buscador.js') }}"></script>{% endif %}
+{% if current_user.is_authenticated and not current_user.es_cliente and current_user.puede('mensajes.ver') %}<script src="{{ url_for('static', filename='js/mensajes_flotante.js') }}"></script>{% endif %}
+{% if nuevo_pedido_form and request.endpoint != 'pedidos.nuevo' %}
+  {% with form_pedido=nuevo_pedido_form() %}{% include "pedidos/_modal_pedido.html" %}{% endwith %}
+{% endif %}
+{% include "_revision_correo.html" %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

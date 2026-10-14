@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import lote_caducidad %}
+{#
+  Vista de móvil para preparar UN pedido. De arriba abajo, en el orden en que se trabaja:
+  1. qué lleva (con casillas para ir marcando lo que ya está en la caja),
+  2. de qué lotes coger cada producto (los que caducan antes, igual que restará el envío),
+  3. fotos: hacer con la cámara o elegir de la galería (se reducen en el móvil antes de subir),
+  4. botón fijo abajo: "Enviar a validación".
+  Las casillas son solo una ayuda en pantalla: no se guardan.
+#}
+{% block clase_body %}vista-movil{% endblock %}
+{% block contenido %}
+<div class="preparar">
+  <a href="{{ url_for('pedidos.preparar') }}" class="btn btn-link px-0 mb-2"><i class="fas fa-arrow-left me-1"></i>{{ _('Pedidos por preparar') }}</a>
+
+  <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-0">{{ pedido.referencia_interna or '#' ~ pedido.id }}</h1>
+      <div class="text-muted">{{ pedido.cliente.nombre }}</div>
+    </div>
+    <a href="{{ url_for('pedidos.detalle', id=pedido.id) }}" class="btn btn-sm btn-outline-secondary">{{ _('Ficha completa') }}</a>
+  </div>
+
+  {% if not en_preparacion %}
+  <div class="alert alert-info">
+    {{ _('Este pedido ya no está en preparación (estado: %(estado)s).', estado=pedido.estado_nombre) }}
+    <a href="{{ url_for('pedidos.preparar') }}">{{ _('Ver los pedidos por preparar') }}</a>
+  </div>
+  {% endif %}
+
+  {% if pedido.devuelto %}
+  <div class="alert alert-warning border-2 border-warning">
+    <strong>{{ _('⚠ Devuelto por %(rol)s.', rol=rol_fas) }}</strong>
+    {{ _('%(usuario)s lo ha devuelto:', usuario=pedido.ultima_revision.usuario.nombre if pedido.ultima_revision.usuario else '') }}
+    <div class="mt-1 fst-italic">«{{ pedido.ultima_revision.comentario }}»</div>
+  </div>
+  {% endif %}
+
+  {% if en_preparacion %}
+  {# ---------- 1. Qué lleva ---------- #}
+  <div class="card mb-3">
+    <div class="card-header"><h2 class="h5">{{ _('1. Qué lleva') }}</h2>
+      <span class="small text-muted">{{ _('márcalo al meterlo') }}</span></div>
+    <div class="card-body">
+      {% for kp in pedido.kits %}
+        {% if kp.kit.cerrado %}
+        {# Kit cerrado: se mete la bolsa entera tal como llega; una sola casilla. Debajo, lo que
+           lleva dentro (para comprobarlo de un vistazo), sin casillas. #}
+        <label class="preparar-check">
+          <input type="checkbox" class="form-check-input">
+          <span><strong>{{ kp.cantidad }}</strong> × {{ kp.kit.nombre }}
+            <span class="small text-muted d-block">{{ kp.kit.referencia }} · {{ _('kit cerrado, tal como llega') }}</span>
+            <span class="small text-muted d-block">{{ _('Dentro:') }}
+              {% for l in kp.lineas %}<span class="d-block ps-2">{{ l.cantidad }} × {{ l.producto.nombre }}</span>{% endfor %}</span></span>
+        </label>
+        {% else %}
+        <div class="fw-semibold mt-1">{{ kp.cantidad }} × {{ kp.kit.nombre }}
+          <span class="small text-muted fw-normal">· {{ _('se monta con estos productos') }}</span></div>
+        {% for l in kp.lineas %}
+        <label class="preparar-check">
+          <input type="checkbox" class="form-check-input">
+          <span><strong>{{ l.cantidad }}</strong> × {{ l.producto.nombre }}
+            <span class="small text-muted d-block">{{ l.producto.referencia }}</span></span>
+        </label>
+        {% endfor %}
+        {% endif %}
+      {% endfor %}
+      {% if pedido.lineas_sueltas %}
+        {% if pedido.kits %}<div class="fw-semibold mt-2">{{ _('Sueltos') }}</div>{% endif %}
+        {% for l in pedido.lineas_sueltas %}
+        <label class="preparar-check">
+          <input type="checkbox" class="form-check-input">
+          <span><strong>{{ l.cantidad }}</strong> × {{ l.producto.nombre }}
+            <span class="small text-muted d-block">{{ l.producto.referencia }}</span></span>
+        </label>
+        {% endfor %}
+      {% endif %}
+      {% if pedido.notas %}
+      <div class="alert alert-light border small mt-3 mb-0"><strong>{{ _('Notas:') }}</strong> {{ pedido.notas }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ---------- 2. Lotes a coger ---------- #}
+  {% if lotes or faltan %}
+  <div class="card mb-3">
+    <div class="card-header"><h2 class="h5">{{ _('2. Lotes a coger') }}</h2></div>
+    <div class="card-body">
+      <p class="small text-muted">{{ _('Coge exactamente estos lotes: están reservados para este pedido. Si no encuentras alguno, avisa antes de meter otro.') }}</p>
+      {% for texto in faltan %}
+        <div class="alert alert-warning py-2 small">{{ _('⚠ Pendiente:') }} {{ texto }}</div>
+      {% endfor %}
+      {% for articulo, reparto in lotes %}
+        <div class="mb-2">
+          <div class="fw-semibold">{{ articulo.nombre }}
+            {% if articulo.tipo_articulo == 'kit' %}<span class="small text-muted fw-normal">· {{ _('kit cerrado (todas sus cajas)') }}</span>{% endif %}</div>
+          {% for lote, n in reparto %}
+          <div class="small"><span class="lote-codigo">{{ lote.codigo }}</span> × <strong>{{ n }}</strong>
+            {{ lote_caducidad(lote, hoy, dias_aviso) }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if pedido.estado == 'aceptado' %}
+  {# Aceptado: todavía no se ha empezado. Un botón grande para empezar (y ya salen las fotos) #}
+  <div class="preparar-pie">
+    <form method="post" action="{{ url_for('pedidos.empezar_preparacion', id=pedido.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="volver" value="preparar">
+      <button class="btn btn-primary btn-lg w-100"><i class="fas fa-box-open me-2"></i>{{ _('Empezar preparación') }}</button>
+    </form>
+  </div>
+  {% else %}
+  {# ---------- 3. Fotos ---------- #}
+  <div class="card mb-3">
+    <div class="card-header"><h2 class="h5">{{ _('3. Fotos') }}</h2>
+      <span class="small text-muted">{{ ngettext('%(num)s foto', '%(num)s fotos', pedido.fotos|length) }}</span></div>
+    <div class="card-body">
+      {% if pedido.fotos %}
+      <div class="preparar-fotos mb-3">
+        {% for f in pedido.fotos %}
+        <div class="preparar-foto">
+          <a href="{{ url_for('pedidos.ver_foto', id=pedido.id, foto_id=f.id) }}" target="_blank">
+            <img src="{{ url_for('pedidos.ver_foto', id=pedido.id, foto_id=f.id) }}" alt="{{ _('Foto %(n)s', n=loop.index) }}" loading="lazy"></a>
+          <form method="post" action="{{ url_for('pedidos.borrar_foto', id=pedido.id, foto_id=f.id) }}"
+                onsubmit="return confirm('{{ _('¿Quitar esta foto?')|e }}');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="volver" value="preparar">
+            <button class="preparar-quitar" title="{{ _('Quitar') }}" aria-label="{{ _('Quitar foto %(n)s', n=loop.index) }}">
+              <i class="fas fa-times"></i></button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted">{{ _('Todavía no hay fotos. Haz al menos una del pedido preparado.') }}</p>
+      {% endif %}
+
+      {# Dos entradas de archivo: una abre directamente la cámara (capture) y la otra la galería.
+         Sin JavaScript funcionan como un formulario normal; con JavaScript se reducen las fotos
+         antes de subirlas (más rápido con datos móviles) y se suben solas al elegirlas. #}
+      <form method="post" enctype="multipart/form-data" action="{{ url_for('pedidos.subir_fotos', id=pedido.id) }}"
+            id="form-fotos" data-subir-fotos
+            data-texto-preparando="{{ _('⏳ Preparando fotos…') }}" data-texto-subiendo="{{ _('⏳ Subiendo fotos…') }}">
+        {{ fotos_form.hidden_tag() }}
+        <input type="hidden" name="volver" value="preparar">
+        <div class="d-grid gap-2">
+          <label class="btn btn-primary btn-lg preparar-boton">
+            <i class="fas fa-camera me-2"></i>{{ _('Hacer foto') }}
+            <input type="file" name="{{ fotos_form.fotos.name }}" accept="image/jpeg,image/png,image/webp" capture="environment" hidden>
+          </label>
+          <label class="btn btn-outline-primary btn-lg preparar-boton">
+            <i class="fas fa-images me-2"></i>{{ _('Elegir de la galería') }}
+            <input type="file" name="{{ fotos_form.fotos.name }}" accept="image/jpeg,image/png,image/webp" multiple hidden>
+          </label>
+          <noscript><button class="btn btn-secondary">{{ _('Subir fotos') }}</button></noscript>
+        </div>
+        <div class="small text-muted mt-2" data-estado-subida role="status" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+
+  {# ---------- 4. Enviar a validación (fijo abajo) ---------- #}
+  <div class="preparar-pie">
+    <form method="post" action="{{ url_for('pedidos.enviar_a_validacion', id=pedido.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="volver" value="preparar">
+      <button class="btn btn-primary btn-lg w-100" {{ 'disabled' if not pedido.fotos }}>
+        {{ _('Enviar a validación →') }}</button>
+      {% if not pedido.fotos %}<div class="small text-muted text-center mt-1">{{ _('Primero haz al menos una foto.') }}</div>{% endif %}
+    </form>
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/preparar.js') }}"></script>{% endblock %}

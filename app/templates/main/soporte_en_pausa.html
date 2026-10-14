@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{# Lo ve quien solo tiene un rol de Soporte ChromGo si su rol no tiene activados los Tickets ChromGo (Ajustes → Qué ve cada rol). #}
+{% block contenido %}
+<div class="card card-body text-center py-5">
+  <p class="mb-2"><i class="fas fa-life-ring fa-2x text-marca" aria-hidden="true"></i></p>
+  <h1 class="h4">{{ _('Soporte ChromGo no está disponible todavía') }}</h1>
+  <p class="text-muted mb-0">{{ _('Tu cuenta sigue activa. Te avisaremos cuando se abra esta parte de la plataforma.') }}</p>
+</div>
+{% endblock %}

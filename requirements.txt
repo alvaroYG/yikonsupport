@@ -1,0 +1,16 @@
+Flask>=3.0
+Flask-SQLAlchemy>=3.1
+Flask-Migrate>=4.0
+Flask-Login>=0.6
+Flask-Babel>=4.0
+Flask-WTF>=1.2
+email-validator>=2.0
+tzdata    # zonas horarias en Windows (zoneinfo)
+python-dotenv>=1.0
+fpdf2>=2.8
+openpyxl>=3.1   # exportar a Excel (Python puro)
+# Producción:
+gunicorn>=22.0
+psycopg[binary]>=3.1
+# Desarrollo:
+pytest>=8.0

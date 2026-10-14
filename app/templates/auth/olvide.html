@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+<div class="login-caja card shadow-sm"><div class="card-body p-4">
+  <h1 class="h4 mb-2">{{ _('¿Has olvidado tu contraseña?') }}</h1>
+  <p class="small text-muted">{{ _('Escribe tu email y te enviaremos un enlace para elegir una nueva.') }}</p>
+  <form method="post" novalidate>{{ form.hidden_tag() }}
+    {{ campo(form.email, autofocus=true) }}
+    {{ form.submit(id=False, class_="btn btn-primary w-100") }}
+  </form>
+  <div class="text-center mt-3"><a href="{{ url_for('auth.login') }}" class="small">{{ _('← Volver a entrar') }}</a></div>
+</div></div>
+{% endblock %}

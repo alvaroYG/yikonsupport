@@ -1,0 +1,58 @@
+{# Campos del formulario de pedido. Se usa en la página normal y en la ventana emergente,
+   tanto para el cliente (PedidoClienteForm) como para Yikon (admin, logística, FAS) (PedidoInternoForm).
+   Se distinguen porque el interno tiene el campo cliente_id. #}
+{% from "_macros.html" import campo %}
+{% set interno = form.cliente_id is defined %}
+{{ form.hidden_tag() }}
+{% if interno %}
+  {# data-proximas: la referencia interna que tocaría a cada cliente (para la insignia de arriba) #}
+  {{ campo(form.cliente_id, **{"data-proximas": form.proximas_json}) }}
+{% endif %}
+{# ---- Contenido del pedido: lo pinta y lo recoge static/js/pedido.js ----
+   data-catalogo: los kits con sus productos · data-productos: productos para los sueltos
+   (solo Yikon (admin, logística, FAS)) · data-txt-*: textos traducidos que usa el JavaScript.
+   El resultado se guarda en el campo oculto "contenido" (JSON; lo pinta hidden_tag) al enviar. #}
+<div class="mb-3" data-pedido
+     data-catalogo="{{ form.catalogo_json }}" data-productos="{{ form.productos_json }}"
+     data-txt-elige-kit="{{ _('— Elige un kit —') }}" data-txt-elige-producto="{{ _('— Elige un producto —') }}"
+     data-txt-num-kits="{{ _('Nº de kits') }}" data-txt-quitar-kit="{{ _('Quitar este kit') }}"
+     data-txt-quitar="{{ _('Quitar') }}" data-txt-incluir="{{ _('Incluir este producto') }}"
+     data-txt-cantidad="{{ _('Cantidad') }}" data-txt-por-kit="{{ _('por kit') }}">
+  <label class="form-label">{{ _('Kits') }}{% if not interno %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
+  <div class="form-text mt-0 mb-2">{{ _('Al elegir un kit salen todos sus productos: puedes desmarcar los que no quieras o cambiar las cantidades.') }}</div>
+  {% for e in form.contenido.errors %}<div class="text-danger small mb-2">✕ {{ e }}</div>{% endfor %}
+  <div class="text-danger small mb-2" data-error-kits hidden>✕ {{ _('Añade al menos un kit o un producto.') if interno else _('Añade al menos un kit.') }}</div>
+  <div data-kits></div>
+  <button type="button" class="btn btn-sm btn-outline-primary" data-anadir-kit>{{ _('＋ Añadir kit') }}</button>
+  {% if interno %}
+  <div class="mt-3">
+    <label class="form-label">{{ _('Productos sueltos') }}</label>
+    <div class="form-text mt-0 mb-2">{{ _('Opcional: productos fuera de un kit (reposiciones, extras…).') }}</div>
+    <div data-sueltos></div>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-anadir-suelto>{{ _('＋ Añadir producto suelto') }}</button>
+  </div>
+  {% endif %}
+</div>
+<div class="row">
+  <div class="col-md-6">{{ campo(form.fecha) }}</div>
+  <div class="col-md-6 mb-3">
+    {# Pintado a mano (no con la macro) para controlar el mensaje de error desde JavaScript.
+       Para el cliente es obligatoria (required); para Yikon (admin, logística, FAS), opcional. #}
+    <label class="form-label" for="{{ form.referencia.id }}">{{ form.referencia.label.text }}{% if not interno %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
+    {{ form.referencia(class_="form-control" ~ (" is-invalid" if form.referencia.errors else ""),
+                       required=not interno, **{"aria-describedby": form.referencia.id ~ "-ayuda " ~ form.referencia.id ~ "-error"}) }}
+    <div class="form-text" id="{{ form.referencia.id }}-ayuda">{{ form.referencia.description }}</div>
+    <div class="text-danger small" id="{{ form.referencia.id }}-error" data-error-referencia
+         {% if not form.referencia.errors %}hidden{% endif %}>✕ {{ form.referencia.errors[0] if form.referencia.errors
+         else _("El nº de referencia de su empresa es obligatorio.") }}</div>
+  </div>
+</div>
+{{ campo(form.documento, accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.odt,.ods,.rtf,.txt,.jpg,.jpeg,.png,.eml,.msg,.zip") }}
+{% if not interno %}
+{# Para el cliente que no tiene un modelo propio de pedido: el de Yikon (Word, bilingüe) #}
+<p class="small mt-n2 mb-3 enlace-modelo-pedido">
+  <i class="fas fa-file-word me-1" aria-hidden="true"></i>{{ _('¿No tiene un modelo propio?') }}
+  <a href="{{ url_for('pedidos.modelo_pedido_compra') }}">{{ _('Descargue nuestro modelo de pedido de compra (Word)') }}</a>,
+  {{ _('rellénelo y adjúntelo aquí.') }}</p>
+{% endif %}
+{% if interno %}{{ campo(form.notas, rows=2) }}{% endif %}

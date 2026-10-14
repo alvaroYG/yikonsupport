@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+<div class="login-caja card shadow-sm"><div class="card-body p-4">
+  <h1 class="login-logo">
+    <img src="{{ url_for('static', filename='img/yikon-logo.png') }}" alt="Yikon Genomics">
+    <span>{{ _('Pedidos y facturas') }}</span>
+  </h1>
+  {% if mantenimiento_activo %}
+  <div class="alert alert-warning small"><strong><i class="fas fa-tools me-1" aria-hidden="true"></i>{{ _('Estamos actualizando la plataforma') }}</strong>
+    <div style="white-space:pre-line">{{ mantenimiento_mensaje or _('Volvemos en un rato. Gracias por la paciencia.') }}</div></div>
+  {% endif %}
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ campo(form.email, autofocus=true) }}
+    {{ campo(form.password) }}
+    {{ campo(form.recordar) }}
+    {{ form.submit(id=False, class_="btn btn-primary w-100") }}
+    <div class="text-center mt-3"><a href="{{ url_for('auth.olvide') }}" class="small">{{ _('¿Has olvidado tu contraseña?') }}</a></div>
+  </form>
+</div></div>
+{% endblock %}

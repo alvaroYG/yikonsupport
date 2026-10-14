@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import estado_pedido %}
+{#
+  Vista de móvil: los pedidos "En preparación" (primero los que el FAS ha devuelto) y los
+  "Aceptados" que aún no se han empezado. Cada tarjeta entera es un enlace grande al pedido.
+#}
+{% block clase_body %}vista-movil{% endblock %}
+{% block contenido %}
+<div class="preparar">
+  <h1 class="h4 mb-1">{{ _('Preparar pedidos') }}</h1>
+  <p class="text-muted small mb-3">{{ _('Toca un pedido para ver qué lleva, hacer las fotos y enviarlo a validación.') }}</p>
+
+  {% for p in pedidos %}
+  <a href="{{ url_for('pedidos.preparar_pedido', id=p.id) }}" class="card preparar-tarjeta mb-3 text-reset text-decoration-none
+            {{ 'preparar-revisar' if p.devuelto }}">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div>
+          <div class="fw-bold fs-5">{{ p.referencia_interna or '#' ~ p.id }}</div>
+          <div class="text-muted">{{ p.cliente.nombre }}</div>
+        </div>
+        <div class="text-end">{{ estado_pedido(p) }}</div>
+      </div>
+      <div class="small mt-2">
+        {% for kp in p.kits %}<div>{{ kp.cantidad }} × {{ kp.kit.nombre }}</div>{% endfor %}
+        {% for l in p.lineas_sueltas %}<div>{{ l.cantidad }} × {{ l.producto.nombre }}</div>{% endfor %}
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
+        <span><i class="fas fa-camera me-1"></i>{{ ngettext('%(num)s foto', '%(num)s fotos', p.fotos|length) }}</span>
+        <span>{{ p.fecha|fecha }} <i class="fas fa-chevron-right ms-1"></i></span>
+      </div>
+    </div>
+  </a>
+  {% else %}
+  <div class="card"><div class="card-body text-center py-5">
+    <div class="fs-1 mb-2">✓</div>
+    <div class="fw-semibold">{{ _('No hay pedidos por preparar.') }}</div>
+    <div class="text-muted small">{{ _('Cuando un cliente acepte su proforma, aparecerá aquí.') }}</div>
+  </div></div>
+  {% endfor %}
+</div>
+{% endblock %}

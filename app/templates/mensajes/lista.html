@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+{% set es_cliente = current_user.rol == 'cliente' %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">{{ _('Mensajes') }}</h1>
+  {% if nuevo_form %}
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-mensaje-nuevo">
+    <i class="fas fa-pen me-1"></i> {{ _('Mensaje nuevo') }}</button>
+  {% endif %}
+  {% if es_cliente and current_user.cliente_id %}
+  <a href="{{ url_for('mensajes.conversacion', cliente_id=current_user.cliente_id) }}" class="btn btn-primary">
+    <i class="fas fa-comment me-1"></i> {{ _('Escribir a tu Soporte de cliente') }}</a>
+  {% endif %}
+</div>
+
+{% if not es_cliente %}
+{# Filtrar por cliente y, con un cliente elegido, abrir (o empezar) su conversación general #}
+<form method="get" class="card card-body mb-3 py-2">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-5"><label class="form-label small mb-0" for="filtro-cliente">{{ _('Cliente') }}</label>
+      <select name="cliente_id" id="filtro-cliente" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todos') }}</option>
+        {% for c in clientes %}<option value="{{ c.id }}" {{ 'selected' if cliente_id == c.id }}>{{ c.nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="col-md-auto"><noscript><button class="btn btn-sm btn-outline-secondary">{{ _('Filtrar') }}</button></noscript>
+      {% if cliente_id %}<a href="{{ url_for('mensajes.conversacion', cliente_id=cliente_id) }}" class="btn btn-sm btn-primary">
+        <i class="fas fa-comment me-1"></i> {{ _('Conversación general con este cliente') }}</a>{% endif %}</div>
+  </div>
+</form>
+{% endif %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+  <p class="small text-muted mb-0">{{ _('Hay una conversación general por cliente y una en cada pedido (en su ficha). Las que tienen mensajes sin leer van marcadas.') }}
+    {% if current_user.puede('mensajes.internos') %}{{ _('Las marcadas con 🔒 son internas (solo Yikon): el cliente no las ve.') }}{% endif %}</p>
+  {% if current_user.puede('mensajes.internos') %}
+  <div class="btn-group btn-group-sm" role="group">
+    <a href="{{ url_for('mensajes.lista', cliente_id=cliente_id) }}" class="btn {{ 'btn-secondary' if not solo_internas else 'btn-outline-secondary' }}">{{ _('Todas') }}</a>
+    <a href="{{ url_for('mensajes.lista', cliente_id=cliente_id, internas=1) }}" class="btn {{ 'btn-secondary' if solo_internas else 'btn-outline-secondary' }}"><i class="fas fa-lock me-1"></i>{{ _('Solo internas') }}</a>
+  </div>{% endif %}
+</div>
+<div class="list-group lista-conversaciones">
+  {% for c in conversaciones %}
+  {% set url = url_for('pedidos.detalle', id=c.pedido.id) ~ ('#interno' if c.interno else '#mensajes') if c.pedido else url_for('mensajes.conversacion', cliente_id=c.cliente.id) %}
+  <a href="{{ url }}" class="list-group-item list-group-item-action conversacion-fila {{ 'sin-leer' if c.no_leidos }}">
+    <div class="d-flex justify-content-between gap-3">
+      <div class="text-truncate">
+        <i class="fas {{ 'fa-lock' if c.interno else ('fa-clipboard-list' if c.pedido else 'fa-comments') }} me-2 text-marca" aria-hidden="true"></i>
+        <strong>{% if c.interno %}{{ _('🔒 Interna · pedido %(ref)s', ref=c.pedido.referencia_interna or c.pedido.id) }}
+          {% elif c.pedido %}{{ _('Pedido %(ref)s', ref=c.pedido.referencia_interna or c.pedido.id) }}{% else %}{{ _('Conversación general') }}{% endif %}</strong>
+        {% if not es_cliente %}<span class="text-muted"> · {{ c.cliente.nombre }}</span>{% endif %}
+      </div>
+      <div class="text-nowrap small text-muted">{{ c.ultimo.fecha|fecha_hora }}
+        {% if c.no_leidos %}<span class="badge rounded-pill bg-marca ms-1" title="{{ _('Sin leer') }}">{{ c.no_leidos }}</span>{% endif %}</div>
+    </div>
+    <div class="small text-muted text-truncate mt-1"><span class="fw-semibold">{{ c.ultimo.autor.nombre }}:</span> {{ resumen(c.ultimo) }}</div>
+  </a>
+  {% else %}
+  <div class="list-group-item text-muted">{{ _('Todavía no hay conversaciones.') }}
+    {% if es_cliente %}{{ _('Puede escribirnos con el botón de arriba o desde la ficha de cualquier pedido.') }}
+    {% else %}{{ _('Elige un cliente para empezar una conversación general, o escribe desde la ficha de un pedido.') }}{% endif %}</div>
+  {% endfor %}
+</div>
+
+{% if nuevo_form %}
+{# Ventana "Mensaje nuevo": elegir cliente y escribir. Va a la conversación general del cliente. #}
+<div class="modal fade" id="modal-mensaje-nuevo" tabindex="-1" aria-labelledby="modal-mensaje-nuevo-titulo" aria-hidden="true"
+     {% if abrir_ventana %}data-abrir-al-cargar{% endif %}>
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg"><div class="modal-content">
+    <form method="post" action="{{ url_for('mensajes.lista') }}" enctype="multipart/form-data" novalidate data-form-mensaje-nuevo>
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="modal-mensaje-nuevo-titulo">{{ _('Mensaje nuevo') }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+      </div>
+      <div class="modal-body">
+        {{ nuevo_form.hidden_tag() }}
+        {{ campo(nuevo_form.cliente_id) }}
+        {{ campo(nuevo_form.texto, rows=5, placeholder=_('Escribe tu mensaje…')) }}
+        <div>
+          <label class="btn btn-sm btn-outline-secondary mb-0" for="{{ nuevo_form.adjuntos.id }}">
+            <i class="fas fa-paperclip me-1" aria-hidden="true"></i> {{ nuevo_form.adjuntos.label.text }}</label>
+          {{ nuevo_form.adjuntos(class_="visually-hidden", **{"data-adjuntos": ""}) }}
+          <span class="small text-muted ms-2" data-nombres-adjuntos>{{ nuevo_form.adjuntos.description }}</span>
+          {% for e in nuevo_form.adjuntos.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <p class="small text-muted mt-3 mb-0">{{ _('Va a la conversación general del cliente. Para algo de un pedido concreto, escribe desde la ficha del pedido.') }}
+          <strong>{{ _('⚠ El cliente ve todo lo que escribas aquí.') }}</strong></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+        {{ nuevo_form.submit(id=False, class_="btn btn-primary") }}
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if nuevo_form %}
+<script>
+// Ventana "Mensaje nuevo": nombres de los archivos elegidos y, si hubo un error al enviar, se reabre sola
+(function () {
+  var modal = document.getElementById('modal-mensaje-nuevo');
+  if (!modal) return;
+  var ficheros = modal.querySelector('[data-adjuntos]'), nombres = modal.querySelector('[data-nombres-adjuntos]');
+  var ayuda = nombres.textContent;
+  ficheros.addEventListener('change', function () {
+    var lista = Array.from(ficheros.files).map(function (f) { return f.name; });
+    nombres.textContent = lista.length ? '📎 ' + lista.join(', ') : ayuda;
+  });
+  // Botón "Mensaje nuevo" con un cliente ya filtrado: la ventana sale con ese cliente elegido
+  var filtro = document.getElementById('filtro-cliente'), select = modal.querySelector('select[name=cliente_id]');
+  modal.addEventListener('show.bs.modal', function () { if (filtro && filtro.value && select.value === '0') select.value = filtro.value; });
+  modal.addEventListener('shown.bs.modal', function () { (select.value === '0' ? select : modal.querySelector('textarea')).focus(); });
+  if (modal.hasAttribute('data-abrir-al-cargar')) bootstrap.Modal.getOrCreateInstance(modal).show();
+})();
+</script>
+{% endif %}{% endblock %}

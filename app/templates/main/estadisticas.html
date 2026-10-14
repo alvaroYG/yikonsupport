@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{#
+  Estadísticas (solo admin). Gráficos hechos con HTML + CSS, sin librerías:
+  - Una sola serie por gráfico, en el color corporativo. El valor va escrito y
+    también sale al pasar el ratón (title): nada se lee solo por el color.
+  - Nº de pedidos e importe van en DOS gráficos: nunca dos escalas en uno.
+  - Los meses sin pedidos también salen (barra vacía): si no, el gráfico engaña.
+#}
+{% set max_pedidos = por_mes|map(attribute='pedidos')|max or 1 %}
+{% set max_importe = por_mes|map(attribute='importe')|max or 1 %}
+{% block contenido %}
+<div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-4">
+  <div><h1 class="h3 mb-0">{{ _('Estadísticas') }}</h1>
+    <div class="text-muted small">{{ _('Pedidos no cancelados desde el %(fecha)s', fecha=desde|fecha) }}</div></div>
+  <div class="btn-group" role="group" aria-label="{{ _('Periodo') }}">
+    {% for n in (6, 12, 24) %}
+      <a href="{{ url_for('main.estadisticas', meses=n) }}" class="btn btn-sm {{ 'btn-primary' if n == meses else 'btn-outline-secondary' }}"
+         {% if n == meses %}aria-current="true"{% endif %}>{{ ngettext('%(num)s mes', '%(num)s meses', n) }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+{# Cifras clave: números, no gráficos (una cifra suelta se lee mejor como número) #}
+<div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
+  {% for texto, valor, icono in [(_('Pedidos'), resumen.pedidos, 'fa-clipboard-list'),
+                                 (_('Importe total'), resumen.importe|euros, 'fa-euro-sign'),
+                                 (_('Importe medio por pedido'), resumen.ticket_medio|euros, 'fa-receipt'),
+                                 (_('Clientes con pedidos'), resumen.clientes, 'fa-building')] %}
+  <div class="col"><div class="card tarjeta-resumen color-marca"><div class="card-body">
+    <div><div class="etiqueta">{{ texto }}</div><div class="valor">{{ valor }}</div></div>
+    <i class="fas {{ icono }} icono" aria-hidden="true"></i></div></div></div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  {% for titulo, clave, maximo, formato in [(_('Pedidos por mes'), 'pedidos', max_pedidos, 'n'),
+                                            (_('Importe por mes'), 'importe', max_importe, 'euros')] %}
+  <div class="col-xl-6"><div class="card h-100">
+    <div class="card-header"><h2 class="h5">{{ titulo }}</h2></div>
+    <div class="card-body">
+      <div class="grafico-meses" role="img" aria-label="{{ titulo }}">
+        {% for m in por_mes %}
+          {% set valor = m[clave] %}
+          {% set texto = valor|euros if formato == 'euros' else valor %}
+          <div class="gm-col" title="{{ m.fecha|dateformat('MMMM yyyy') }}: {{ texto }}">
+            {# Etiquetas selectivas: en "pedidos" caben todas; en "importe" solo el máximo y el
+               último mes (el resto, al pasar el ratón y en la tabla de abajo) #}
+            {% set etiqueta = valor and (valor == maximo or loop.last or (formato != 'euros' and meses <= 12)) %}
+            <div class="gm-barra-zona">
+              <div class="gm-valor">{% if etiqueta %}{{ valor|euros_corto if formato == 'euros' else valor }}{% endif %}</div>
+              <div class="gm-barra" style="height: {{ (valor / maximo * 85) if maximo else 0 }}%"></div>
+            </div>
+            <div class="gm-mes">{{ m.fecha|dateformat('MMM') }}{% if m.fecha.month == 1 or loop.first %}<br><span>{{ m.fecha.year }}</span>{% endif %}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div></div>
+  {% endfor %}
+
+  <div class="col-xl-6"><div class="card h-100">
+    <div class="card-header"><h2 class="h5">{{ _('Kits más pedidos') }}</h2><span class="small text-muted">{{ _('nº de kits') }}</span></div>
+    <div class="card-body">
+      {% set max_kits = kits|map(attribute=1)|max if kits else 1 %}
+      {% for kit, n in kits %}
+        <div class="gh-fila" title="{{ kit.nombre }}: {{ n }}">
+          <div class="gh-etiqueta">{{ kit.nombre }}</div>
+          <div class="gh-zona"><div class="gh-barra" style="width: {{ n / max_kits * 100 }}%"></div></div>
+          <div class="gh-valor">{{ n }}</div>
+        </div>
+      {% else %}<p class="text-muted mb-0">{{ _('Sin kits en este periodo.') }}</p>{% endfor %}
+    </div>
+  </div></div>
+
+  <div class="col-xl-6"><div class="card h-100">
+    <div class="card-header"><h2 class="h5">{{ _('Productos más pedidos') }}</h2><span class="small text-muted">{{ _('unidades') }}</span></div>
+    <div class="card-body">
+      {% set max_uds = productos|map(attribute=1)|max if productos else 1 %}
+      {% for producto, unidades in productos %}
+        <div class="gh-fila" title="{{ producto.nombre }}: {{ unidades }}">
+          <div class="gh-etiqueta">{{ producto.nombre }}</div>
+          <div class="gh-zona"><div class="gh-barra" style="width: {{ unidades / max_uds * 100 }}%"></div></div>
+          <div class="gh-valor">{{ unidades }}</div>
+        </div>
+      {% else %}<p class="text-muted mb-0">{{ _('Sin pedidos en este periodo.') }}</p>{% endfor %}
+    </div>
+  </div></div>
+
+  <div class="col-xl-6"><div class="card h-100">
+    <div class="card-header"><h2 class="h5">{{ _('Importe por cliente') }}</h2><span class="small text-muted">{{ _('los 10 primeros') }}</span></div>
+    <div class="card-body">
+      {% set max_cli = (clientes|map(attribute=1)|map(attribute='importe')|max) if clientes else 1 %}
+      {% for cliente, datos in clientes %}
+        <div class="gh-fila" title="{{ cliente.nombre }}: {{ datos.importe|euros }} · {{ ngettext('%(num)s pedido', '%(num)s pedidos', datos.pedidos) }}">
+          <div class="gh-etiqueta"><a href="{{ url_for('clientes.detalle', id=cliente.id) }}">{{ cliente.nombre }}</a></div>
+          <div class="gh-zona"><div class="gh-barra" style="width: {{ (datos.importe / max_cli * 100) if max_cli else 0 }}%"></div></div>
+          <div class="gh-valor">{{ datos.importe|euros }}<div class="small text-muted">{{ ngettext('%(num)s pedido', '%(num)s pedidos', datos.pedidos) }}</div></div>
+        </div>
+      {% else %}<p class="text-muted mb-0">{{ _('Sin pedidos en este periodo.') }}</p>{% endfor %}
+    </div>
+  </div></div>
+</div>
+
+{# Los mismos datos por mes, en tabla (para quien prefiera leer números o copiarlos) #}
+<details class="mt-4"><summary class="small">{{ _('Ver los datos por mes en una tabla') }}</summary>
+  <table class="table table-sm bg-white mt-2" style="max-width: 520px">
+    <thead><tr><th>{{ _('Mes') }}</th><th class="num">{{ _('Pedidos') }}</th><th class="num">{{ _('Importe') }}</th></tr></thead>
+    <tbody>{% for m in por_mes %}<tr><td>{{ m.fecha|dateformat('MMMM yyyy') }}</td><td class="num">{{ m.pedidos }}</td><td class="num">{{ m.importe|euros }}</td></tr>{% endfor %}</tbody>
+  </table>
+</details>
+{% endblock %}

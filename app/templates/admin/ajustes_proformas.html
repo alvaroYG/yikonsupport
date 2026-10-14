@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{# Ajustes → Proformas: lo que sale ya relleno al enviar una proforma. Lógica: app/ajustes.py (proformas) #}
+{% block contenido %}
+{% with activa='proformas' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
+<div class="card" style="max-width: 56rem"><div class="card-body">
+  <p class="text-muted small">{{ _('Sale ya relleno en el formulario de «Enviar proforma» de cada pedido, y se puede cambiar en cada una. El plazo y las notas salen en el idioma del cliente (el que usan sus usuarios en la plataforma).') }}</p>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="mb-3" style="max-width: 14rem">
+      <label class="form-label" for="validez">{{ _('Válida durante') }}</label>
+      <div class="input-group">
+        <input type="number" min="1" max="365" class="form-control text-end {{ 'is-invalid' if error }}" id="validez" name="validez" value="{{ actuales.validez }}">
+        <span class="input-group-text">{{ _('días') }}</span>
+      </div>
+      {% if error %}<div class="text-danger small">{{ error }}</div>{% endif %}
+    </div>
+    <div class="row g-3">
+      {% for codigo, nombre in idiomas.items() %}
+      <div class="col-md-6">
+        <h2 class="h6">{{ nombre }}</h2>
+        <label class="form-label small" for="plazo_{{ codigo }}">{{ _('Plazo de entrega estimado') }}</label>
+        <input class="form-control mb-2" id="plazo_{{ codigo }}" name="plazo_{{ codigo }}" maxlength="120" value="{{ actuales.plazo[codigo] }}"
+               placeholder="{{ _('p. ej. 5–7 días laborables desde la confirmación') if codigo == 'es' else '5–7 working days from confirmation' }}">
+        <label class="form-label small" for="notas_{{ codigo }}">{{ _('Notas para el cliente') }}</label>
+        <textarea class="form-control" id="notas_{{ codigo }}" name="notas_{{ codigo }}" rows="5" maxlength="2000">{{ actuales.notas[codigo] }}</textarea>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="small text-muted mt-2 mb-3">{{ _('Vacío = el campo sale vacío, como hasta ahora.') }}</p>
+    <button class="btn btn-primary">{{ _('Guardar') }}</button>
+  </form>
+</div></div>
+{% endblock %}

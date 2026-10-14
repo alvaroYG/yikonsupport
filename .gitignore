@@ -1,0 +1,14 @@
+.env
+*.db
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+instance/
+messages.pot
+# Archivos temporales de las entregas y del despliegue
+*.tar.gz
+*.diff
+*.patch
+.base_md5_temp.txt

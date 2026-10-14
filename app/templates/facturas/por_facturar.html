@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion, estado_pedido %}
+{% block contenido %}
+{# Pedidos enviados o recibidos sin factura (app/facturas/routes.py, select_por_facturar). El más antiguo, arriba. #}
+<div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+  <h1 class="h3 mb-0">{{ _('Por facturar') }} <span class="text-muted fw-normal">· {{ pagina.total }}</span></h1>
+  <a href="{{ url_for('facturas.lista') }}" class="btn btn-outline-secondary">{{ _('Ver facturas') }}</a></div>
+<p class="text-muted small mb-3">{{ _('Pedidos enviados o recibidos que todavía no tienen factura. Prepara sus datos para la plantilla de Excel y, cuando tengas el PDF, regístrala.') }}</p>
+<table class="table table-hover bg-white align-middle">
+  <thead><tr><th>{{ _('Pedido') }}</th><th>{{ _('Cliente') }}</th><th>{{ _('Fecha del pedido') }}</th><th>{{ _('Estado') }}</th><th></th></tr></thead>
+  <tbody>{% for p in pagina.items %}
+    <tr><td><a href="{{ url_for('pedidos.detalle', id=p.id) }}" class="fw-semibold">{{ p.referencia_interna or '#' ~ p.id }}</a></td>
+      <td>{{ p.cliente.nombre }}</td><td>{{ p.fecha|fecha }}</td><td>{{ estado_pedido(p) }}</td>
+      <td class="text-end text-nowrap">
+        <a href="{{ url_for('facturas.datos_pedido', pedido_id=p.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-invoice me-1" aria-hidden="true"></i>{{ _('Preparar factura') }}</a>
+        <a href="{{ url_for('pedidos.detalle', id=p.id) }}#facturas" class="btn btn-sm btn-outline-primary">{{ _('Registrar factura') }}</a></td></tr>
+  {% else %}<tr><td colspan="5" class="text-muted">{{ _('No hay nada por facturar.') }}</td></tr>{% endfor %}</tbody></table>
+{{ paginacion(pagina, 'facturas.por_facturar') }}
+{% endblock %}

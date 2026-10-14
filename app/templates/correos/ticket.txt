@@ -1,0 +1,23 @@
+{{ _('Hola,') }}
+
+{% if nuevo -%}
+{{ _('%(quien)s ha abierto el ticket %(numero)s sobre ChromGo:', quien=quien, numero=ticket.numero) }}
+{%- elif interno -%}
+{{ _('%(quien)s ha escrito una nota interna en el ticket %(numero)s (el cliente no la ve):', quien=quien, numero=ticket.numero) }}
+{%- else -%}
+{{ _('%(quien)s ha escrito en el ticket %(numero)s:', quien=quien, numero=ticket.numero) }}
+{%- endif %}
+«{{ ticket.asunto }}» · {{ _('Estado:') }} {{ estado }}
+
+{{ texto }}
+{% if adjuntos %}
+{{ _('Archivos adjuntos (descárguelos desde la plataforma):') }}
+{% for a in adjuntos %}- {{ a }}
+{% endfor %}{% endif %}
+{{ _('Para verlo y responder, entre en la plataforma:') }}
+{{ enlace }}
+
+{{ _('Si hay más novedades en este ticket antes de que lo abra, no le enviaremos otro aviso.') }}
+
+--
+Yikon Genomics España · {{ _('Este es un aviso automático, no responda a este correo.') }}

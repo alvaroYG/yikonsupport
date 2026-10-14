@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import lote_caducidad %}
+{#
+  Corregir lo que ya está metido en el inventario de un producto.
+  Cada fila es su propio formulario (con su token CSRF): se guarda fila a fila.
+  - Lotes: código y caducidad.
+  - Entradas y ajustes manuales: cantidad y nota, o borrarlos si sobran.
+  Las salidas por envío no salen aquí: son la trazabilidad de los pedidos.
+#}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-0">{{ _('Corregir inventario') }}</h1>
+    <div class="text-muted">{{ producto.nombre }} · {{ producto.referencia }}{{ ' · ' ~ _('kit cerrado') if producto.tipo_articulo == 'kit' else (' · ' ~ producto.categoria if producto.categoria) }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if current_user.puede('productos.editar') %}
+    <a href="{{ url_for('productos.editar_kit' if producto.tipo_articulo == 'kit' else 'productos.editar', id=producto.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-pen me-1"></i>{{ _('Datos del kit') if producto.tipo_articulo == 'kit' else _('Datos del producto') }}</a>{% endif %}
+    <a href="{{ url_for('inventario.movimientos', **{producto.tipo_articulo ~ '_id': producto.id}) }}" class="btn btn-outline-secondary">{{ _('Historial') }}</a>
+    <a href="{{ url_for('inventario.lista') }}" class="btn btn-outline-secondary">{{ _('← Inventario') }}</a>
+  </div>
+</div>
+
+<div class="alert alert-info small">
+  <i class="fas fa-info-circle me-1"></i>
+  {{ _('Aquí se corrigen errores al meter stock. Las salidas por envío no se pueden tocar: se deshacen anulando el envío del pedido. Cada cambio queda en la auditoría con el valor de antes y el de después.') }}
+</div>
+
+<div class="card mb-4">
+  <div class="card-header"><h2 class="h5"><i class="fas fa-boxes me-1"></i>{{ _('Lotes') }}</h2></div>
+  <div class="card-body p-0">
+    <table class="table mb-0 align-middle">
+      <thead><tr><th>{{ _('Lote') }}</th><th>{{ _('Caducidad') }}</th><th class="num">{{ _('Stock') }}</th><th></th></tr></thead>
+      <tbody>{% for lote in lotes %}
+        {% set f = 'lote-' ~ lote.id %}
+        <tr>
+          <td><input form="{{ f }}" name="codigo" value="{{ lote.codigo }}" maxlength="60" required
+                     class="form-control form-control-sm lote-codigo" aria-label="{{ _('Lote') }}"></td>
+          <td>{# Si el lote no tenía caducidad, la casilla sale vacía y se puede añadir #}
+              <input form="{{ f }}" type="date" name="caducidad" value="{{ lote.caducidad.isoformat() if lote.caducidad }}"
+                     {{ 'required' if lote.caducidad is not none }}
+                     class="form-control form-control-sm" aria-label="{{ _('Caducidad') }}">
+              <div class="small mt-1">{{ lote_caducidad(lote, hoy, dias_aviso) }}</div></td>
+          <td class="num fw-semibold">{{ lote.stock }}</td>
+          <td class="text-end">
+            <form id="{{ f }}" method="post" action="{{ url_for('inventario.editar_lote', id=lote.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-primary"><i class="fas fa-check me-1"></i>{{ _('Guardar') }}</button>
+            </form></td>
+        </tr>
+      {% else %}<tr><td colspan="4" class="text-muted">{{ _('Este producto no tiene lotes.') }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2 class="h5"><i class="fas fa-exchange-alt me-1"></i>{{ _('Entradas y ajustes') }}</h2>
+    <span class="small text-muted">{{ _('los 100 más recientes') }}</span></div>
+  <div class="card-body p-0">
+    <table class="table mb-0 align-middle">
+      <thead><tr><th>{{ _('Fecha') }}</th><th>{{ _('Tipo') }}</th><th>{{ _('Lote') }}</th>
+        <th style="width:8rem">{{ _('Cantidad') }}</th><th>{{ _('Nota') }}</th><th>{{ _('Usuario') }}</th><th></th></tr></thead>
+      <tbody>{% for m in movimientos %}
+        {% set f = 'mov-' ~ m.id %}
+        <tr>
+          <td class="text-nowrap small">{{ m.fecha|fecha_hora }}</td>
+          <td>{{ m.tipo_nombre }}</td>
+          <td>{% if m.lote %}<span class="lote-codigo">{{ m.lote.codigo }}</span>{% else %}—{% endif %}</td>
+          <td><input form="{{ f }}" type="number" name="cantidad" value="{{ m.cantidad }}" required
+                     {% if m.tipo == 'entrada' %}min="1"{% endif %} max="100000"
+                     class="form-control form-control-sm text-end" aria-label="{{ _('Cantidad') }}"></td>
+          <td><input form="{{ f }}" name="nota" value="{{ m.nota or '' }}" maxlength="250"
+                     class="form-control form-control-sm" aria-label="{{ _('Nota') }}"></td>
+          <td class="small">{{ m.usuario.nombre if m.usuario else '—' }}</td>
+          <td class="text-end text-nowrap">
+            <form id="{{ f }}" method="post" action="{{ url_for('inventario.editar_movimiento', id=m.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-primary"><i class="fas fa-check me-1"></i>{{ _('Guardar') }}</button>
+            </form>
+            <form method="post" action="{{ url_for('inventario.borrar_movimiento', id=m.id) }}" class="d-inline"
+                  onsubmit="return confirm('{{ _('¿Borrar este movimiento? El stock del lote se recalcula.')|e }}');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-danger" title="{{ _('Borrar') }}" aria-label="{{ _('Borrar') }}">
+                <i class="fas fa-trash"></i></button>
+            </form></td>
+        </tr>
+      {% else %}<tr><td colspan="7" class="text-muted">{{ _('No hay entradas ni ajustes manuales de este producto.') }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

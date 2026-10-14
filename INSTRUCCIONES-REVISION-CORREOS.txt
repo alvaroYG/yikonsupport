@@ -1,0 +1,19 @@
+REVISIÓN DE CORREOS ANTES DEL ENVÍO
+Preparado sobre el ZIP del 13/10/2026. No se ha modificado la carpeta de PyCharm.
+
+INSTALACIÓN
+1. Detén la aplicación y conserva una copia de tu base de datos.
+2. Copia app/ y migrations/ del ZIP dentro del proyecto, respetando las carpetas y sustituyendo los archivos incluidos.
+3. En la terminal del proyecto, con su entorno virtual activado y la configuración habitual, ejecuta:
+   python -m flask --app run.py db upgrade
+4. Reinicia la aplicación y recarga el navegador con Ctrl+F5.
+
+FUNCIONAMIENTO
+Los correos generados por el equipo de Yikon quedan pendientes y se abre un modal para editar asunto y mensaje. Los destinatarios se conservan según el aviso original. Cada autor solo ve sus propios borradores.
+Puedes enviar, guardar para después o descartar. El botón Revisar correos pendientes permite retomarlos. Si se generan varios correos, se revisan uno a uno. En avisos diferidos, el modal aparece cuando se genera el correo (puede tardar unos segundos).
+La acción original (guardar pedido, cambiar estado, publicar proforma o mensaje) YA se ha guardado: cerrar o descartar el correo no deshace esa acción. Los enlaces y archivos del correo se conservan; editar el texto no modifica el mensaje publicado en la conversación de la plataforma.
+Los borradores caducan en 24 horas. La recuperación de contraseña, los errores del sistema y los avisos originados por clientes continúan automáticos. Las invitaciones y los reenvíos del equipo sí requieren revisión.
+Si falla la entrega, no se reintenta automáticamente: revisa el registro antes de confirmar de nuevo. Si el proceso se interrumpe justo durante el envío, el estado queda «enviando» para impedir duplicados; comprueba la entrega antes de realizar otro envío.
+
+VALIDACIÓN
+15 pruebas de servidor superadas; prueba real del modal en navegador con entrega simulada; migración aplicada a una base de datos de prueba. No se han enviado correos reales.

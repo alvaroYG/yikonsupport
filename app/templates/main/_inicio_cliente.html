@@ -1,0 +1,74 @@
+{#
+  Inicio del cliente (app/main/inicio_cliente.py): un MOSAICO de casillas de tamaño fijo.
+    - grande: "Tus pedidos en curso" (los primeros; "Ver los N" lleva a la lista ya filtrada);
+    - a la derecha: "Tu próximo envío" y "Documentos y facturas";
+    - debajo, a todo el ancho: "Última actividad".
+  Nada crece con el número de pedidos. El contacto va en la cabecera (main/inicio.html).
+  Estados y pasos: siempre icono/etiqueta + texto, el color solo acompaña (daltonismo).
+#}
+{% from "_macros.html" import estado_pedido with context %}
+<div class="mosaico mb-4">
+  <section class="card casilla casilla-lista" id="en-curso">
+    <div class="card-header"><h2 class="h5"><i class="fas fa-route me-2 text-marca" aria-hidden="true"></i>{{ _('Tus pedidos en curso') }}
+        {% if total_en_curso %}<span class="text-muted fw-normal">· {{ total_en_curso }}</span>{% endif %}</h2>
+      {% if te_tocan %}<span class="small text-muted te-toca"><span class="punto-leyenda"></span>{{ ngettext('%(num)s espera algo de ti', '%(num)s esperan algo de ti', te_tocan) }}</span>{% endif %}</div>
+    <div class="card-body">
+      {% for f in en_curso %}{% set p = f.pedido %}
+      {# Una línea por pedido: referencia y contenido · mini barra de 5 tramos · etiqueta de estado.
+         Si espera algo del cliente lleva un punto delante (y sale arriba); lo que hay que hacer
+         se hace dentro del pedido. #}
+      <div class="en-curso-fila" data-pedido-id="{{ p.id }}" data-paso="{{ f.paso + 1 }}"{% if f.accion %} data-toca="{{ f.accion.clave }}"{% endif %}>
+        <div class="que" title="{{ f.contenido }}">{% if f.accion %}<span class="punto" title="{{ f.accion.texto }}" aria-hidden="true"></span><span class="visually-hidden">{{ f.accion.texto }}: </span>{% else %}<span class="sin-punto"></span>{% endif
+          %}<a class="fw-bold" href="{{ url_for('pedidos.detalle', id=p.id) }}">{{ p.referencia_interna or '#' ~ p.id }}</a>
+          <span class="text-muted">· {{ f.contenido }}</span></div>
+        <div class="mini-pasos" role="img" style="--relleno: var(--t-{{ p.estado_cliente }}); --fondo: var(--b-{{ p.estado_cliente }})"
+             aria-label="{{ _('Paso %(n)s de %(total)s: %(nombre)s', n=f.paso + 1, total=pasos|length, nombre=p.estado_nombre_para(current_user)) }}"
+             title="{{ _('Paso %(n)s de %(total)s: %(nombre)s', n=f.paso + 1, total=pasos|length, nombre=p.estado_nombre_para(current_user)) }}">
+          {% for paso in pasos %}<i class="{{ 'lleno' if loop.index0 <= f.paso }}"></i>{% endfor %}</div>
+        <div class="estado">{{ estado_pedido(p) }}</div>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0"><i class="fas fa-check-circle me-1" aria-hidden="true"></i>{{ _('No tienes pedidos en curso.') }}</p>
+      {% endfor %}
+    </div>
+    {% if total_en_curso > en_curso|length %}
+    <div class="casilla-pie"><span class="text-muted small">{{ _('%(n)s de %(total)s', n=en_curso|length, total=total_en_curso) }}</span>
+      <a href="{{ url_for('pedidos.lista', estado='en_curso') }}">{{ _('Ver los %(n)s →', n=total_en_curso) }}</a></div>
+    {% endif %}
+  </section>
+
+  <section class="card casilla" id="proximo-envio">
+    <div class="card-header"><h2 class="h5"><i class="fas fa-truck me-2 text-marca" aria-hidden="true"></i>{{ _('Tu próximo envío') }}</h2></div>
+    <div class="card-body">
+      {% if proximo_envio %}{% set p = proximo_envio %}
+      <a class="fw-bold fs-5" href="{{ url_for('pedidos.detalle', id=p.id) }}">{{ p.referencia_interna or '#' ~ p.id }}</a>
+      <div class="small text-muted">{% if p.fecha_entrega_estimada %}{{ _('Entrega estimada: %(fecha)s', fecha=p.fecha_entrega_estimada|fecha) }}{% else %}{{ _('Sin fecha estimada todavía') }}{% endif %}</div>
+      {% if p.transportista or p.numero_seguimiento %}<div class="small text-muted">{{ [p.transportista, p.numero_seguimiento]|select|join(' · ') }}</div>{% endif %}
+      {% if p.enlace_seguimiento %}<a class="d-inline-block mt-2" href="{{ p.enlace_seguimiento }}" target="_blank" rel="noopener">{{ _('Seguir el envío') }} →</a>{% endif %}
+      {% else %}<p class="text-muted mb-0">{{ _('Ahora no hay ningún envío en camino.') }}</p>{% endif %}
+    </div>
+  </section>
+
+  <section class="card casilla" id="documentos-recientes">
+    <div class="card-header"><h2 class="h5"><i class="fas fa-folder-open me-2 text-marca" aria-hidden="true"></i>{{ _('Documentos y facturas') }}</h2></div>
+    <div class="card-body">
+      {% for d in documentos %}
+      <div class="doc-reciente"><i class="fas {{ d.icono }} text-muted" aria-hidden="true"></i>
+        <div class="texto"><a href="{{ d.url }}">{{ d.nombre }}</a>
+          <span class="small text-muted d-block">{{ d.fecha|fecha }}{% if d.pedido %} · {{ d.pedido.referencia_interna or '#' ~ d.pedido.id }}{% endif %}</span></div></div>
+      {% else %}<p class="text-muted mb-0">{{ _('Todavía no hay documentos.') }}</p>{% endfor %}
+    </div>
+    {% if current_user.puede('facturas.descargar') %}
+    <div class="casilla-pie"><span></span><a href="{{ url_for('facturas.mias') }}">{{ _('Ver mis facturas →') }}</a></div>{% endif %}
+  </section>
+
+  <section class="card casilla casilla-ancha" id="actividad">
+    <div class="card-header"><h2 class="h5"><i class="fas fa-history me-2 text-marca" aria-hidden="true"></i>{{ _('Última actividad') }}</h2></div>
+    <div class="card-body">
+      {% for a in actividad %}
+      <div class="actividad-fila"><span><i class="fas {{ a.icono }} text-muted me-2" aria-hidden="true"></i><a href="{{ a.url }}">{{ a.texto }}</a></span>
+        <span class="small text-muted text-nowrap">{{ a.fecha|fecha_hora('%d/%m %H:%M') }}</span></div>
+      {% else %}<p class="text-muted mb-0">{{ _('Aquí verás lo último que pase en tus pedidos.') }}</p>{% endfor %}
+    </div>
+  </section>
+</div>

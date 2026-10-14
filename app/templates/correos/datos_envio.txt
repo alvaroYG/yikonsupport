@@ -1,0 +1,11 @@
+{{ _('Hola,') }}
+
+{{ _('Hemos actualizado los datos de envío de su pedido %(referencia)s:', referencia=referencia) }}
+{% if entrega_estimada %}
+{{ _('Fecha estimada de entrega: %(fecha)s', fecha=entrega_estimada) }}{% endif %}{% include "correos/_seguimiento.txt" %}
+
+{{ _('Puede consultarlo en:') }}
+{{ enlace }}
+
+--
+Yikon Genomics España · {{ _('Este es un aviso automático, no responda a este correo.') }}

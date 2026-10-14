@@ -1,0 +1,24 @@
+# Servicio de systemd: mantiene la plataforma arrancada (también tras reiniciar el servidor).
+# Instalar:  sudo cp deploy/yikonpo.service /etc/systemd/system/
+#            sudo systemctl daemon-reload && sudo systemctl enable --now yikonpo
+# Ver si va: sudo systemctl status yikonpo      Registro: sudo journalctl -u yikonpo -f
+[Unit]
+Description=Yikon Genomics PO (gunicorn)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=yikonpo
+Group=yikonpo
+# La configuración (.env) la lee la propia plataforma desde esta carpeta (config.py)
+WorkingDirectory=/srv/yikonpo/app
+ExecStart=/srv/yikonpo/venv/bin/gunicorn -c deploy/gunicorn.conf.py run:app
+Restart=always
+RestartSec=5
+# Un poco de aislamiento: el servicio no puede tocar el resto del sistema
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

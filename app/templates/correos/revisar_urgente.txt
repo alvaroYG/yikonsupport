@@ -1,0 +1,15 @@
+{{ _('⚠ DEVUELTO A PREPARACIÓN') }}
+
+{{ _('%(quien)s ha rechazado la validación del pedido %(referencia)s (%(cliente)s) y ha vuelto a «En preparación».', quien=quien, referencia=referencia, cliente=cliente) }}
+
+{{ _('Motivo:') }}
+  «{{ comentario }}»
+
+{{ _('Contenido del pedido:') }}
+{% for k in kits %}  - {{ k }}
+{% endfor %}
+{{ _('Corrige el pedido, cambia las fotos si hace falta y vuelve a enviarlo a validación:') }}
+{{ enlace }}
+
+--
+Yikon Genomics PO · {{ _('aviso automático') }}

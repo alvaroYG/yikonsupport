@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Usuarios') }}</h1>
+  <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary">{{ _('+ Nuevo usuario') }}</a></div>
+{# Buscador y filtros (en el servidor). Los desplegables filtran al elegir. #}
+<form method="get" class="card card-body mb-3 py-2" role="search">
+  <div class="row g-2 align-items-end">
+    <div class="col-md"><label class="form-label small mb-0" for="f-q">{{ _('Buscar') }}</label>
+      <div class="input-group input-group-sm">
+        <input type="search" name="q" id="f-q" value="{{ q }}" class="form-control" maxlength="100" placeholder="{{ _('Nombre o email') }}">
+        <button class="btn btn-outline-secondary"><i class="fas fa-search" aria-hidden="true"></i><span class="visually-hidden">{{ _('Buscar') }}</span></button></div></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-rol">{{ _('Rol') }}</label>
+      <select name="rol" id="f-rol" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todos') }}</option>
+        {% for clave, nombre in roles.items() %}<option value="{{ clave }}" {{ 'selected' if rol == clave }}>{{ nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="col-6 col-md-3"><label class="form-label small mb-0" for="f-cliente">{{ _('Empresa') }}</label>
+      <select name="cliente_id" id="f-cliente" class="form-select form-select-sm" onchange="this.form.submit()"
+              title="{{ _('Sus usuarios y quien la lleva (%(rol)s)', rol=rol_fas) }}">
+        <option value="">{{ _('Todas') }}</option>
+        {% for c in clientes %}<option value="{{ c.id }}" {{ 'selected' if cliente_id == c.id }}>{{ c.nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-estado">{{ _('Estado') }}</label>
+      <select name="estado" id="f-estado" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todos') }}</option>
+        <option value="activos" {{ 'selected' if estado == 'activos' }}>{{ _('Activos') }}</option>
+        <option value="pendientes" {{ 'selected' if estado == 'pendientes' }}>{{ _('Invitación pendiente') }}</option>
+        <option value="desactivados" {{ 'selected' if estado == 'desactivados' }}>{{ _('Desactivados') }}</option></select></div>
+    {% if hay_filtros %}<div class="col-auto"><a href="{{ url_for('admin.usuarios') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Quitar filtros') }}</a></div>{% endif %}
+  </div>
+</form>
+<p class="small text-muted mb-2">{{ ngettext('%(num)s usuario', '%(num)s usuarios', pagina.total) }}{% if hay_filtros %} · {{ _('con los filtros aplicados') }}{% endif %}</p>
+<table class="table table-hover bg-white align-middle">
+  <thead><tr><th>{{ _('Nombre') }}</th><th>{{ _('Email') }}</th><th>{{ _('Rol') }}</th><th>{{ _('Empresa / clientes') }}</th><th>{{ _('Estado') }}</th><th>{{ _('Último acceso') }}</th><th></th></tr></thead>
+  <tbody>{% for u in pagina.items %}
+    <tr class="{{ 'text-muted' if not u.activo }}"><td>{{ u.nombre }}</td><td>{{ u.email }}</td><td>{{ u.rol_nombre }}{% if soporte_activo and u.acceso_chromgo and u.rol == 'cliente' %} <span class="badge text-bg-light border" title="{{ _('Acceso a Soporte ChromGo') }}"><i class="fas fa-life-ring me-1" aria-hidden="true"></i>ChromGo</span>{% endif %}</td>
+      <td class="small">{% if u.es_cliente %}{{ u.empresa.nombre if u.empresa else '—' }}{% elif u.rol == 'fas' %}{{ u.clientes_asignados|map(attribute='nombre')|join(', ') or '—' }}{% else %}—{% endif %}</td>
+      <td>{{ _('Activo') if u.activo else _('Desactivado') }}</td>
+      <td>{% if u.ultimo_acceso %}{{ u.ultimo_acceso|fecha_hora }}
+          {% elif u.activo %}<span class="badge est-pendiente">{{ _('✉ Invitación pendiente') }}</span>{% else %}—{% endif %}</td>
+      <td class="text-end text-nowrap">
+        {% if u.activo and not u.ultimo_acceso %}
+        <form method="post" action="{{ url_for('admin.reenviar_invitacion', id=u.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-secondary" title="{{ _('Volver a enviarle el email para elegir su contraseña') }}">{{ _('Reenviar invitación') }}</button></form>
+        {% endif %}
+        {% if u.activo and u.rol != 'admin' and current_user.puede('usuarios.ver_como') %}
+        <form method="post" action="{{ url_for('admin.ver_como', id=u.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-secondary" title="{{ _('Ver la plataforma como %(nombre)s (solo lectura)', nombre=u.nombre) }}"
+                  aria-label="{{ _('Ver la plataforma como %(nombre)s (solo lectura)', nombre=u.nombre) }}"><i class="fas fa-user-secret" aria-hidden="true"></i></button></form>
+        {% endif %}
+        <a href="{{ url_for('admin.editar_usuario', id=u.id) }}" class="btn btn-sm btn-outline-primary">{{ _('Editar') }}</a></td></tr>
+  {% else %}<tr><td colspan="7" class="text-muted text-center py-4">{{ _('No hay usuarios con estos filtros.') }}</td></tr>
+  {% endfor %}</tbody></table>
+{{ paginacion(pagina, 'admin.usuarios') }}
+{% endblock %}

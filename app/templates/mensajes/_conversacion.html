@@ -1,0 +1,52 @@
+{# Una conversación: los mensajes y el cuadro para escribir.
+   Variables: mensajes, form (None = solo lectura), accion (a dónde se envía),
+   url_nuevos (a dónde pregunta el navegador cada 30 s por mensajes nuevos),
+   interno (True = conversación interna Yikon: admin, logística y FAS: cambia el aviso de abajo),
+   cliente_chat (opcional: el cliente de la conversación, para la línea "Para:").
+   Encima de lo que escribes, siempre "Para: …" y el botón dice a quién va (que no se confunda
+   lo que va al cliente con lo interno). #}
+{% set soy_cliente = current_user.rol == 'cliente' %}
+{# Para el cliente: la general es con su Soporte de cliente; la de un pedido, con Logística y su Soporte (admin nunca se nombra) #}
+{% set es_general = pedido is not defined or not pedido %}
+{% set cliente_conv = (cliente_chat if cliente_chat is defined and cliente_chat else none)
+     or (cliente if cliente is defined else none) or (pedido.cliente if not es_general else none) %}
+{% set soportes = cliente_conv.logisticos|selectattr('activo')|list if cliente_conv else [] %}
+{% set nombres_soporte = soportes|map(attribute='nombre')|join(', ') %}
+<div class="conversacion" data-conversacion data-url-nuevos="{{ url_nuevos }}">
+  <div class="conversacion-mensajes" data-mensajes aria-live="polite">
+    {% if mensajes %}{% include "mensajes/_burbujas.html" %}
+    {% else %}<p class="text-muted small text-center my-4" data-vacio>{{ _('Todavía no hay mensajes. Escribe el primero.') }}</p>{% endif %}
+  </div>
+  {% if form %}
+  <form method="post" action="{{ accion }}" class="conversacion-form" enctype="multipart/form-data" novalidate data-form-mensaje>
+    {{ form.hidden_tag() }}
+    <div class="conversacion-para small mb-1">{{ _('Para:') }}
+      {% if interno %}<strong>{{ _('admin, logística y %(rol)s', rol=rol_fas) }}</strong> · {{ _('el cliente no lo ve') }}
+      {% elif soy_cliente and es_general and soportes %}<strong>{{ nombres_soporte }}</strong> ({{ _('tu Soporte de cliente') }})
+      {% elif soy_cliente and not es_general %}<strong>Yikon Genomics</strong> · {{ _('lo ven Logística y %(nombres)s', nombres=nombres_soporte) if soportes else _('lo ve Logística') }}
+      {% elif soy_cliente %}<strong>Yikon Genomics</strong>
+      {% else %}<strong>{{ _('%(cliente)s (cliente)', cliente=(cliente_chat or cliente).nombre) }}</strong> · {{ _('lo verá en la plataforma y le llegará un email') }}{% endif %}</div>
+    {{ form.texto(class_="form-control" ~ (' is-invalid' if form.texto.errors else ''), rows=3, maxlength=5000,
+                  placeholder=_('Nota interna para Yikon…') if interno else _('Escribe tu mensaje…'), **{"aria-label": _("Mensaje")}) }}
+    {% for e in form.texto.errors + form.adjuntos.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+    <div class="mt-2">
+      <label class="btn btn-sm btn-outline-secondary mb-0" for="{{ form.adjuntos.id }}" title="{{ form.adjuntos.description }}">
+        <i class="fas fa-paperclip me-1" aria-hidden="true"></i> {{ form.adjuntos.label.text }}</label>
+      {{ form.adjuntos(class_="visually-hidden", **{"data-adjuntos": ""}) }}
+      <span class="small text-muted ms-2" data-nombres-adjuntos>{{ form.adjuntos.description }}</span>
+    </div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+      <span class="small text-muted">
+        {% if interno %}{{ _('Los mensajes no se pueden editar ni borrar.') }}
+        {% elif soy_cliente %}{{ _('Le responderemos en horario laboral.') }}
+        {% elif config.MENSAJES_DESHACER_SEGUNDOS %}{{ _('Tendrás %(n)s segundos para deshacerlo.', n=config.MENSAJES_DESHACER_SEGUNDOS) }}
+        {% else %}{{ _('Los mensajes no se pueden editar ni borrar.') }}{% endif %}</span>
+      <span class="d-flex align-items-center gap-2">
+        <span class="small text-muted d-none d-md-inline">{{ _('Ctrl + Intro para enviar') }}</span>
+        {% if interno %}<button type="submit" class="btn btn-interno"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('Guardar nota') }}</button>
+        {% elif soy_cliente %}{{ form.submit(id=False, class_="btn btn-primary") }}
+        {% else %}<button type="submit" class="btn btn-primary">{{ _('Enviar al cliente') }}</button>{% endif %}</span>
+    </div>
+  </form>
+  {% endif %}
+</div>

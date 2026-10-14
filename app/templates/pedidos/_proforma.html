@@ -1,0 +1,123 @@
+{# ---------- Proforma (antes del pedido) ----------
+   Según el estado y quién mira:
+   - Yikon, "proforma solicitada" o "cambios solicitados": vista previa + formulario para enviarla.
+   - Yikon, "proforma enviada": a la espera del cliente, con el PDF y "Retirar para cambiarla".
+   - Cliente, "proforma solicitada" / "cambios solicitados": aviso de que se está preparando.
+   - Cliente, "proforma enviada": la proforma, el PDF y los botones Aceptar / Pedir cambios.
+   - Todos: las proformas anteriores (versiones), con su PDF. #}
+{% set actual = pedido.proforma_actual %}
+{% set es_cliente = current_user.rol == 'cliente' %}
+{% if pedido.estado in ('proforma_solicitada', 'proforma_enviada', 'cambios_solicitados') or pedido.proformas %}
+{% from "_macros.html" import seccion, campo %}
+{% set en_proforma = pedido.estado in ('proforma_solicitada', 'proforma_enviada', 'cambios_solicitados') %}
+{% set ultima = pedido.proformas[0] if pedido.proformas else none %}
+{# Lo que pidió cambiar el cliente, a la vista (y el botón para seguir en el chat) #}
+{% set cambios_pedidos %}
+  <div class="alert alert-warning py-2 small"><strong>{{ _('↺ El cliente ha pedido cambios a la proforma %(numero)s.', numero=ultima.numero_y_version) if ultima else _('↺ El cliente ha pedido cambios a la proforma.') }}</strong>
+    {% if ultima and ultima.comentario_cambios %}
+    <blockquote class="mb-1 mt-1 ps-2 border-start border-2" style="white-space:pre-line">{{ ultima.comentario_cambios }}</blockquote>
+    {% endif %}
+    <button type="button" class="btn btn-link btn-sm p-0 align-baseline" data-abre-chat="mensajes">
+      <i class="fas fa-comments me-1" aria-hidden="true"></i>{{ _('Contestar en el chat con el cliente') }}</button>
+  </div>
+{% endset %}
+{% set resumen_proforma %}
+  {% if pedido.estado == 'proforma_enviada' and actual %}{{ actual.numero_y_version }} · {{ _('enviada el %(fecha)s · válida hasta el %(hasta)s', fecha=actual.fecha|fecha_hora('%d/%m/%Y'), hasta=actual.valida_hasta|fecha) }}
+  {% elif pedido.estado == 'cambios_solicitados' %}{{ _('El cliente ha pedido cambios') }}
+  {% elif pedido.estado == 'proforma_solicitada' %}{{ _('Pendiente de enviar al cliente') if not es_cliente else _('En preparación') }}
+  {% elif ultima %}{{ ultima.numero_y_version }} · {{ ultima.estado_nombre }}{% if ultima.respondida_fecha %} · {{ ultima.respondida_fecha|fecha_hora('%d/%m/%Y') }}{% endif %}{% endif %}
+{% endset %}
+{# Abierta mientras el pedido está en fase de proforma; después llega cerrada (queda el resumen).
+   Si quien mira tiene que hacer algo (enviarla, aceptarla), llega abierta siempre. #}
+{% call seccion('proforma', _('Proforma'), 'fa-file-signature', resumen_proforma, abierta=en_proforma,
+                forzar=respuesta_form or proforma_form, clase='destacada' if respuesta_form or proforma_form else '', novedad='proforma' in novedades) %}
+
+  {% if proforma_form %}
+    {% if pedido.estado == 'cambios_solicitados' %}{{ cambios_pedidos }}{% endif %}
+    <p class="small text-muted">{{ _('El cliente ha pedido una proforma. Revisa el contenido del pedido y los lotes (las dos secciones de arriba): al enviarla se guarda tal cual está ahora, con la caducidad de los lotes elegidos, que quedan reservados, y el cliente recibe un email.') }}</p>
+    {% include "pedidos/_proforma_tabla.html" %}
+    <form method="post" action="{{ url_for('proformas.enviar', id=pedido.id) }}" class="row g-3 mt-1"
+          enctype="multipart/form-data" novalidate>
+      {{ proforma_form.hidden_tag() }}
+      <div class="col-12">
+        <div class="d-flex flex-wrap gap-2 align-items-end">
+          <div style="flex:1 1 18rem">{{ campo(proforma_form.pdf) }}</div>
+          <a href="{{ url_for('proformas.modelo', id=pedido.id) }}" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-file-download me-1" aria-hidden="true"></i>{{ _('Descargar modelo') }}</a>
+        </div>
+      </div>
+      <div class="col-md-3">{{ campo(proforma_form.valida_hasta) }}</div>
+      <div class="col-md-9">{{ campo(proforma_form.plazo_entrega) }}</div>
+      <div class="col-12">{{ campo(proforma_form.notas, rows=2) }}</div>
+      <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+        {{ proforma_form.submit(id=False, class_="btn btn-primary", **{'data-aviso-lotes': _('Guarda antes los lotes que has cambiado')}) }}
+        <span class="small reparto-estado reparto-mal" id="aviso-lotes-sin-guardar" hidden><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Has cambiado lotes sin guardar: pulsa «Guardar lotes» antes de enviar la proforma.') }}</span>
+        {% if proforma_prevista|selectattr('sin_stock')|list %}<span class="small text-muted">{{ _('Los productos sin stock libre saldrán con caducidad «a confirmar»: podrás asignarles el lote cuando llegue la mercancía.') }}</span>{% endif %}
+      </div>
+    </form>
+
+  {% elif pedido.estado == 'proforma_solicitada' %}
+    <p class="mb-0">{% if es_cliente %}{{ _('Estamos preparando su proforma. Le avisaremos por email cuando esté lista.') }}
+      {% else %}{{ _('El cliente espera su proforma.') }}{% endif %}</p>
+
+  {% elif pedido.estado == 'cambios_solicitados' %}
+    {% if es_cliente %}<p class="mb-0">{{ _('Hemos recibido su petición de cambios. Le enviaremos una proforma nueva.') }}</p>
+    {% else %}{{ cambios_pedidos }}<p class="mb-0">{{ _('El cliente espera una proforma nueva.') }}</p>{% endif %}
+
+  {% elif pedido.estado == 'proforma_enviada' and actual %}
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+      <div><strong>{{ actual.numero_y_version }}</strong>
+        <div class="small text-muted">{{ _('Enviada el %(fecha)s · válida hasta el %(hasta)s', fecha=actual.fecha|fecha_hora('%d/%m/%Y'), hasta=actual.valida_hasta|fecha) }}</div></div>
+      <a href="{{ url_for('proformas.descargar', id=pedido.id, proforma_id=actual.id) }}" class="btn btn-outline-primary btn-sm">
+        <i class="fas fa-file-pdf me-1"></i> {{ _('Descargar PDF') }}</a>
+    </div>
+    {% with lineas=actual.lineas %}{% include "pedidos/_proforma_tabla.html" %}{% endwith %}
+    {% if actual.plazo_entrega %}<p class="small mb-1"><strong>{{ _('Plazo de entrega estimado:') }}</strong> {{ actual.plazo_entrega }}</p>{% endif %}
+    {% if actual.notas %}<p class="small mb-2" style="white-space:pre-line"><strong>{{ _('Notas:') }}</strong> {{ actual.notas }}</p>{% endif %}
+
+    {% if respuesta_form %}
+      {% if actual.caducada %}
+      <div class="alert alert-warning small">{{ _('⚠ Esta proforma caducó el %(fecha)s. Pida cambios y le enviaremos una nueva.', fecha=actual.valida_hasta|fecha) }}</div>
+      {% endif %}
+      {# Dos formularios: el de "Pedir cambios" exige el comentario (el navegador no deja enviarlo vacío);
+         el de "Aceptar" no lo lleva, para que ese "obligatorio" no le impida aceptar #}
+      <form method="post" action="{{ url_for('proformas.responder', id=pedido.id) }}" novalidate class="mt-3">
+        {{ respuesta_form.hidden_tag() }}
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          {% if not actual.caducada %}{{ respuesta_form.aceptar(id=False, class_="btn btn-primary") }}{% endif %}
+          <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#pedir-cambios"
+                  aria-expanded="false" aria-controls="pedir-cambios">{{ _('Pedir cambios…') }}</button>
+          <span class="small text-muted">{{ _('Al aceptarla pasa a ser un pedido y empezaremos a prepararlo.') }}</span>
+        </div>
+      </form>
+      <form method="post" action="{{ url_for('proformas.responder', id=pedido.id) }}" class="collapse mt-3" id="pedir-cambios">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {{ campo(respuesta_form.comentario) }}
+        {{ respuesta_form.cambios(id=False, class_="btn btn-outline-primary") }}
+      </form>
+    {% elif retirar_form %}
+      <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+        {% if actual.caducada %}<span class="badge est-alerta">{{ _('⚠ Caducada el %(fecha)s: retírala y envía una nueva', fecha=actual.valida_hasta|fecha) }}</span>
+        {% else %}<span class="small text-muted">{{ _('Esperando la respuesta del cliente.') }}</span>{% endif %}
+        <form method="post" action="{{ url_for('proformas.retirar', id=pedido.id) }}" class="ms-auto"
+              onsubmit='return confirm({{ _("¿Retirar la proforma? El cliente ya no podrá aceptarla hasta que envíes otra.")|tojson }})'>
+          {{ retirar_form.hidden_tag() }}{{ retirar_form.submit(id=False, class_="btn btn-sm btn-outline-secondary") }}</form>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  {# Versiones: todas las proformas de este pedido #}
+  {% set anteriores = pedido.proformas if pedido.estado != 'proforma_enviada' else pedido.proformas[1:] %}
+  {% if anteriores %}
+  <details class="mt-3" {{ 'open' if pedido.estado not in ('proforma_solicitada', 'proforma_enviada', 'cambios_solicitados') }}>
+    <summary class="small">{{ _('Proformas de este pedido (%(n)s)', n=anteriores|length) }}</summary>
+    <table class="table table-sm small mb-0 mt-2"><tbody>
+      {% for pf in anteriores %}
+      <tr><td>{{ pf.numero_y_version }}</td><td>{{ pf.fecha|fecha_hora('%d/%m/%Y') }}</td>
+        <td>{{ pf.estado_nombre }}{% if pf.respondida_por and not es_cliente %} · {{ pf.respondida_por.nombre }}{% endif %}</td>
+        <td class="text-end"><a href="{{ url_for('proformas.descargar', id=pedido.id, proforma_id=pf.id) }}"><i class="fas fa-file-pdf"></i> PDF</a></td></tr>
+      {% endfor %}</tbody></table>
+  </details>
+  {% endif %}
+{% endcall %}
+{% endif %}

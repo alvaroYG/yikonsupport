@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+<h1 class="h3">{{ title }}</h1>
+<p class="text-muted small">{{ _('Aquí se <strong>registran</strong> las facturas ya hechas (el PDF, su nº y el vencimiento); esta plataforma no emite facturas.')|safe }}</p>
+<div class="card" style="max-width:800px"><div class="card-body">
+<form method="post" enctype="multipart/form-data" novalidate>{{ form.hidden_tag() }}
+  <div class="row">
+    <div class="col-md-4">{{ campo(form.numero) }}</div><div class="col-md-8">{{ campo(form.cliente_id) }}</div>
+    <div class="col-12">{{ campo(form.pedido_id) }}</div>
+    <div class="col-md-4">{{ campo(form.fecha_emision) }}</div><div class="col-md-4">{{ campo(form.fecha_vencimiento) }}</div>
+    <div class="col-md-4"></div>
+    <div class="col-md-4">{{ campo(form.estado) }}</div><div class="col-md-4">{{ campo(form.fecha_pago) }}</div>
+    <div class="col-12">{{ campo(form.notas, rows=2) }}</div>
+    <div class="col-12">{{ campo(form.pdf) }}
+      {% if factura and factura.pdf_archivo %}<div class="small mb-3 mt-n2">{{ _('PDF actual:') }}
+        <a href="{{ url_for('facturas.descargar_pdf', id=factura.id) }}"><i class="fas fa-file-pdf"></i> {{ factura.pdf_nombre }}</a>
+        ({{ factura.pdf_tamano_legible }}) · {{ _('Si subes otro, sustituye a este.') }}</div>{% endif %}</div>
+  </div>
+  {{ form.submit(id=False, class_="btn btn-primary") }}
+  <a href="{{ url_for('facturas.lista') }}" class="btn btn-link">{{ _('Cancelar') }}</a>
+</form></div></div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{#
+  Inicio de Yikon (admin, logística y Soporte de cliente): tres piezas de tamaño fijo.
+    - arriba: la tira de fases (un botón por fase);
+    - grande: "Pendientes", con una pestaña por tipo de tarea (app/pedidos/pendientes.py);
+    - a la derecha: "Última actividad" (app/main/inicio_yikon.py).
+  Cada pestaña sale según los permisos de quien mira; nada crece con el número de pedidos.
+#}
+{# Tira de fases: un botón por fase con el color de su estado (el de la leyenda), su icono, su
+   número y su nombre. Cada uno abre la lista ya filtrada. #}
+<div class="tira-fases fila-tarjetas mb-4">
+  {% for f in fases %}
+  <a class="fase est-{{ f.estado }}" href="{{ f.url }}"><span class="n">{{ f.n }}</span>
+    <span class="nombre"><i class="fas {{ f.icono }} me-1" aria-hidden="true"></i>{{ f.nombre }}</span></a>
+  {% endfor %}
+</div>
+
+{% set total_pendientes = pendientes|sum(attribute='total') %}
+<div class="mosaico mosaico-yikon mb-4">
+  <section class="card casilla casilla-lista" id="pendientes">
+    <div class="card-header"><h2 class="h5"><i class="fas fa-tasks me-2 text-marca" aria-hidden="true"></i>{{ _('Pendientes') }}
+      {% if total_pendientes %}<span class="text-muted fw-normal">· {{ total_pendientes }}</span>{% endif %}</h2></div>
+    <div class="card-body d-flex flex-column">
+      {# Una pestaña por grupo, SIEMPRE todas (también las que están a 0: así no cambian de sitio).
+         Al entrar se abre la primera que tiene algo. #}
+      {% set abierta = (pendientes|selectattr('total')|map(attribute='clave')|first) or (pendientes|map(attribute='clave')|first) %}
+      <div class="nav pendientes-pestanas" role="tablist">
+        {% for g in pendientes %}
+        <button type="button" class="pendientes-pestana{{ ' active' if g.clave == abierta }}{{ ' vacia' if not g.total }}" id="pestana-{{ g.clave }}" role="tab" title="{{ g.titulo }}"
+                data-bs-toggle="tab" data-bs-target="#grupo-{{ g.clave }}" aria-controls="grupo-{{ g.clave }}" aria-selected="{{ 'true' if g.clave == abierta else 'false' }}">{% if g.con_novedades %}<span class="punto-nuevo" aria-hidden="true"></span><span class="visually-hidden">{{ _('Con novedades:') }} </span>{% endif %}{{ g.corto }} <span class="cuenta">{{ g.total }}</span></button>
+        {% endfor %}
+      </div>
+      <div class="tab-content flex-grow-1">
+        {% for g in pendientes %}
+        {# data-grupo solo en los grupos con algo (lo usan los tests para saber qué hay pendiente) #}
+        <section class="pendientes-grupo tab-pane {{ 'show active' if g.clave == abierta }}" id="grupo-{{ g.clave }}" role="tabpanel"
+                 aria-labelledby="pestana-{{ g.clave }}"{% if g.total %} data-grupo="{{ g.clave }}"{% endif %}>
+          {% if g.total %}
+          <h3 class="visually-hidden">{{ g.titulo }}</h3>
+          <ul class="list-unstyled mb-0">{% for f in g.filas %}
+            <li class="pendiente-fila"><span class="que"><a href="{{ f.url }}" class="fw-bold">{{ f.texto }}</a>
+              <span class="text-muted">· {{ f.cliente }}{% if f.nota %} · {{ f.nota }}{% elif f.contenido %} · {{ f.contenido }}{% endif %}</span>
+              {# Lo mismo que la marca de la lista de pedidos: qué ha cambiado desde tu última visita #}
+              {% if f.novedad %}<a href="{{ f.url.split('#')[0] }}#{{ f.novedad.ancla }}" class="badge rounded-pill marca-nuevo text-decoration-none ms-1"
+                 title="{{ _('Novedades desde tu última visita: %(que)s', que=f.novedad.texto) }}"><i class="fas fa-bell" aria-hidden="true"></i> {{ _('nuevo: %(que)s', que=f.novedad.texto) }}</a>{% endif %}</span>
+              {# A la derecha: el detalle del grupo (si lo tiene) y cuánto lleva esperando. Con retraso:
+                 reloj + negrita + texto para lectores de pantalla (no depende del color). #}
+              <span class="small text-nowrap {{ 'espera-lenta' if f.lento else 'text-muted' }}">{% if f.detalle %}{{ f.detalle }}{% if f.espera is defined %} · {% endif %}{% endif %}
+                {%- if f.espera is defined %}{% if f.lento %}<i class="fas fa-stopwatch me-1" aria-hidden="true"></i><span class="visually-hidden">{{ _('Con retraso:') }} </span>{% endif %}
+                {%- if f.espera %}{{ ngettext('hace %(num)s día', 'hace %(num)s días', f.espera) }}{% else %}{{ _('hoy') }}{% endif %}{% endif %}</span></li>
+          {% endfor %}</ul>
+          {% if g.total > g.filas|length or g.lentos %}
+          <div class="pendientes-pie"><span class="text-muted small">{% if g.total > g.filas|length %}{{ _('%(n)s de %(total)s', n=g.filas|length, total=g.total) }}{% endif %}
+              {% if g.lentos %}{{ ' · ' if g.total > g.filas|length }}<i class="fas fa-stopwatch me-1" aria-hidden="true"></i>{{ ngettext('%(num)s lleva más tiempo del previsto', '%(num)s llevan más tiempo del previsto', g.lentos) }}{% endif %}</span>
+            {% if g.total > g.filas|length and g.ver_todos %}<a href="{{ g.ver_todos }}">{{ _('Ver los %(n)s →', n=g.total) }}</a>{% endif %}</div>
+          {% endif %}
+          {% else %}
+          <p class="text-muted mb-0"><i class="fas fa-check-circle me-1" aria-hidden="true"></i>{{ _('No hay nada pendiente.') }}</p>
+          {% endif %}
+        </section>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="card casilla casilla-alta" id="actividad">
+    <div class="card-header"><h2 class="h5"><i class="fas fa-history me-2 text-marca" aria-hidden="true"></i>{{ _('Última actividad') }}</h2></div>
+    <div class="card-body">
+      {% for a in actividad %}
+      <div class="actividad-evento"><i class="fas {{ a.icono }} text-muted" aria-hidden="true"></i>
+        <div>{{ a.html }}<span class="small text-muted d-block">{{ a.fecha|fecha_hora('%d/%m %H:%M') }}</span></div></div>
+      {% else %}<p class="text-muted mb-0">{{ _('Aquí verás lo último que pase en los pedidos.') }}</p>{% endfor %}
+    </div>
+    <div class="casilla-pie"><span></span><a href="{{ url_for('main.actividad') }}">{{ _('Ver toda la actividad →') }}</a></div>
+  </section>
+</div>

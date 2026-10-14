@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{#
+  Un documento interno: la versión vigente (con miniatura si es imagen), el historial de
+  versiones (todas descargables) y, para quien puede subir, "Subir nueva versión" y "Editar datos".
+#}
+{% block contenido %}
+{% set v = documento.vigente %}
+<a href="{{ url_for('documentos.lista', carpeta=documento.categoria) }}" class="btn btn-link px-0 mb-2">
+  <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>{{ documento.categoria_nombre }}</a>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+  <div>
+    <div class="small text-muted"><i class="fas {{ iconos[documento.categoria] }} me-1" aria-hidden="true"></i>{{ documento.categoria_nombre }}</div>
+    <h1 class="h3 mb-1">{{ documento.titulo }}</h1>
+    {% if documento.descripcion %}<p class="text-muted mb-0" style="white-space:pre-line">{{ documento.descripcion }}</p>{% endif %}
+  </div>
+  {% if v %}<a href="{{ url_for('documentos.descargar', version_id=v.id) }}" class="btn btn-primary">
+    <i class="fas fa-download me-1" aria-hidden="true"></i>{{ _('Descargar versión vigente') }}</a>{% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    {% if v %}
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="h5">{{ _('Versión vigente') }} <span class="badge text-bg-light border align-middle">v{{ v.numero }}</span></h2></div>
+      <div class="card-body">
+        <div class="d-flex gap-3 align-items-center">
+          <div class="documento-vista-grande">
+            {% if v.es_imagen %}<a href="{{ url_for('documentos.vista', version_id=v.id) }}" target="_blank" rel="noopener">
+              <img src="{{ url_for('documentos.vista', version_id=v.id) }}" alt="{{ _('Vista previa de %(t)s', t=documento.titulo) }}"></a>
+            {% else %}<i class="fas {{ icono_archivo(v.extension) }}" aria-hidden="true"></i>{% endif %}
+          </div>
+          <div class="small">
+            <div class="fw-semibold text-break">{{ v.nombre_original }}</div>
+            <div class="text-muted">{{ v.extension|upper }} · {{ v.tamano_legible }}</div>
+            <div class="text-muted">{{ _('Subido el %(fecha)s por %(quien)s', fecha=v.fecha|fecha_hora, quien=v.subido_por.nombre if v.subido_por else '—') }}</div>
+            {% if v.nota %}<div class="mt-1">«{{ v.nota }}»</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header"><h2 class="h5">{{ _('Historial de versiones') }}</h2>
+        <span class="small text-muted">{{ ngettext('%(num)s versión', '%(num)s versiones', documento.versiones|length) }}</span></div>
+      <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+        <thead><tr><th>{{ _('Versión') }}</th><th>{{ _('Archivo') }}</th><th>{{ _('Subido') }}</th><th></th></tr></thead>
+        <tbody>
+        {% for ver in documento.versiones %}
+        <tr>
+          <td class="text-nowrap">v{{ ver.numero }}{% if loop.first %} <span class="badge est-entregado ms-1"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('vigente') }}</span>{% endif %}</td>
+          <td class="small"><span class="text-break">{{ ver.nombre_original }}</span> <span class="text-muted">({{ ver.tamano_legible }})</span>
+            {% if ver.nota %}<div class="text-muted">«{{ ver.nota }}»</div>{% endif %}</td>
+          <td class="small text-nowrap">{{ ver.fecha|fecha }}<br><span class="text-muted">{{ ver.subido_por.nombre if ver.subido_por else '—' }}</span></td>
+          <td class="text-end"><a href="{{ url_for('documentos.descargar', version_id=ver.id) }}" class="btn btn-sm btn-outline-secondary"
+                                  title="{{ _('Descargar v%(n)s', n=ver.numero) }}"><i class="fas fa-download" aria-hidden="true"></i>
+              <span class="visually-hidden">{{ _('Descargar v%(n)s', n=ver.numero) }}</span></a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  {% if version_form %}
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="h5"><i class="fas fa-upload me-2 text-marca" aria-hidden="true"></i>{{ _('Subir nueva versión') }}</h2></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('documentos.subir_version', id=documento.id) }}" enctype="multipart/form-data" novalidate>
+          {{ version_form.hidden_tag() }}
+          {{ campo(version_form.archivo) }}{{ campo(version_form.nota) }}
+          <p class="small text-muted">{{ _('La versión actual no se borra: queda en el historial.') }}</p>
+          {{ version_form.submit(id=False, class_="btn btn-primary") }}
+        </form>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="h5">{{ _('Editar datos') }}</h2></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('documentos.editar', id=documento.id) }}" novalidate>
+          {{ editar_form.hidden_tag() }}
+          {{ campo(editar_form.titulo) }}{{ campo(editar_form.categoria) }}{{ campo(editar_form.descripcion, rows=3) }}
+          {{ editar_form.submit(id=False, class_="btn btn-outline-primary") }}
+        </form>
+      </div>
+    </div>
+    {% if current_user.puede('documentos.borrar') %}
+    <form method="post" action="{{ url_for('documentos.borrar', id=documento.id) }}"
+          onsubmit='return confirm({{ _("¿Borrar este documento y TODAS sus versiones? No se puede deshacer.")|tojson }})'>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash me-1" aria-hidden="true"></i>{{ _('Borrar documento') }}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

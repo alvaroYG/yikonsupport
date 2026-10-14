@@ -1,0 +1,10 @@
+{# Botón para cambiar de idioma. Envía un POST a main.cambiar_idioma (con token CSRF).
+   Muestra los idiomas distintos del actual (hoy solo hay dos: es / en).
+   Variable opcional: clase_boton (para que encaje en el menú o en el login). #}
+<form method="post" action="{{ url_for('main.cambiar_idioma') }}" class="m-0">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for codigo, nombre in IDIOMAS.items() if codigo != idioma_actual() %}
+    <button class="{{ clase_boton|default('dropdown-item') }}" name="idioma" value="{{ codigo }}" lang="{{ codigo }}">
+      <i class="fas fa-globe fa-fw me-2 text-muted"></i>{{ nombre }}</button>
+  {% endfor %}
+</form>

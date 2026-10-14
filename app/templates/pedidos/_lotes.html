@@ -1,0 +1,94 @@
+{# ---------- Lotes de este pedido (solo Yikon; el cliente no lo ve) ----------
+   Aquí se decide de qué lote sale cada artículo. Quedan RESERVADOS para este pedido y son los
+   que salen al enviar; su caducidad es la que va en la proforma. Lógica: app/inventario/reservas.py
+     modo_lotes = "libre"      → se puede elegir cualquier lote libre (preparando la proforma, o
+                                 pedido creado por Yikon);
+                  "completar"  → proforma enviada/aceptada: lo aprobado no se puede bajar; solo
+                                 asignar lo que quedó "a confirmar";
+                  none         → solo lectura.
+   Las casillas llegan con la PROPUESTA: lo ya reservado + los lotes libres que caducan antes. #}
+{% if lotes_pedido %}
+{% set pendientes = lotes_pedido|rejectattr('completo')|list %}
+{% set ns_lotes = namespace(sin_guardar=false) %}
+{% for f in lotes_pedido %}{% if f.propuestas != f.reservadas %}{% set ns_lotes.sin_guardar = true %}{% endif %}{% endfor %}
+{% set sin_guardar = ns_lotes.sin_guardar %}
+{% from "_macros.html" import seccion, lote_caducidad %}
+{# sin_proponer: artículos que ni con la propuesta quedan cubiertos (no hay stock libre) #}
+{% set sin_proponer = lotes_pedido|rejectattr('cubierto')|list %}
+{% set resumen_lotes %}
+  {% if not pendientes %}<span class="badge est-ok"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Todo reservado') }}</span>
+  {% elif not sin_proponer and modo_lotes %}<span class="badge est-pendiente"><i class="fas fa-pen me-1" aria-hidden="true"></i>{{ _('Propuesta sin guardar') }}</span>
+  {% else %}<span class="badge est-pendiente"><i class="fas fa-hourglass-half me-1" aria-hidden="true"></i>{{ ngettext('%(num)s artículo sin lote completo', '%(num)s artículos sin lote completo', (sin_proponer if modo_lotes else pendientes)|length) }}</span>{% endif %}
+  {% for f in lotes_pedido %}{% for l in f.lotes if l.reservadas %}<span class="ms-1">{{ l.lote.codigo }} × {{ l.reservadas }}</span>{% endfor %}{% endfor %}
+{% endset %}
+{# Llega siempre abierta si hay un problema que impide enviar (lote caducado, otra caducidad…) #}
+{% call seccion('lotes', _('Lotes'), 'fa-lock', resumen_lotes, forzar=problemas_lotes|length > 0, novedad='lotes' in novedades) %}
+  <p class="small text-muted mb-2">
+    {% if pedido.con_proforma and modo_lotes == 'libre' %}{{ _('Elige de qué lote sale cada artículo: su caducidad es la que verá el cliente en la proforma. Al enviarla quedan reservados para este pedido y serán los que salgan.') }}
+    {% elif modo_lotes == 'completar' %}{{ _('El cliente ha visto estas caducidades en la proforma: los lotes reservados no se pueden cambiar. Solo puedes asignar lo que quedó «a confirmar». Para cambiar un lote hay que rehacer la proforma.') }}
+    {% else %}{{ _('Estos lotes están reservados para este pedido: son los que saldrán al enviarlo. Se propone el que caduca antes; cámbialo si va a salir otro.') }}{% endif %}
+  </p>
+  {% if sin_guardar and modo_lotes %}
+  <div class="alert alert-warning py-2 small" role="status"><i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+    {% if pedido.estado in ('proforma_solicitada', 'cambios_solicitados') %}{{ _('Propuesta sin guardar: se reservará al enviar la proforma. Si quieres otro lote, cámbialo y pulsa «Guardar lotes» antes.') }}
+    {% else %}{{ _('Hay unidades sin lote asignado y ahora hay stock libre: revisa la propuesta y pulsa «Guardar lotes».') }}{% endif %}</div>
+  {% endif %}
+
+  {% for texto in problemas_lotes %}
+  <div class="alert alert-danger py-2 small" role="alert"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ texto }}</div>
+  {% endfor %}
+
+  <form method="post" action="{{ url_for('pedidos.guardar_lotes', id=pedido.id) }}" id="form-lotes" novalidate autocomplete="off"
+        data-texto-ok="{{ _('✓ Asignadas %(n)s de %(total)s', n='{n}', total='{total}') }}"
+        data-texto-faltan="{{ _('Asignadas %(n)s de %(total)s: el resto irá «a confirmar»', n='{n}', total='{total}') }}"
+        data-texto-sobran="{{ _('⚠ Asignadas %(n)s: el pedido solo lleva %(total)s', n='{n}', total='{total}') }}"
+        data-texto-lote="{{ _('⚠ De ese lote solo puedes poner entre %(min)s y %(max)s', min='{min}', max='{max}') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="table-responsive"><table class="table table-sm align-middle mb-2 tabla-lotes-pedido">
+      <thead><tr><th>{{ _('Artículo') }}</th><th>{{ _('Lote') }}</th><th>{{ _('Caducidad') }}</th>
+        <th class="num">{{ _('Libres') }}</th><th class="num">{{ _('Para este pedido') }}</th></tr></thead>
+      {% for f in lotes_pedido %}
+      <tbody data-articulo-lotes data-necesarias="{{ f.necesarias }}">
+        {% for l in f.lotes %}
+        <tr>
+          {% if loop.first %}<td rowspan="{{ f.lotes|length + 1 }}" class="celda-articulo">
+            <div class="fw-semibold">{{ f.articulo.nombre }}</div>
+            <div class="small text-muted">{{ ngettext('El pedido lleva %(num)s unidad', 'El pedido lleva %(num)s unidades', f.necesarias) }}{% if f.articulo.tipo_articulo == 'kit' %} · {{ _('kit cerrado') }}{% endif %}</div></td>{% endif %}
+          <td><label class="mb-0" for="lote-{{ l.lote.id }}"><span class="lote-codigo">{{ l.lote.codigo }}</span></label>
+            {% if l.reservadas %}<span class="badge est-reservado ms-1" title="{{ _('Reservadas para este pedido') }}"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('%(n)s reservadas', n=l.reservadas) }}</span>{% endif %}</td>
+          <td class="small">{{ lote_caducidad(l.lote, hoy, dias_aviso) }}</td>
+          <td class="num small text-muted" title="{{ _('Hay %(hay)s en la oficina; el resto está reservado para otros pedidos', hay=l.hay) }}">{{ l.libre }}{% if l.libre != l.hay %} <span class="text-nowrap">{{ _('de %(n)s', n=l.hay) }}</span>{% endif %}</td>
+          <td class="num">
+            {% if modo_lotes and not l.caducado %}
+            {% set minimo = l.reservadas if modo_lotes == 'completar' else 0 %}
+            <input type="number" class="form-control form-control-sm campo-lote ms-auto" id="lote-{{ l.lote.id }}" name="lote-{{ l.lote.id }}"
+                   min="{{ minimo }}" max="{{ [l.libre, l.reservadas]|max }}" step="1" value="{{ l.propuesta }}" data-guardado="{{ l.reservadas }}"
+                   inputmode="numeric" aria-label="{{ _('Unidades del lote %(lote)s para este pedido', lote=l.lote.codigo) }}">
+            {% else %}<span class="fw-semibold">{{ l.reservadas }}</span>{% if modo_lotes %}<input type="hidden" name="lote-{{ l.lote.id }}" value="{{ l.reservadas if modo_lotes == 'completar' else 0 }}">{% endif %}{% endif %}</td>
+        </tr>
+        {% endfor %}
+        <tr class="fila-estado-lotes">
+          {% if not f.lotes %}<td class="celda-articulo"><div class="fw-semibold">{{ f.articulo.nombre }}</div>
+            <div class="small text-muted">{{ ngettext('El pedido lleva %(num)s unidad', 'El pedido lleva %(num)s unidades', f.necesarias) }}</div></td>{% endif %}
+          <td colspan="4" class="small">
+            {% if not f.lotes %}<span class="badge est-alerta"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Sin stock libre') }}</span>
+              <span class="text-muted">{{ _('irá «a confirmar» en la proforma. Cuando llegue mercancía, asígnale aquí el lote.') if pedido.con_proforma else _('no se podrá enviar hasta que llegue mercancía y le asignes aquí el lote.') }}</span>
+            {% else %}<span class="reparto-estado" data-estado-lotes role="status" aria-live="polite">
+              {% if f.completo %}{{ _('✓ Asignadas %(n)s de %(total)s', n=f.reservadas, total=f.necesarias) }}
+              {% else %}{{ _('Asignadas %(n)s de %(total)s: el resto irá «a confirmar»', n=f.reservadas, total=f.necesarias) }}{% endif %}</span>{% endif %}</td>
+        </tr>
+      </tbody>
+      {% endfor %}
+    </table></div>
+    {% if modo_lotes %}
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <button type="submit" class="btn btn-primary btn-sm" id="btn-guardar-lotes"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('Guardar lotes') }}</button>
+      <button type="submit" name="accion" value="automatico" class="btn btn-outline-secondary btn-sm" formnovalidate
+              title="{{ _('Reserva los lotes libres que caducan antes') }}">
+        <i class="fas fa-magic me-1" aria-hidden="true"></i>{{ _('Reparto automático') if modo_lotes == 'libre' else _('Asignar lo que falta') }}</button>
+      {% if current_user.puede('inventario.ver') %}<a href="{{ url_for('inventario.lista_reservas') }}" class="small ms-auto">{{ _('Ver todo lo reservado →') }}</a>{% endif %}
+    </div>
+    {% endif %}
+  </form>
+{% endcall %}
+{% endif %}

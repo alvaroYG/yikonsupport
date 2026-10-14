@@ -1,0 +1,21 @@
+{# Panel flotante de mensajes (Yikon): la lista de conversaciones. La pinta mensajes_flotante.js.
+   data-cuenta: los no leídos, para poner al día el número del botón. #}
+<div class="mf-cabecera"><span>{{ _('Mensajes') }}</span>
+  <button type="button" class="mf-cerrar" data-mf-cerrar aria-label="{{ _('Cerrar') }}"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+<div class="mf-cuerpo" data-cuenta="{{ cuenta }}">
+  {% if sin_leer_internas is not none %}
+  <div class="mf-pestanas">
+    <button type="button" class="pendientes-pestana{{ ' active' if not internas }}" data-mf-url="{{ url_for('mensajes.flotante') }}">{{ _('Clientes') }} <span class="cuenta">{{ sin_leer_clientes }}</span></button>
+    <button type="button" class="pendientes-pestana{{ ' active' if internas }}" data-mf-url="{{ url_for('mensajes.flotante', internas=1) }}"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('Internas') }} <span class="cuenta">{{ sin_leer_internas }}</span></button>
+  </div>
+  {% endif %}
+  {% for c in conversaciones %}
+  <button type="button" class="mf-conversacion{{ ' sin-leer' if c.no_leidos }}" data-mf-url="{{ url_for('mensajes.flotante_hilo', hilo=c.hilo) }}">
+    <span class="mf-titulo">{% if c.no_leidos %}<span class="punto" aria-hidden="true"></span><span class="visually-hidden">{{ ngettext('%(num)s sin leer', '%(num)s sin leer', c.no_leidos) }}: </span>{% endif
+      %}{% if c.pedido %}{{ c.pedido.referencia_interna or '#' ~ c.pedido.id }} <span class="text-muted fw-normal">· {{ c.cliente.nombre }}</span>
+      {% else %}{{ c.cliente.nombre }} <span class="text-muted fw-normal">· {{ _('conversación general') }}</span>{% endif %}</span>
+    <span class="mf-resumen">{% if not c.ultimo.de_cliente and not internas %}{{ _('Yikon:') }} {% elif internas %}{{ c.ultimo.autor.nombre.split()[0] }}: {% endif %}{{ resumen(c.ultimo, 70) }}</span>
+  </button>
+  {% else %}<p class="text-muted small m-3">{{ _('No hay conversaciones.') }}</p>{% endfor %}
+</div>
+<div class="mf-pie"><a href="{{ url_for('mensajes.lista', internas=1 if internas else None) }}">{{ _('Ver todos los mensajes →') }}</a></div>

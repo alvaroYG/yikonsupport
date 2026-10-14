@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{# Ajustes de la plataforma (solo admin). Los plazos salen de app/ajustes.py: PLAZOS #}
+{% block contenido %}
+{% with activa='plazos' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
+<div class="card" style="max-width: 44rem">
+  <div class="card-header"><h2 class="h5"><i class="fas fa-stopwatch me-2 text-marca" aria-hidden="true"></i>{{ _('Avisar cuando un pedido lleva más de…') }}</h2></div>
+  <div class="card-body">
+    <p class="text-muted small">{{ _('Pasado ese número de días en la misma situación, el pedido se marca con un reloj en «Pendientes» y sube arriba de su pestaña. Con 0 no se avisa nunca.') }}</p>
+    <form method="post" novalidate>{{ form.hidden_tag() }}
+      {% for estado, (de_fabrica, texto) in plazos.items() %}
+      <div class="ajuste-fila">
+        <label for="plazo_{{ estado }}">{{ texto }}</label>
+        <div class="input-group input-group-sm">
+          <input type="number" min="0" max="365" step="1" inputmode="numeric" class="form-control text-end {{ 'is-invalid' if errores.get(estado) }}"
+                 id="plazo_{{ estado }}" name="plazo_{{ estado }}" value="{{ actuales[estado] }}" required>
+          <span class="input-group-text">{{ _('días') }}</span>
+        </div>
+        {% if errores.get(estado) %}<div class="text-danger small ajuste-error">{{ errores[estado] }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <span class="text-muted small">{{ _('0 = no avisar') }}</span>
+        <button class="btn btn-primary">{{ _('Guardar') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# Aviso para clientes: una franja arriba del inicio de los clientes (app/aviso_clientes.py) #}
+<div class="card mt-3" style="max-width: 44rem" id="aviso-clientes">
+  <div class="card-header d-flex align-items-center justify-content-between gap-2">
+    <h2 class="h5"><i class="fas fa-bullhorn me-2 text-marca" aria-hidden="true"></i>{{ _('Aviso para clientes') }}</h2>
+    {% set etiquetas = {'sin_aviso': ('est-neutro', 'fa-minus', _('Sin aviso')), 'visible': ('est-ok', 'fa-eye', _('Se está viendo')),
+                        'programado': ('est-pendiente', 'fa-clock', _('Programado')), 'caducado': ('est-neutro', 'fa-calendar-times', _('Ya ha pasado'))} %}
+    {% set e = etiquetas[estado_aviso] %}
+    <span class="badge {{ e[0] }}"><i class="fas {{ e[1] }} me-1" aria-hidden="true"></i>{{ e[2] }}</span>
+  </div>
+  <div class="card-body">
+    <p class="text-muted small">{{ _('Sale arriba en el inicio de todos los clientes, en su idioma (si falta uno, sale el otro). Uno solo a la vez. El cliente lo puede cerrar; si cambias el texto, le vuelve a salir.') }}</p>
+    <form method="post" action="{{ url_for('admin.ajustes_aviso_clientes') }}" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="row g-2">
+        <div class="col-md-6"><label class="form-label small mb-1" for="aviso-es">{{ _('Español') }}</label>
+          <textarea class="form-control" id="aviso-es" name="aviso_es" rows="3" maxlength="{{ max_aviso }}"
+                    placeholder="{{ _('Del 24/12 al 6/01 los pedidos salen con 48 h de retraso.') }}">{{ aviso.texto.es }}</textarea></div>
+        <div class="col-md-6"><label class="form-label small mb-1" for="aviso-en">{{ _('Inglés') }}</label>
+          <textarea class="form-control" id="aviso-en" name="aviso_en" rows="3" maxlength="{{ max_aviso }}" lang="en"
+                    placeholder="Orders placed from 24/12 to 6/01 will ship 48 h later.">{{ aviso.texto.en }}</textarea></div>
+        <div class="col-6 col-md-3"><label class="form-label small mb-1" for="aviso-desde">{{ _('Desde (opcional)') }}</label>
+          <input type="date" class="form-control form-control-sm" id="aviso-desde" name="desde" value="{{ aviso.desde.isoformat() if aviso.desde else '' }}"></div>
+        <div class="col-6 col-md-3"><label class="form-label small mb-1" for="aviso-hasta">{{ _('Hasta (opcional)') }}</label>
+          <input type="date" class="form-control form-control-sm" id="aviso-hasta" name="hasta" value="{{ aviso.hasta.isoformat() if aviso.hasta else '' }}"></div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button class="btn btn-primary" name="accion" value="guardar">{{ _('Guardar') }}</button>
+        {% if estado_aviso != 'sin_aviso' %}
+        <button class="btn btn-outline-secondary ms-auto" name="accion" value="quitar"
+                onclick='return confirm({{ _("¿Quitar el aviso? Dejará de salir a los clientes.")|tojson }})'>{{ _('Quitar el aviso') }}</button>{% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card mt-3" style="max-width: 44rem" id="mantenimiento">
+  <div class="card-header"><h2 class="h5"><i class="fas fa-tools me-2 text-marca" aria-hidden="true"></i>{{ _('Modo mantenimiento') }}</h2></div>
+  <div class="card-body">
+    <p class="text-muted small">{{ _('Mientras está activado solo entra admin; los demás ven un aviso de que estáis actualizando la plataforma, aunque ya tuvieran la sesión abierta. Úsalo al aplicar cambios en el servidor.') }}</p>
+    <form method="post" action="{{ url_for('admin.ajustes_mantenimiento') }}" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" role="switch" id="mant-activo" name="activado" value="1" {{ 'checked' if mantenimiento[0] }}>
+        <label class="form-check-label fw-semibold" for="mant-activo">{{ _('Activado') }}</label>
+      </div>
+      <label class="form-label small" for="mant-mensaje">{{ _('Mensaje (opcional)') }}</label>
+      <textarea class="form-control" id="mant-mensaje" name="mensaje" rows="2" maxlength="500"
+                placeholder="{{ _('Volvemos en un rato. Gracias por la paciencia.') }}">{{ mantenimiento[1] }}</textarea>
+      <button class="btn btn-primary mt-3">{{ _('Guardar') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

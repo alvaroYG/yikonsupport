@@ -1,0 +1,27 @@
+{# Panel flotante de mensajes (Yikon): una conversación. Al pintarla ya se ha dado por leída.
+   Solo texto: para adjuntar archivos, la página de mensajes o la ficha del pedido. #}
+<div class="mf-cabecera">
+  <button type="button" class="mf-volver" data-mf-url="{{ url_for('mensajes.flotante', internas=1 if interno else None) }}" aria-label="{{ _('Volver a las conversaciones') }}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+  <span class="mf-titulo-hilo">{% if interno %}<i class="fas fa-lock me-1" aria-hidden="true"></i>{% endif %}{% if pedido %}{{ pedido.referencia_interna or '#' ~ pedido.id }} · {% endif %}{{ cliente.nombre }}</span>
+  <button type="button" class="mf-cerrar" data-mf-cerrar aria-label="{{ _('Cerrar') }}"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+<div class="mf-cuerpo mf-hilo" data-cuenta="{{ cuenta }}" data-mf-al-final>
+  {% for m in mensajes %}
+  {% set mio = m.autor_id == current_user.id %}
+  <div class="mf-mensaje{{ ' mio' if mio }}">
+    <div class="mf-burbuja">{{ m.texto }}{% if m.adjuntos %}<span class="d-block small"><i class="fas fa-paperclip me-1" aria-hidden="true"></i>{{ ngettext('%(num)s archivo', '%(num)s archivos', m.adjuntos|length) }}</span>{% endif %}</div>
+    <div class="mf-quien">{{ m.autor.nombre }} · {{ m.fecha|fecha_hora('%d/%m %H:%M') }}</div>
+  </div>
+  {% else %}<p class="text-muted small">{{ _('Todavía no hay mensajes.') }}</p>{% endfor %}
+  <p class="small mb-0 mt-2">{% if pedido %}<a href="{{ url_for('pedidos.detalle', id=pedido.id) }}#{{ 'interno' if interno else 'mensajes' }}">{{ _('Abrir el pedido →') }}</a>
+    {% else %}<a href="{{ url_for('mensajes.conversacion', cliente_id=cliente.id) }}">{{ _('Abrir la conversación →') }}</a>{% endif %}</p>
+</div>
+{% if current_user.puede('mensajes.enviar') and (pedido or current_user.puede('mensajes.general')) %}
+<form class="mf-pie mf-responder" method="post" action="{{ url_for('mensajes.flotante_hilo', hilo=hilo) }}" data-mf-form>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label class="visually-hidden" for="mf-texto">{{ _('Mensaje') }}</label>
+  <textarea id="mf-texto" name="texto" rows="1" maxlength="5000" class="form-control form-control-sm{{ ' is-invalid' if error }}"
+            placeholder="{{ _('Nota interna…') if interno else _('Escribe tu respuesta…') }}" required></textarea>
+  <button class="btn btn-primary btn-sm">{{ _('Enviar') }}</button>
+  {% if error %}<div class="text-danger small w-100">{{ error }}</div>{% endif %}
+</form>
+{% endif %}

@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block contenido %}
+{# Página normal del pedido de Yikon (admin, logística, FAS). Normalmente se usa la ventana emergente;
+   esta página sale si falta JavaScript o si el servidor encuentra un error al enviar. #}
+<h1 class="h3">{{ title }}
+  <span class="badge ref-interna ms-2 align-middle" data-ref-interna hidden></span></h1>
+<div class="card" style="max-width:760px"><div class="card-body">
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% include "pedidos/_campos_pedido.html" %}
+  <div class="mt-3">
+    {{ form.submit(id=False, class_="btn btn-primary") }}
+    <a href="{{ url_for('pedidos.lista') }}" class="btn btn-link">{{ _('Cancelar') }}</a>
+  </div>
+</form></div></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>
+{% endblock %}

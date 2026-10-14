@@ -1,0 +1,23 @@
+{# Mensajes de un ticket como burbujas (al abrirlo y los que llegan cada 30 s sin recargar).
+   Tu lado (el equipo de soporte o tu empresa) a la derecha; el otro, a la izquierda.
+   En las notas internas todos son del equipo: a la derecha lo tuyo.
+   Las líneas automáticas (cambios de estado...) van centradas y en pequeño. #}
+{% set soy_cliente = current_user.es_cliente %}
+{% for m in mensajes %}
+{% if m.de_sistema %}
+<div class="burbuja-sistema" data-id="{{ m.id }}"><i class="fas fa-info-circle me-1" aria-hidden="true"></i>{{ m.texto }}
+  <span class="text-muted">· {{ m.autor.nombre }} · {{ m.fecha|fecha_hora }}</span></div>
+{% else %}
+{% set propia = (m.autor_id == current_user.id) if m.interno else (m.de_cliente == soy_cliente) %}
+<div class="burbuja {{ 'propia' if propia else 'ajena' }}{{ ' mia' if m.autor_id == current_user.id }}" data-id="{{ m.id }}">
+  <div class="burbuja-autor">{{ m.autor.nombre }}
+    <span class="text-muted">· {{ m.autor.rol_nombre if m.interno else (ticket.cliente.nombre if m.de_cliente else _('Soporte Yikon')) }}</span></div>
+  {% if m.texto %}<div class="burbuja-texto">{{ m.texto }}</div>{% endif %}
+  {% for a in m.adjuntos %}
+  <a class="burbuja-adjunto" href="{{ url_for('soporte.descargar_adjunto', adjunto_id=a.id) }}">
+    <i class="fas fa-paperclip" aria-hidden="true"></i> {{ a.nombre_original }} <span class="text-muted">({{ a.tamano_legible }})</span></a>
+  {% endfor %}
+  <div class="burbuja-hora">{{ m.fecha|fecha_hora }}</div>
+</div>
+{% endif %}
+{% endfor %}

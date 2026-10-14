@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+<h1 class="h3">{{ title }}</h1>
+<div class="row g-3">
+<div class="col-lg-7"><div class="card"><div class="card-body">
+<form method="post" novalidate>{{ form.hidden_tag() }}
+  {{ campo(form.nombre) }}{{ campo(form.email) }}{{ campo(form.rol) }}{{ campo(form.cliente_id) }}{% if form.chromgo_para_clientes %}{{ campo(form.acceso_chromgo) }}{% endif %}
+  {{ campo(form.idioma) }}
+  {# Solo al crear: lo normal es invitarle y que él elija su contraseña #}
+  {% if form.invitar %}{{ campo(form.invitar) }}{% endif %}
+  {{ campo(form.password, autocomplete="new-password") }}{{ campo(form.activo) }}
+  {{ form.submit(id=False, class_="btn btn-primary") }}
+  <a href="{{ url_for('admin.usuarios') }}" class="btn btn-link">{{ _('Cancelar') }}</a>
+</form></div></div>
+{# "Ver como" (solo lectura, app/ver_como.py): para entender lo que le pasa sin pedirle la contraseña #}
+{% if usuario is defined and usuario.activo and usuario.rol != 'admin' and current_user.puede('usuarios.ver_como') %}
+<div class="card mt-3"><div class="card-body d-flex flex-wrap align-items-center gap-2">
+  <i class="fas fa-user-secret fa-lg text-marca" aria-hidden="true"></i>
+  <span class="small me-auto">{{ _('Ver la plataforma tal como la ve %(nombre)s. Solo lectura: no se guarda ni se envía nada, y queda en la auditoría.', nombre=usuario.nombre) }}</span>
+  <form method="post" action="{{ url_for('admin.ver_como', id=usuario.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-outline-primary">{{ _('Ver como %(nombre)s', nombre=usuario.nombre) }}</button></form>
+</div></div>
+{% endif %}
+</div>
+{# Chuleta de los roles, para elegir bien sin tener que preguntar #}
+<div class="col-lg-5"><div class="card"><div class="card-header"><h2 class="h5">{{ _('¿Qué rol le doy?') }}</h2></div>
+  <div class="card-body small">
+    <dl class="mb-0 roles-ayuda">
+      <dt>{{ _('Administrador') }}</dt><dd>{{ _('Todo. Da de alta usuarios y clientes, ve estadísticas y auditoría.') }}</dd>
+      <dt>{{ _('Logística') }}</dt><dd>{% if form.documentos_activos %}{{ _('La oficina: todos los pedidos, preparar y fotos, enviar, productos, inventario, facturas y documentos internos. Sin clientes, usuarios ni estadísticas.') }}{% else %}{{ _('La oficina: todos los pedidos, preparar y fotos, enviar, productos, inventario y facturas. Sin clientes, usuarios ni estadísticas.') }}{% endif %}</dd>
+      <dt>{{ rol_fas }}</dt><dd>{% if form.soporte_activo %}{{ _('Sus clientes asignados (en la ficha de cada cliente): pedidos, validar fotos, mensajes, facturas (consulta), ficha del cliente y sus tickets de ChromGo (responde, pero no cambia el estado).') }}{% else %}{{ _('Sus clientes asignados (en la ficha de cada cliente): pedidos, validar fotos, mensajes, facturas (consulta) y ficha del cliente.') }}{% endif %}</dd>
+      {% if form.soporte_activo %}<dt>{{ _('Soporte ChromGo') }}</dt><dd>{{ _('Todos los tickets de ChromGo y documentos internos.') }}</dd>{% endif %}
+      <dt>{{ _('Cliente') }}</dt><dd>{% if form.soporte_activo %}{{ _('Los pedidos de su empresa. Con «Acceso a Soporte ChromGo», también sus tickets.') }}{% else %}{{ _('Los pedidos de su empresa.') }}{% endif %}</dd>
+      {% if form.soporte_activo %}<dt>{{ _('Cliente ChromGo') }}</dt><dd>{{ _('Solo los tickets de ChromGo de su empresa.') }}</dd>{% endif %}
+    </dl>
+  </div></div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+<div class="login-caja card shadow-sm"><div class="card-body p-4">
+  <h1 class="h4 mb-3">{{ titulo or _('Elige una contraseña nueva') }}</h1>
+  {% if texto %}<p class="small text-muted">{{ texto }}</p>{% endif %}
+  <form method="post" novalidate>{{ form.hidden_tag() }}
+    {{ campo(form.nueva, autocomplete="new-password", autofocus=true) }}
+    {{ campo(form.confirmar, autocomplete="new-password") }}
+    {{ form.submit(id=False, class_="btn btn-primary w-100") }}
+  </form>
+</div></div>
+{% endblock %}

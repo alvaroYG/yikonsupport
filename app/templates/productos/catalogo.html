@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block contenido %}
+{# Catálogo del cliente: productos y kits activos en una sola lista, con filtros (se aplican al
+   momento, en el navegador) y la ficha de seguridad (SDS) de cada producto. Precios solo si
+   su empresa tiene activado "ve precios" (lo deciden admin o su FAS en Clientes). #}
+<h1 class="h3 mb-1">{{ _('Productos') }}</h1>
+<p class="text-muted small mb-3">{{ _('Nuestro catálogo de productos y kits, con la ficha de datos de seguridad (SDS) de cada producto siempre a mano.') }}
+  {% if current_user.empresa and current_user.empresa.catalogo_propio %}{{ _('Son los de su catálogo. ¿Necesita otro?') }}
+  <a href="{{ url_for('mensajes.conversacion', cliente_id=current_user.empresa.id) }}">{{ _('Escriba a su contacto en Yikon') }}</a>.{% endif %}</p>
+
+<div class="card card-body mb-3 py-2" data-filtros-catalogo>
+  <div class="row g-2 align-items-end">
+    <div class="col-md-5"><label class="form-label small mb-0" for="f-texto">{{ _('Buscar') }}</label>
+      <input id="f-texto" class="form-control form-control-sm" placeholder="{{ _('Nombre o referencia') }}" data-f-texto autocomplete="off"></div>
+    <div class="col-md-2 col-6"><label class="form-label small mb-0" for="f-tipo">{{ _('Tipo') }}</label>
+      <select id="f-tipo" class="form-select form-select-sm" data-f-tipo>
+        {# Por defecto, los kits (lo que se pide normalmente); los productos, al elegirlos #}
+        <option value="kit" selected>{{ _('Kits') }}</option><option value="producto">{{ _('Productos') }}</option><option value="">{{ _('Todos') }}</option></select></div>
+    <div class="col-md-3 col-6"><label class="form-label small mb-0" for="f-marca">{{ _('Marca') }}</label>
+      <select id="f-marca" class="form-select form-select-sm" data-f-marca>
+        <option value="">{{ _('Todas') }}</option>
+        {% for m in marcas %}<option value="{{ m|lower }}">{{ m }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-secondary w-100" data-f-limpiar>{{ _('Limpiar') }}</button></div>
+  </div>
+</div>
+<p class="small text-muted mb-2" data-f-contador data-plantilla="{{ _('%(n)s de %(total)s', n='{n}', total='{total}') }}"></p>
+
+<table class="table table-hover bg-white align-middle tabla-catalogo">
+  <thead><tr><th>{{ _('Tipo') }}</th><th>{{ _('Referencia') }}</th><th>{{ _('Nombre') }}</th><th>{{ _('Marca') }}</th>
+    {% if ver_precios %}<th class="num">{{ _('Precio sin IVA') }}</th>{% endif %}<th class="text-end">{{ _('Ficha de seguridad') }}</th></tr></thead>
+  <tbody>
+  {% for k in kits %}
+    {% set texto = (k.referencia ~ ' ' ~ k.nombre ~ ' ' ~ (k.componentes_activos|map(attribute='producto.nombre')|join(' ')))|lower %}
+    <tr data-fila data-tipo="kit" data-marca="" data-texto="{{ texto }}">
+      <td><span class="badge bg-marca">{{ _('Kit') }}</span></td>
+      <td class="text-nowrap">{{ k.referencia }}</td>
+      <td><div class="fw-semibold">{{ k.nombre }}</div>
+        {# Contenido del kit: plegado; se abre con el botón (o solo, si la búsqueda coincide) #}
+        {% set n = k.componentes_activos|length %}
+        <button type="button" class="btn btn-link btn-sm p-0 boton-contenido-kit collapsed"
+                data-bs-toggle="collapse" data-bs-target="#contenido-kit-{{ k.id }}"
+                aria-expanded="false" aria-controls="contenido-kit-{{ k.id }}">
+          <i class="fas fa-chevron-down me-1" aria-hidden="true"></i>{{ ngettext('Ver contenido (%(num)s producto)', 'Ver contenido (%(num)s productos)', n) }}
+        </button>
+        <div class="collapse" id="contenido-kit-{{ k.id }}">
+          <ul class="small text-muted mb-0 mt-1 ps-3">
+            {% for c in k.componentes_activos %}<li>{{ c.cantidad }} × {{ c.producto.nombre }}</li>{% endfor %}
+          </ul>
+        </div></td>
+      <td>—</td>
+      {% if ver_precios %}<td class="num">{{ precios_kit[k.id]|euros }}</td>{% endif %}
+      <td class="text-end small">{% set con_sds = k.componentes_activos|selectattr('producto.sds_archivo')|list %}
+        {% if con_sds %}{{ _('SDS de sus productos:') }}<br>
+          {% for c in con_sds %}<a href="{{ url_for('productos.descargar_sds', id=c.producto.id) }}"><i class="fas fa-file-pdf"></i> {{ c.producto.referencia }}</a>{{ ' · ' if not loop.last }}{% endfor %}
+        {% else %}<span class="text-muted">—</span>{% endif %}</td></tr>
+  {% endfor %}
+  {% for p in productos %}
+    <tr data-fila data-tipo="producto" data-marca="{{ (p.categoria or '')|lower }}" data-texto="{{ (p.referencia ~ ' ' ~ p.nombre)|lower }}">
+      <td><span class="badge est-neutro">{{ _('Producto') }}</span></td>
+      <td class="text-nowrap">{{ p.referencia }}</td><td>{{ p.nombre }}</td><td>{{ p.categoria or '—' }}</td>
+      {% if ver_precios %}<td class="num">{{ p.precio_para(current_user.empresa)|euros }}</td>{% endif %}
+      <td class="text-end">{% if p.sds_archivo %}
+        <a href="{{ url_for('productos.descargar_sds', id=p.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-pdf me-1"></i> {{ _('Descargar SDS') }}</a>
+        <div class="small text-muted">{{ _('versión del %(fecha)s', fecha=p.sds_fecha|fecha_hora('%d/%m/%Y')) }}</div>
+        {% else %}<span class="small text-muted">{{ _('Sin SDS (no aplica o pendiente)') }}</span>{% endif %}</td></tr>
+  {% endfor %}
+  <tr data-sin-resultados hidden><td colspan="{{ 6 if ver_precios else 5 }}" class="text-muted">{{ _('No hay productos que coincidan con la búsqueda.') }}</td></tr>
+  </tbody>
+</table>
+{% if ver_precios %}<p class="small text-muted">{{ _('Precios sin IVA. En los kits, el precio de su tarifa.') }}</p>{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Filtros del catálogo: se aplican al escribir o elegir, sin recargar la página.
+(function () {
+  var caja = document.querySelector('[data-filtros-catalogo]');
+  if (!caja) return;
+  var texto = caja.querySelector('[data-f-texto]'), tipo = caja.querySelector('[data-f-tipo]'),
+      marca = caja.querySelector('[data-f-marca]'), filas = document.querySelectorAll('[data-fila]'),
+      vacio = document.querySelector('[data-sin-resultados]'), contador = document.querySelector('[data-f-contador]');
+  function quitarTildes(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  function filtrar() {
+    var t = quitarTildes(texto.value.trim().toLowerCase()), n = 0;
+    filas.forEach(function (f) {
+      var ok = (!t || quitarTildes(f.dataset.texto).indexOf(t) !== -1)
+            && (!tipo.value || f.dataset.tipo === tipo.value)
+            && (!marca.value || f.dataset.marca === marca.value);
+      f.hidden = !ok;
+      // Si se busca algo y el kit coincide, se abre su contenido (y se cierra al borrar la búsqueda)
+      var contenido = f.querySelector('.collapse');
+      if (contenido && window.bootstrap) {
+        bootstrap.Collapse.getOrCreateInstance(contenido, { toggle: false })[t && ok ? 'show' : 'hide']();
+      }
+      if (ok) n++;
+    });
+    vacio.hidden = n > 0;
+    contador.textContent = contador.dataset.plantilla.replace('{n}', n).replace('{total}', filas.length);
+  }
+  // La marca es de los productos (los kits no tienen): al elegirla, se pasa a ver productos
+  marca.addEventListener('input', function () {
+    if (marca.value && tipo.value === 'kit') tipo.value = 'producto';
+  });
+  [texto, tipo, marca].forEach(function (el) { el.addEventListener('input', filtrar); });
+  caja.querySelector('[data-f-limpiar]').addEventListener('click', function () {
+    texto.value = ''; tipo.value = 'kit'; marca.value = ''; filtrar(); texto.focus();
+  });
+  filtrar();
+})();
+</script>
+{% endblock %}

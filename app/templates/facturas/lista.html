@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion, estado_factura %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ _('Facturas') }}</h1>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('facturas.exportar_excel', **args_url()) }}" class="btn btn-outline-secondary"><i class="fas fa-file-excel me-1"></i> Excel</a>
+    {% if current_user.puede('facturas.editar') %}<a href="{{ url_for('facturas.por_facturar') }}" class="btn btn-outline-primary">{{ _('Por facturar') }}</a>
+    <a href="{{ url_for('facturas.nueva') }}" class="btn btn-primary">{{ _('+ Registrar factura') }}</a>{% endif %}
+  </div></div>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-3"><input name="q" value="{{ q }}" class="form-control" placeholder="{{ _('Nº de factura') }}"></div>
+  <div class="col-md-3"><select name="estado" class="form-select">
+    <option value="">{{ _('Todos los estados') }}</option>
+    {% for k, v in estados.items() %}<option value="{{ k }}" {{ 'selected' if estado == k }}>{{ v }}</option>{% endfor %}
+    <option value="vencida" {{ 'selected' if estado == 'vencida' }}>{{ _('Vencidas') }}</option>
+    {% for k, v in fases.items() %}<option value="{{ k }}" {{ 'selected' if estado == k }}>{{ v }}</option>{% endfor %}</select></div>
+  <div class="col-auto"><button class="btn btn-outline-secondary">{{ _('Filtrar') }}</button></div></form>
+<table class="table table-hover bg-white align-middle">
+  <thead><tr><th>{{ _('Número') }}</th><th>{{ _('Cliente') }}</th><th>{{ _('Pedido') }}</th><th>{{ _('Emisión') }}</th><th>{{ _('Vencimiento') }}</th><th>{{ _('Estado') }}</th><th></th></tr></thead>
+  <tbody>{% for f in pagina.items %}
+    <tr><td>{{ f.numero }}</td><td>{% if current_user.puede('clientes.ver') %}<a href="{{ url_for('clientes.detalle', id=f.cliente.id) }}">{{ f.cliente.nombre }}</a>{% else %}{{ f.cliente.nombre }}{% endif %}</td>
+      <td>{% if f.pedido %}<a href="{{ url_for('pedidos.detalle', id=f.pedido.id) }}">{{ f.pedido.referencia_interna or '#' ~ f.pedido.id }}</a>{% else %}—{% endif %}</td>
+      <td>{{ f.fecha_emision|fecha }}</td><td>{{ f.fecha_vencimiento|fecha }}</td><td>{{ estado_factura(f) }}</td>
+      <td class="text-nowrap">{% if f.pdf_archivo %}<a href="{{ url_for('facturas.descargar_pdf', id=f.id) }}" class="btn btn-sm btn-link" title="{{ _('Descargar PDF') }}"><i class="fas fa-file-pdf"></i> PDF</a>
+        {% elif current_user.puede('facturas.editar') %}<span class="small text-muted me-2" title="{{ _('El cliente todavía no puede descargarla: súbela desde Editar') }}">{{ _('sin PDF') }}</span>{% endif %}
+        {% if current_user.puede('facturas.editar') %}
+        {% if f.fase == 'por_enviar' %}<form method="post" action="{{ url_for('facturas.marcar_enviada', id=f.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="volver" value="lista">
+          <button class="btn btn-sm btn-primary">{{ _('Enviar por email') }}</button></form>
+        {% elif f.enviada and f.estado == 'pendiente' %}<form method="post" action="{{ url_for('facturas.marcar_pagada', id=f.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-primary">{{ _('Marcar pagada') }}</button></form>{% endif %}
+        <a href="{{ url_for('facturas.editar', id=f.id) }}" class="btn btn-sm btn-outline-secondary">{{ _('Editar') }}</a>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="7" class="text-muted">{{ _('No hay facturas.') }}</td></tr>{% endfor %}</tbody></table>
+{{ paginacion(pagina, 'facturas.lista') }}
+{% endblock %}

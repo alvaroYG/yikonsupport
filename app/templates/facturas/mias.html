@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion, estado_factura %}
+{% block contenido %}
+{# Facturas de la empresa del cliente, con su PDF. Sin notas internas ni importes (están en el PDF). #}
+<h1 class="h3 mb-1">{{ _('Mis facturas') }}</h1>
+<p class="text-muted small mb-3">{{ _('Facturas emitidas a %(empresa)s. Descarga el PDF oficial de cada una.', empresa=current_user.empresa.nombre if current_user.empresa else '') }}</p>
+<table class="table table-hover bg-white align-middle">
+  <thead><tr><th>{{ _('Número') }}</th><th>{{ _('Pedido') }}</th><th>{{ _('Emisión') }}</th><th>{{ _('Vencimiento') }}</th>
+    <th>{{ _('Estado') }}</th><th></th></tr></thead>
+  <tbody>{% for f in pagina.items %}
+    <tr><td class="fw-semibold">{{ f.numero }}</td>
+      <td>{% if f.pedido %}<a href="{{ url_for('pedidos.detalle', id=f.pedido.id) }}">{{ f.pedido.referencia_interna or '#' ~ f.pedido.id }}</a>{% else %}—{% endif %}</td>
+      <td>{{ f.fecha_emision|fecha }}</td><td>{{ f.fecha_vencimiento|fecha }}</td><td>{{ estado_factura(f) }}</td>
+      <td class="text-end">{% if f.pdf_archivo %}<a href="{{ url_for('facturas.descargar_pdf', id=f.id) }}" class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-file-pdf me-1"></i> {{ _('Descargar PDF') }}</a>
+        {% else %}<span class="small text-muted">{{ _('PDF pendiente') }}</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="6" class="text-muted">{{ _('Todavía no hay facturas.') }}</td></tr>{% endfor %}</tbody></table>
+{{ paginacion(pagina, 'facturas.mias') }}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{# Administración → Estado de la plataforma. Lógica: app/estado.py #}
+{% macro marca(estado, ok, aviso, sin_datos=None) %}
+  {% if estado == 'ok' %}<span class="badge est-correo-ok"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ ok }}</span>
+  {% elif estado == 'aviso' %}<span class="badge est-correo-mal"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ aviso }}</span>
+  {% else %}<span class="badge text-bg-light border"><i class="fas fa-info-circle me-1" aria-hidden="true"></i>{{ sin_datos or _('Sin datos') }}</span>{% endif %}
+{% endmacro %}
+{% block contenido %}
+<h1 class="h3 mb-3">{{ _('Estado de la plataforma') }}</h1>
+<div class="tarjetas-estado">
+  <div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Copia de seguridad') }}</h2>
+      {{ marca(e.copia.estado, _('Al día'), _('Hace más de 2 días'), _('Sin configurar')) }}</div>
+    {% if e.copia.cuando %}<div class="fs-5 fw-bold">{{ e.copia.cuando|fecha_hora }}</div>
+    <p class="small text-muted mb-0">{{ _('Última copia de la base de datos y los archivos.') }}</p>
+    {% else %}<p class="small text-muted mb-0">{{ _('La copia la hace el servidor. Al configurarla, el script deja la hora de la última copia en el archivo de COPIA_SEGURIDAD_MARCA y aquí se ve.') }}</p>{% endif %}
+  </div></div>
+  <div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Correos (7 días)') }}</h2>
+      {{ marca(e.correos.estado, _('Sin fallos'), ngettext('%(num)s fallido', '%(num)s fallidos', e.correos.fallidos)) }}</div>
+    <dl class="filas-estado"><dt>{{ _('Enviados') }}</dt><dd>{{ e.correos.enviados }}</dd><dt>{{ _('Fallidos') }}</dt><dd>{{ e.correos.fallidos }}</dd></dl>
+    <a class="small" href="{{ url_for('admin.correos', estado='fallido' if e.correos.fallidos else None, dias=7) }}">{{ _('Ver los fallidos →') if e.correos.fallidos else _('Ver los correos →') }}</a>
+  </div></div>
+  <div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Espacio') }}</h2>
+      {{ marca(e.espacio.estado, _('%(n)s %% usado', n=(e.espacio.usado * 100)|round|int) if e.espacio.usado is not none else '', _('Disco casi lleno')) }}</div>
+    {% if e.espacio.usado is not none %}<div class="progress mb-2" role="progressbar" aria-label="{{ _('Disco usado') }}" aria-valuenow="{{ (e.espacio.usado * 100)|round|int }}" aria-valuemin="0" aria-valuemax="100" style="height:.5rem">
+      <div class="progress-bar" style="width: {{ (e.espacio.usado * 100)|round|int }}%; background: var(--marca)"></div></div>{% endif %}
+    <dl class="filas-estado"><dt>{{ _('Base de datos') }}</dt><dd>{{ legible(e.espacio.base_de_datos) }}</dd>
+      <dt>{{ _('Fotos de pedidos') }}</dt><dd>{{ legible(e.espacio.fotos) }}</dd>
+      <dt>{{ _('PDF y documentos') }}</dt><dd>{{ legible(e.espacio.documentos) }}</dd>
+      <dt>{{ _('Libre en el disco') }}</dt><dd>{{ legible(e.espacio.libre) }}</dd></dl>
+  </div></div>
+  <div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Usuarios') }}</h2>
+      {{ marca(e.usuarios.estado, _('Todo en orden'), _('Revisar')) }}</div>
+    <dl class="filas-estado"><dt>{{ _('Invitaciones sin usar') }}</dt><dd>{{ e.usuarios.invitaciones }}</dd>
+      <dt>{{ _('Sin entrar hace más de 90 días') }}</dt><dd>{{ e.usuarios.inactivos }}</dd>
+      <dt>{{ _('Intentos fallidos de entrar (24 h)') }}</dt><dd>{{ e.usuarios.fallidos }}</dd></dl>
+    <a class="small" href="{{ url_for('admin.usuarios', estado='pendientes' if e.usuarios.invitaciones else None) }}">{{ _('Ver en Usuarios →') }}</a>
+  </div></div>
+  <div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Versión') }}</h2>
+      {{ marca(e.version.estado, _('Al día'), '') }}</div>
+    <dl class="filas-estado"><dt>{{ _('Base de datos') }}</dt><dd class="font-monospace">{{ e.version.revision or '—' }}</dd>
+      <dt>{{ _('Entorno') }}</dt><dd>{{ e.version.entorno }}</dd>
+      <dt>{{ _('Arrancada') }}</dt><dd>{{ e.version.arrancada|fecha_hora }}</dd></dl>
+  </div></div>
+  <div class="card"><div class="card-body">
+    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Errores de la web (24 h)') }}</h2>
+      {{ marca(e.errores.estado, _('Ninguno'), ngettext('%(num)s error', '%(num)s errores', e.errores.hoy)) }}</div>
+    {% if e.errores.ultimos %}<ul class="small mb-0 ps-3">{% for x in e.errores.ultimos %}
+      <li><span class="text-muted">{{ x.fecha|fecha_hora }}</span> · <span class="font-monospace">{{ x.ruta }}</span>{% if x.usuario %} · {{ x.usuario }}{% endif %}
+        <div class="text-muted text-break">{{ x.error }}</div></li>{% endfor %}</ul>
+    {% else %}<p class="small text-muted mb-0">{{ _('Ninguna página ha fallado por un error nuestro.') }}</p>{% endif %}
+  </div></div>
+</div>
+{% endblock %}

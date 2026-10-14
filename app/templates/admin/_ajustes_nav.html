@@ -1,0 +1,17 @@
+{# Pestañas de Administración → Ajustes. activa: la clave de la pestaña #}
+<h1 class="h3 mb-3"><i class="fas fa-sliders-h me-2 text-marca" aria-hidden="true"></i>{{ _('Ajustes') }}</h1>
+{% set pestanas = [
+  ('plazos', 'admin.ajustes', 'fa-sliders-h', _('General')),
+  ('correos', 'admin.ajustes_correos', 'fa-envelope', _('Correos al cliente')),
+  ('avisos', 'admin.ajustes_avisos', 'fa-bell', _('Avisos internos')),
+  ('apartados', 'admin.ajustes_apartados', 'fa-user-lock', _('Qué ve cada rol')),
+  ('empresa', 'admin.ajustes_empresa', 'fa-building', _('Datos de Yikon')),
+  ('proformas', 'admin.ajustes_proformas', 'fa-file-signature', _('Proformas')),
+  ('seguridad', 'admin.ajustes_seguridad', 'fa-shield-alt', _('Seguridad')),
+] %}
+<ul class="nav nav-pills ajustes-nav mb-3">
+  {% for clave, endpoint, icono, texto in pestanas %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if activa == clave }}" {{ 'aria-current=page' if activa == clave }}
+      href="{{ url_for(endpoint) }}"><i class="fas {{ icono }} me-1" aria-hidden="true"></i>{{ texto }}</a></li>
+  {% endfor %}
+</ul>

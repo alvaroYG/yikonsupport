@@ -1,0 +1,21 @@
+{# Productos de la proforma agrupados por kit, con la caducidad de los lotes reservados para el pedido.
+   `lineas` = las guardadas en una proforma (foto fija); si no, la vista previa `proforma_prevista`. #}
+{% set filas = lineas if lineas is defined else proforma_prevista %}
+<table class="table table-sm align-middle tabla-proforma">
+  <thead><tr><th>{{ _('Referencia') }}</th><th>{{ _('Producto') }}</th><th>{{ _('Marca') }}</th>
+    <th class="num">{{ _('Cantidad') }}</th><th>{{ _('Caducidad prevista') }}</th></tr></thead>
+  <tbody>
+  {% set ns = namespace(grupo='__inicio__') %}
+  {% for f in filas %}
+    {% if f.grupo != ns.grupo %}{% set ns.grupo = f.grupo %}
+    <tr class="fila-grupo"><td colspan="5">{{ f.grupo or _('Productos sueltos') }}</td></tr>{% endif %}
+    {% set p = f.producto if f.producto is defined else none %}
+    <tr><td class="text-nowrap">{{ p.referencia if p else f.referencia }}</td><td>{{ p.nombre if p else f.nombre }}</td>
+      <td>{{ (p.categoria if p else f.marca) or '—' }}</td><td class="num">{{ f.cantidad }}</td>
+      <td>{% if f.caducidad %}{{ f.caducidad|fecha }}
+        {% if lineas is not defined and not es_cliente and (f.caducidad - hoy_fecha()).days <= config.DIAS_AVISO_CADUCIDAD %}
+          <span class="badge est-pendiente ms-1" title="{{ _('Es la caducidad del lote elegido para este pedido') }}">{{ _('⏳ caduca pronto') }}</span>{% endif %}
+        {% elif f.sin_stock %}<span class="badge est-alerta">{{ _('a confirmar (sin stock libre)') if not es_cliente else _('a confirmar') }}</span>
+        {% else %}<span class="text-muted" title="{{ _('No lleva control de stock (p. ej. un servicio)') }}">—</span>{% endif %}</td></tr>
+  {% endfor %}</tbody>
+</table>

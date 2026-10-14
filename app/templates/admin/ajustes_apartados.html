@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{# Ajustes → Qué ve cada rol: una casilla por apartado y rol. Lo que hay detrás: app/apartados.py #}
+{% block contenido %}
+{% with activa='apartados' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
+
+<div class="card">
+  <div class="card-header"><h2 class="h5 mb-0"><i class="fas fa-user-lock me-2 text-marca" aria-hidden="true"></i>{{ _('Qué apartados de la web ve cada rol') }}</h2></div>
+  <div class="card-body">
+    <p class="text-muted small mb-2">{{ _('Quitar un apartado a un rol lo quita entero: del menú, del buscador, de los avisos y de las fichas, y sus páginas le dicen que no tiene permiso. Dentro de cada apartado, cada uno sigue viendo solo lo suyo (Soporte de cliente, sus clientes; el cliente, lo de su empresa).') }}</p>
+    <ul class="leyenda-apartados small text-muted">
+      <li><span class="celda-fija"><i class="fas fa-lock" aria-hidden="true"></i> {{ _('Siempre') }}</span> {{ _('imprescindible para el día a día de ese rol: no se puede quitar') }}</li>
+      <li><input type="checkbox" class="form-check-input" checked disabled aria-hidden="true"> {{ _('casilla: lo decides tú') }}</li>
+      <li><span class="celda-nada">—</span> {{ _('ese rol no puede tenerlo') }}</li>
+    </ul>
+
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="table-responsive">
+      <table class="table tabla-apartados align-middle">
+        <thead><tr>
+          <th scope="col">{{ _('Apartado') }}</th>
+          {% for rol, nombre, n in roles %}
+          <th scope="col" class="text-center">{{ nombre }}<div class="small fw-normal text-muted">{{ ngettext('%(num)s usuario', '%(num)s usuarios', n) }}</div></th>
+          {% endfor %}
+        </tr></thead>
+        <tbody>
+        {% for clave, ap, celdas in filas %}
+          <tr>
+            <th scope="row" class="fw-normal">
+              <div class="fw-semibold"><i class="fas {{ ap.icono }} me-1 text-marca" aria-hidden="true"></i>{{ ap.nombre }}</div>
+              <div class="small text-muted">{{ ap.descripcion }}</div>
+              {% if ap.aviso %}<div class="small aviso-apartado"><i class="fas fa-info-circle me-1" aria-hidden="true"></i>{{ ap.aviso }}</div>{% endif %}
+            </th>
+            {% for rol, nombre, n in roles %}
+            {% set celda = celdas[rol] %}
+            <td class="text-center">
+              {% if celda == 'fijo' %}
+                <span class="celda-fija" title="{{ _('Siempre') }}"><i class="fas fa-lock" aria-hidden="true"></i><span class="visually-hidden">{{ _('%(rol)s ve siempre %(apartado)s', rol=nombre, apartado=ap.nombre) }}</span></span>
+              {% elif celda %}
+                <input class="form-check-input casilla-apartado" type="checkbox" name="ver" value="{{ clave }}:{{ rol }}"
+                       id="ver-{{ clave }}-{{ rol }}" {{ 'checked' if celda == 'si' }}>
+                <label class="visually-hidden" for="ver-{{ clave }}-{{ rol }}">{{ _('%(rol)s ve %(apartado)s', rol=nombre, apartado=ap.nombre) }}</label>
+              {% else %}
+                <span class="celda-nada" title="{{ _('Este rol no puede tenerlo') }}">—<span class="visually-hidden">{{ _('Este rol no puede tenerlo') }}</span></span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <button class="btn btn-primary" name="accion" value="guardar">{{ _('Guardar') }}</button>
+        <button class="btn btn-outline-secondary ms-auto" name="accion" value="fabrica"
+                onclick='return confirm({{ _("¿Dejarlo todo como venía? Se desmarcan los Tickets ChromGo y los Documentos internos.")|tojson }})'>{{ _('Dejarlo como venía') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

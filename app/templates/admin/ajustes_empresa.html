@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{# Ajustes → Datos de Yikon. Lógica: app/datos_empresa.py #}
+{% block contenido %}
+{% with activa='empresa' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card"><div class="card-body">
+      <p class="text-muted small">{{ _('Se escriben una vez aquí y salen en el Excel de «Preparar factura» (bloque Seller), en la cabecera del modelo de proforma y en la firma de los correos al cliente (si nadie la ha cambiado a mano en Correos al cliente).') }}</p>
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="row g-3">
+          {% for campo, etiqueta in campos.items() %}
+          <div class="{{ 'col-12' if campo == 'direccion' else 'col-md-6' }}">
+            <label class="form-label" for="{{ campo }}">{{ etiqueta }}</label>
+            {% if campo == 'direccion' %}
+            <textarea class="form-control" id="{{ campo }}" name="{{ campo }}" rows="3" maxlength="300">{{ datos[campo] }}</textarea>
+            <div class="form-text">{{ _('Una línea por renglón, como quieras que salga en el Excel.') }}</div>
+            {% else %}
+            <input class="form-control" id="{{ campo }}" name="{{ campo }}" value="{{ datos[campo] }}" maxlength="150">
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <button class="btn btn-primary mt-3">{{ _('Guardar') }}</button>
+      </form>
+    </div></div>
+  </div>
+  <div class="col-lg-5 d-flex flex-column gap-3">
+    <div class="card"><div class="card-body">
+      <h2 class="h6">{{ _('Así sale en el Excel') }}</h2>
+      <div class="table-responsive"><table class="table table-sm table-bordered small mb-0 font-monospace">
+        <tr><td class="fw-bold">Seller.</td></tr>
+        {% for l in vendedor %}<tr><td>{{ l }}</td></tr>{% endfor %}
+      </table></div>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <h2 class="h6">{{ _('Y en el modelo de proforma') }}</h2>
+      <div class="border rounded p-2 small"><strong>{{ datos.nombre }}</strong>
+        {% for l in cabecera %}<div class="text-muted">{{ l }}</div>{% endfor %}</div>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

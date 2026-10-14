@@ -1,0 +1,329 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import estado_pedido, estado_factura, paginacion %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div><h1 class="h3 mb-1">{{ cliente.nombre }} {% if not cliente.activo %}<span class="badge est-neutro">{{ _('Inactivo') }}</span>{% endif %}</h1>
+    <div class="text-muted">{{ cliente.razon_social or '' }} {{ '· ' ~ cliente.cif if cliente.cif }}</div></div>
+  <div>
+    {% if current_user.puede('pedidos.crear') %}<a href="{{ url_for('pedidos.nuevo', cliente_id=cliente.id) }}" class="btn btn-primary"
+       data-bs-toggle="modal" data-bs-target="#modal-pedido" data-cliente-id="{{ cliente.id }}"><i class="fas fa-plus me-1"></i> {{ _('Hacer un pedido') }}</a>{% endif %}
+    {% if current_user.puede('mensajes.ver') %}<a href="{{ url_for('mensajes.conversacion', cliente_id=cliente.id) }}" class="btn btn-outline-primary"><i class="fas fa-comments me-1"></i> {{ _('Mensajes') }}</a>{% endif %}
+    {% if current_user.puede('clientes.editar') %}<a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-outline-primary">{{ _('Editar') }}</a>{% endif %}
+    {# Todo lo del cliente en un ZIP (app/clientes/exportar.py). Queda en la auditoría #}
+    {% if current_user.puede('clientes.exportar') %}
+    <form method="post" action="{{ url_for('clientes.exportar', id=cliente.id) }}" class="d-inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-outline-secondary" title="{{ _('Un ZIP con sus pedidos (Excel), facturas, proformas y documentos. Queda en la auditoría.') }}">
+        <i class="fas fa-file-archive me-1" aria-hidden="true"></i>{{ _('Exportar todo') }}</button></form>
+    {% endif %}
+  </div></div>
+{# ====================================================================================
+   FICHA DEL CLIENTE (vista de Yikon): los datos principales en una franja arriba y el resto en
+   pestañas a todo el ancho. Se abre en «Pedidos»; un enlace con #avisos, #catalogo, #precios,
+   #facturas… abre su pestaña (script de abajo). Cada pestaña es la tarjeta de siempre.
+   ==================================================================================== #}
+<div class="card mb-4 franja-cliente"><div class="card-body">
+  <div class="franja-cliente-datos">
+    <div><span class="franja-etiqueta">{{ _('Prefijo de pedidos') }}</span><strong>{{ cliente.prefijo or '—' }}</strong></div>
+    <div><span class="franja-etiqueta">{{ rol_fas }}</span><strong>{{ cliente.logisticos|map(attribute='nombre')|join(', ') or '—' }}</strong></div>
+    <div><span class="franja-etiqueta">{{ _('Contacto') }}</span><strong>{{ cliente.persona_contacto or '—' }}</strong></div>
+    <div><span class="franja-etiqueta">{{ _('Ve precios en la plataforma') }}</span>{% include "clientes/_interruptor_precios.html" %}</div>
+    <div><span class="franja-etiqueta">{{ _('Usuarios de la empresa') }}</span><strong>{{ cliente.usuarios|length }}</strong>
+      · <button type="button" class="btn btn-link btn-sm p-0 align-baseline" data-bs-toggle="collapse" data-bs-target="#datos-cliente"
+                aria-expanded="false" aria-controls="datos-cliente">{{ _('Ver datos completos') }}</button></div>
+  </div>
+  <div class="collapse" id="datos-cliente"><div class="pt-3 mt-3 border-top small">
+    <dl class="mb-0">
+      <dt>{{ _('Prefijo de pedidos') }}</dt><dd>{{ cliente.prefijo or '—' }} <span class="text-muted">{{ _('(próximo pedido: %(ref)s)', ref=cliente.proxima_referencia_interna) }}</span></dd>
+      <dt>{{ _('Contacto') }}</dt><dd>{{ cliente.persona_contacto or '—' }}</dd>
+      <dt>{{ _('Email') }}</dt><dd>{{ cliente.email or '—' }}</dd>
+      <dt>{{ _('Teléfono') }}</dt><dd>{{ cliente.telefono or '—' }}</dd>
+      <dt>{{ _('Dirección') }}</dt><dd>{{ cliente.direccion or '—' }}{{ ', ' ~ cliente.ciudad if cliente.ciudad }}</dd>
+      <dt>{{ rol_fas }}</dt><dd>{{ cliente.logisticos|map(attribute='nombre')|join(', ') or '—' }}</dd>
+      <dt>{{ _('Ve precios en la plataforma') }}</dt>
+      <dd>{{ _('Sí') if cliente.ver_precios else _('No') }} <span class="text-muted">({{ _('se cambia arriba') }})</span>
+        <div class="text-muted mt-1">{{ _('Sus tarifas en el catálogo, precios y totales de sus pedidos e importes de sus facturas. La proforma sigue sin precios.') }}</div></dd>
+      <dt>{{ _('Usuarios de la empresa') }}</dt><dd>{{ cliente.usuarios|map(attribute='email')|join(', ') or '—' }}</dd>
+      {% if cliente.notas %}<dt>{{ _('Notas') }}</dt><dd style="white-space:pre-line">{{ cliente.notas }}</dd>{% endif %}
+    </dl>
+  </div></div>
+</div></div>
+
+<div class="card ficha-pestanas">
+  <div class="card-header pb-0">
+    <ul class="nav nav-tabs card-header-tabs" role="tablist" aria-label="{{ _('Secciones del cliente') }}">
+    <li class="nav-item" role="presentation"><button class="nav-link active" id="tab-pedidos" data-bs-toggle="tab" data-bs-target="#pestana-pedidos" type="button" role="tab" aria-controls="pestana-pedidos" aria-selected="true">{{ _('Pedidos') }} <span class="badge rounded-pill cuenta-pestana">{{ pedidos.total }}</span></button></li>
+    {% if facturas is not none %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-facturacion" data-bs-toggle="tab" data-bs-target="#pestana-facturacion" type="button" role="tab" aria-controls="pestana-facturacion" aria-selected="false">{{ _('Facturación') }} <span class="badge rounded-pill cuenta-pestana">{{ facturas.total }}</span></button></li>{% endif %}
+    {% if current_user.puede('pedidos.ver_importes') %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-precios" data-bs-toggle="tab" data-bs-target="#pestana-precios" type="button" role="tab" aria-controls="pestana-precios" aria-selected="false">{{ _('Precios especiales') }} <span class="badge rounded-pill cuenta-pestana">{{ precios|length + precios_productos|length }}</span></button></li>{% endif %}
+    {% if catalogo %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-catalogo" data-bs-toggle="tab" data-bs-target="#pestana-catalogo" type="button" role="tab" aria-controls="pestana-catalogo" aria-selected="false">{{ _('Su catálogo') }} <span class="badge rounded-pill cuenta-pestana">{{ _('Propio') if cliente.catalogo_propio else _('Todo') }}</span></button></li>{% endif %}
+    {% if avisos %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-avisos" data-bs-toggle="tab" data-bs-target="#pestana-avisos" type="button" role="tab" aria-controls="pestana-avisos" aria-selected="false">{{ _('Avisos por email') }} <span class="badge rounded-pill cuenta-pestana">{{ avisos.usuarios|length + avisos.copias|length }}</span></button></li>{% endif %}
+    </ul>
+  </div>
+  <div class="card-body tab-content">
+  <div class="tab-pane show active" id="pestana-pedidos" role="tabpanel" aria-labelledby="tab-pedidos" tabindex="0">
+    <div class="card mb-4" id="pedidos"><div class="card-body">
+      <h2 class="h5">{{ _('Pedidos') }}{% if pedidos.total %} <span class="text-muted fw-normal">· {{ pedidos.total }}</span>{% endif %}</h2>
+      <table class="table table-sm mb-0"><thead><tr><th>{{ _('Ref. interna') }}</th><th>{{ _('Fecha') }}</th><th>{{ _('Ref. empresa') }}</th><th>{{ _('Estado') }}</th>{% if current_user.puede('pedidos.ver_importes') %}<th class="num">{{ _('Total') }}</th>{% endif %}</tr></thead>
+      <tbody>{% for p in pedidos.items %}
+        <tr><td><a href="{{ url_for('pedidos.detalle', id=p.id) }}">{{ p.referencia_interna or '#' ~ p.id }}</a></td><td>{{ p.fecha|fecha }}</td>
+            <td>{{ p.referencia or '—' }}</td><td>{{ estado_pedido(p) }}</td>{% if current_user.puede('pedidos.ver_importes') %}<td class="num">{{ p.total|euros }}</td>{% endif %}</tr>
+      {% else %}<tr><td colspan="5" class="text-muted">{{ _('Sin pedidos.') }}</td></tr>{% endfor %}</tbody></table>
+      {{ paginacion(pedidos, 'clientes.detalle', 'pagina_pedidos', 'por_pagina_pedidos', 'pedidos', {'id': cliente.id}) }}</div></div>
+  </div>
+{% if facturas is not none %}
+  <div class="tab-pane" id="pestana-facturacion" role="tabpanel" aria-labelledby="tab-facturacion" tabindex="0">
+    {% if current_user.puede('facturas.ver') %}
+    {# Facturación: cómo se le hace la factura (formato, IVA, envío pactado). Solo Yikon. #}
+    <div class="card mb-4" id="facturacion"><div class="card-body">
+      <h2 class="h5">{{ _('Facturación') }}</h2>
+      {% if current_user.puede('facturas.editar') %}{% set cli, pedido_id = cliente, none %}{% include "facturas/_form_facturacion.html" %}
+      {% else %}<p class="mb-0 small">{{ formatos.get(cliente.formato_factura, _('Sin configurar')) }} · {{ regimenes.get(cliente.regimen_iva, '—') }} ·
+        {% if cliente.gastos_envio %}{{ _('Envío pactado %(importe)s', importe=cliente.gastos_envio|euros) }}{% else %}{{ _('Sin envío pactado') }}{% endif %}</p>{% endif %}
+    </div></div>
+    <div class="card" id="facturas"><div class="card-body">
+      <h2 class="h5">{{ _('Facturas') }}{% if facturas.total %} <span class="text-muted fw-normal">· {{ facturas.total }}</span>{% endif %}</h2>
+      <table class="table table-sm mb-0"><thead><tr><th>{{ _('Número') }}</th><th>{{ _('Emisión') }}</th><th>{{ _('Vencimiento') }}</th><th>{{ _('Estado') }}</th></tr></thead>
+      <tbody>{% for f in facturas.items %}
+        <tr><td>{{ f.numero }}</td><td>{{ f.fecha_emision|fecha }}</td><td>{{ f.fecha_vencimiento|fecha }}</td>
+            <td>{{ estado_factura(f) }}</td></tr>
+      {% else %}<tr><td colspan="4" class="text-muted">{{ _('Sin facturas.') }}</td></tr>{% endfor %}</tbody></table>
+      {{ paginacion(facturas, 'clientes.detalle', 'pagina_facturas', 'por_pagina_facturas', 'facturas', {'id': cliente.id}) }}</div></div>
+    {% endif %}
+  </div>
+{% endif %}
+{% if current_user.puede('pedidos.ver_importes') %}
+  <div class="tab-pane" id="pestana-precios" role="tabpanel" aria-labelledby="tab-precios" tabindex="0">
+    {# Precios especiales de kits: los ve quien ve importes; los cambia quien edita clientes (admin) #}
+    {% if current_user.puede('pedidos.ver_importes') %}
+    <div class="card mb-4" id="precios"><div class="card-body">
+      <h2 class="h5"><i class="fas fa-tags me-2"></i>{{ _('Precios especiales') }}</h2>
+      <p class="small text-muted">{{ _('Sin tarifa especial se aplica el precio estándar. Los pedidos ya hechos no cambian.') }}</p>
+      <div class="nav nav-pills gap-2 mb-3" role="tablist" aria-label="{{ _('Precios especiales') }}">
+        <button class="nav-link active" id="tab-precios-kits" data-bs-toggle="tab" data-bs-target="#panel-precios-kits" type="button" role="tab" aria-controls="panel-precios-kits" aria-selected="true">{{ _('Kits') }} <span class="badge bg-secondary ms-1">{{ precios|length }}</span></button>
+        <button class="nav-link" id="tab-precios-productos" data-bs-toggle="tab" data-bs-target="#precios-productos" type="button" role="tab" aria-controls="precios-productos" aria-selected="false">{{ _('Productos sueltos') }} <span class="badge bg-secondary ms-1">{{ precios_productos|length }}</span></button>
+      </div>
+      <div class="tab-content">
+        <div class="tab-pane show active" id="panel-precios-kits" role="tabpanel" aria-labelledby="tab-precios-kits" tabindex="0">
+<div class="table-responsive"><table class="table table-sm align-middle mb-3">
+        <thead><tr><th>{{ _('Kit') }}</th><th class="num">{{ _('Precio estándar') }}</th><th class="num">{{ _('Precio para este cliente') }}</th><th></th></tr></thead>
+        <tbody>{% for p in precios %}
+          <tr><td>{{ p.kit.nombre }} <span class="small text-muted">{{ p.kit.referencia }}</span></td>
+            <td class="num text-muted">{{ p.kit.precio|euros }}</td>
+            <td class="num">
+              {% if current_user.puede('clientes.editar') %}
+              <form method="post" action="{{ url_for('clientes.guardar_precio', id=cliente.id) }}" class="d-inline-flex gap-1 justify-content-end">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="kit_id" value="{{ p.kit_id }}">
+                <input name="precio" value="{{ p.precio }}" inputmode="decimal" class="form-control form-control-sm text-end" style="width:7.5rem" aria-label="{{ _('Precio para este cliente') }}">
+                <button class="btn btn-sm btn-outline-secondary">{{ _('Guardar') }}</button></form>
+              {% else %}<strong>{{ p.precio|euros }}</strong>{% endif %}</td>
+            <td class="text-end">{% if current_user.puede('clientes.editar') %}
+              <form method="post" action="{{ url_for('clientes.borrar_precio', id=cliente.id, precio_id=p.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-secondary" title="{{ _('Volver al precio estándar') }}">✕</button></form>{% endif %}</td></tr>
+        {% else %}<tr><td colspan="4" class="text-muted">{{ _('Este cliente paga los precios estándar.') }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% if current_user.puede('clientes.editar') and kits_sin_precio %}
+      <form method="post" action="{{ url_for('clientes.guardar_precio', id=cliente.id) }}" class="row g-2 align-items-end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-sm-6"><label class="form-label small mb-1" for="nuevo-precio-kit">{{ _('Kit') }}</label>
+          <select name="kit_id" id="nuevo-precio-kit" class="form-select form-select-sm">
+            {% for k in kits_sin_precio %}<option value="{{ k.id }}">{{ k.nombre }} ({{ k.precio|euros }})</option>{% endfor %}</select></div>
+        <div class="col-sm-3"><label class="form-label small mb-1" for="nuevo-precio">{{ _('Precio especial (€)') }}</label>
+          <input name="precio" id="nuevo-precio" inputmode="decimal" class="form-control form-control-sm" required></div>
+        <div class="col-sm-3"><button class="btn btn-sm btn-primary w-100">{{ _('Añadir precio') }}</button></div>
+      </form>
+      {% endif %}
+        </div>
+        <div class="tab-pane" id="precios-productos" role="tabpanel" aria-labelledby="tab-precios-productos" tabindex="0">
+<div class="table-responsive"><table class="table table-sm align-middle mb-3">
+        <thead><tr><th>{{ _('Producto') }}</th><th class="num">{{ _('Precio estándar') }}</th><th class="num">{{ _('Precio para este cliente') }}</th><th></th></tr></thead>
+        <tbody>{% for p in precios_productos %}
+          <tr><td>{{ p.producto.nombre }} <span class="small text-muted">{{ p.producto.referencia }}</span></td>
+            <td class="num text-muted">{{ p.producto.precio|euros }}</td>
+            <td class="num">
+              {% if current_user.puede('clientes.editar') %}
+              <form method="post" action="{{ url_for('clientes.guardar_precio_producto', id=cliente.id) }}" class="d-inline-flex gap-1 justify-content-end">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="producto_id" value="{{ p.producto_id }}">
+                <input name="precio" value="{{ p.precio }}" inputmode="decimal" class="form-control form-control-sm text-end" style="width:7.5rem" aria-label="{{ _('Precio para este cliente') }}">
+                <button class="btn btn-sm btn-outline-secondary">{{ _('Guardar') }}</button></form>
+              {% else %}<strong>{{ p.precio|euros }}</strong>{% endif %}</td>
+            <td class="text-end">{% if current_user.puede('clientes.editar') %}
+              <form method="post" action="{{ url_for('clientes.borrar_precio_producto', id=cliente.id, precio_id=p.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-secondary" title="{{ _('Volver al precio estándar') }}">✕</button></form>{% endif %}</td></tr>
+        {% else %}<tr><td colspan="4" class="text-muted">{{ _('Este cliente paga los precios estándar.') }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% if current_user.puede('clientes.editar') and productos_sin_precio %}
+      <form method="post" action="{{ url_for('clientes.guardar_precio_producto', id=cliente.id) }}" class="row g-2 align-items-end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-sm-6"><label class="form-label small mb-1" for="nuevo-precio-producto-producto">{{ _('Producto') }}</label>
+          <select name="producto_id" id="nuevo-precio-producto-producto" class="form-select form-select-sm">
+            {% for k in productos_sin_precio %}<option value="{{ k.id }}">{{ k.nombre }} ({{ k.precio|euros }})</option>{% endfor %}</select></div>
+        <div class="col-sm-3"><label class="form-label small mb-1" for="nuevo-precio-producto">{{ _('Precio especial (€)') }}</label>
+          <input name="precio" id="nuevo-precio-producto" inputmode="decimal" class="form-control form-control-sm" required></div>
+        <div class="col-sm-3"><button class="btn btn-sm btn-primary w-100">{{ _('Añadir precio') }}</button></div>
+      </form>
+      {% endif %}
+        </div>
+      </div>
+    </div></div>
+    {% endif %}
+  </div>
+{% endif %}
+{% if catalogo %}
+  <div class="tab-pane" id="pestana-catalogo" role="tabpanel" aria-labelledby="tab-catalogo" tabindex="0">
+    {# Su catálogo: qué kits puede pedir y qué productos ve (app/catalogo_cliente.py). Admin y su Soporte. #}
+    {% if catalogo %}
+    <div class="card mb-4" id="catalogo"><div class="card-body">
+      <div class="d-flex justify-content-between align-items-center gap-2">
+        <h2 class="h5 mb-0"><i class="fas fa-cubes me-2" aria-hidden="true"></i>{{ _('Su catálogo') }}</h2>
+        <span class="small text-muted">{% if cliente.catalogo_propio %}{{ _('%(k)s de %(tk)s kits · %(p)s de %(tp)s productos', k=catalogo.kits|selectattr('marcado')|list|length, tk=catalogo.kits|length, p=catalogo.productos|selectattr('marcado')|list|length, tp=catalogo.productos|length) }}{% else %}{{ _('Todo el catálogo') }}{% endif %}</span>
+      </div>
+      <p class="small text-muted mt-2">{{ _('Qué kits puede pedir esta clínica y qué productos ve (con su ficha de seguridad). Yikon, al hacer un pedido en su nombre, puede seguir añadiendo cualquier cosa.') }}</p>
+      <form method="post" action="{{ url_for('clientes.guardar_catalogo', id=cliente.id) }}" data-catalogo-cliente novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <fieldset class="row g-2 mb-3">
+          <legend class="form-label small fw-semibold mb-1">{{ _('¿Qué puede pedir?') }}</legend>
+          <div class="col-md-6"><input type="radio" class="btn-check" name="modo" value="todo" id="cat-todo" {{ 'checked' if not cliente.catalogo_propio }}>
+            <label class="btn btn-outline-secondary w-100 text-start opcion-catalogo" for="cat-todo"><strong>{{ _('Todo el catálogo') }}</strong>
+              <span class="d-block small">{{ _('Como siempre: todo lo activo. Lo que se dé de alta después, también.') }}</span></label></div>
+          <div class="col-md-6"><input type="radio" class="btn-check" name="modo" value="propio" id="cat-propio" {{ 'checked' if cliente.catalogo_propio }}>
+            <label class="btn btn-outline-secondary w-100 text-start opcion-catalogo" for="cat-propio"><strong>{{ _('Solo lo que se marque') }}</strong>
+              <span class="d-block small">{{ _('Una lista propia. Lo nuevo del catálogo no le aparece hasta marcarlo.') }}</span></label></div>
+        </fieldset>
+        <div data-lista-catalogo {{ 'hidden' if not cliente.catalogo_propio }}>
+          <div class="d-flex flex-wrap gap-2 mb-2">
+            <input type="search" class="form-control form-control-sm" style="flex: 1 1 14rem" data-buscar-catalogo
+                   placeholder="{{ _('Buscar kit o producto…') }}" aria-label="{{ _('Buscar kit o producto…') }}">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar-todo="1">{{ _('Marcar todo') }}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar-todo="0">{{ _('Desmarcar todo') }}</button>
+          </div>
+          <div class="table-responsive">
+          <table class="table table-sm align-middle mb-3">
+            <thead><tr><th style="width:2.5rem"></th><th>{{ _('Kits') }}</th>{% if current_user.puede('pedidos.ver_importes') %}<th class="num">{{ _('Precio para él') }}</th>{% endif %}<th>{{ _('Último pedido') }}</th></tr></thead>
+            <tbody>{% for f in catalogo.kits %}
+              <tr data-fila-catalogo data-texto="{{ (f.kit.nombre ~ ' ' ~ f.kit.referencia)|lower }}">
+                <td><input class="form-check-input" type="checkbox" name="kit" value="{{ f.kit.id }}" id="cat-kit-{{ f.kit.id }}" {{ 'checked' if f.marcado }}></td>
+                <td><label for="cat-kit-{{ f.kit.id }}"><strong>{{ f.kit.nombre }}</strong> <span class="small text-muted">{{ f.kit.referencia }}</span></label></td>
+                {% if current_user.puede('pedidos.ver_importes') %}<td class="num">{{ f.precio|euros }}</td>{% endif %}
+                <td class="small text-muted">{{ f.ultimo|fecha if f.ultimo else _('Nunca') }}</td></tr>
+            {% else %}<tr><td colspan="4" class="text-muted small">{{ _('No hay kits activos.') }}</td></tr>{% endfor %}</tbody>
+            <thead><tr><th></th><th colspan="{{ 3 if current_user.puede('pedidos.ver_importes') else 2 }}">{{ _('Productos (los ve en «Productos», con su SDS)') }}</th></tr></thead>
+            <tbody>{% for f in catalogo.productos %}
+              <tr data-fila-catalogo data-texto="{{ (f.producto.nombre ~ ' ' ~ f.producto.referencia)|lower }}">
+                <td><input class="form-check-input" type="checkbox" name="producto" value="{{ f.producto.id }}" id="cat-prod-{{ f.producto.id }}" {{ 'checked' if f.marcado }}></td>
+                <td colspan="{{ 2 if current_user.puede('pedidos.ver_importes') else 1 }}"><label for="cat-prod-{{ f.producto.id }}"><strong>{{ f.producto.nombre }}</strong> <span class="small text-muted">{{ f.producto.referencia }}</span></label></td>
+                <td class="small text-muted">{% if f.producto.sds_archivo %}{{ _('Con SDS') }}{% else %}{{ _('Sin SDS') }}{% endif %}{% if f.en_kits %} · {{ ngettext('en %(num)s de sus kits', 'en %(num)s de sus kits', f.en_kits) }}{% endif %}</td></tr>
+            {% endfor %}</tbody>
+          </table>
+          </div>
+          <div class="alert alert-warning small py-2"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Quitar algo no toca sus pedidos ya hechos: solo deja de poder pedirlo. Si tiene una proforma abierta con ese kit, se avisa al guardar.') }}</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <button class="btn btn-sm btn-primary" name="accion" value="guardar">{{ _('Guardar catálogo') }}</button>
+          {% if catalogo.otros %}
+          <span class="small text-muted ms-auto">{{ _('o copiar el de') }}</span>
+          <select name="copiar_de" class="form-select form-select-sm w-auto" aria-label="{{ _('Copiar el catálogo de otro cliente') }}">
+            {% for o in catalogo.otros %}<option value="{{ o.id }}">{{ o.nombre }}</option>{% endfor %}</select>
+          <button class="btn btn-sm btn-outline-secondary" name="accion" value="copiar"
+                  onclick='return confirm({{ _("¿Copiar ese catálogo? Sustituye lo que tenga marcado este cliente.")|tojson }})'>{{ _('Copiar') }}</button>
+          {% endif %}
+        </div>
+      </form>
+    </div></div>
+    {% endif %}
+  </div>
+{% endif %}
+{% if avisos %}
+  <div class="tab-pane" id="pestana-avisos" role="tabpanel" aria-labelledby="tab-avisos" tabindex="0">
+    {# Avisos por email: qué recibe cada usuario del cliente y emails en copia (app/avisos_cliente.py).
+       Lo cambian admin y su Soporte de cliente. #}
+    {% if avisos %}
+    <div class="card mb-4" id="avisos"><div class="card-body">
+      <h2 class="h5"><i class="fas fa-envelope-open-text me-2" aria-hidden="true"></i>{{ _('Avisos por email') }}</h2>
+      <p class="small text-muted">{{ _('Qué correos de sus pedidos recibe cada usuario. Los textos son los de Ajustes → Correos al cliente. La invitación y el cambio de contraseña llegan siempre.') }}</p>
+      <form method="post" action="{{ url_for('clientes.guardar_avisos', id=cliente.id) }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="table-responsive">
+        <table class="table table-sm align-middle tabla-avisos mb-2">
+          <thead><tr><th scope="col">{{ _('Quién') }}</th>
+            {% for t, nombre in avisos.tipos.items() %}<th scope="col" class="text-center" title="{{ avisos.explicacion[t] }}">{{ nombre }}</th>{% endfor %}
+            <th></th></tr></thead>
+          <tbody>
+          {% for u, marcas in avisos.usuarios %}
+            <tr class="{{ 'text-muted' if not u.activo }}">
+              <th scope="row" class="fw-normal"><span class="fw-semibold">{{ u.nombre }}</span><br><span class="small text-muted">{{ u.email }}{% if not u.activo %} · {{ _('desactivado') }}{% endif %}</span></th>
+              {% for t, nombre in avisos.tipos.items() %}
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="u{{ u.id }}" value="{{ t }}" id="av-{{ u.id }}-{{ t }}" {{ 'checked' if marcas[t] }}>
+                <label class="visually-hidden" for="av-{{ u.id }}-{{ t }}">{{ _('%(quien)s recibe «%(aviso)s»', quien=u.nombre, aviso=nombre) }}</label></td>
+              {% endfor %}<td></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="{{ avisos.tipos|length + 2 }}" class="text-muted small">{{ _('Este cliente aún no tiene usuarios.') }}</td></tr>
+          {% endfor %}
+          <tr class="tabla-avisos-separador"><th colspan="{{ avisos.tipos|length + 2 }}" class="small text-muted fw-semibold pt-3">
+            {{ _('Emails en copia (sin usuario en la plataforma)') }}</th></tr>
+          {% for email, marcas in avisos.copias %}{% set i = loop.index0 %}
+            <tr>
+              <td><input type="email" class="form-control form-control-sm" name="copia_email_{{ i }}" value="{{ email }}" aria-label="{{ _('Email en copia') }}"></td>
+              {% for t, nombre in avisos.tipos.items() %}
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="copia_tipos_{{ i }}" value="{{ t }}" id="cp-{{ i }}-{{ t }}" {{ 'checked' if marcas[t] }}>
+                <label class="visually-hidden" for="cp-{{ i }}-{{ t }}">{{ _('%(quien)s recibe «%(aviso)s»', quien=email, aviso=nombre) }}</label></td>
+              {% endfor %}
+              <td class="text-end"><input class="form-check-input" type="checkbox" name="copia_quitar_{{ i }}" value="1" id="cp-quitar-{{ i }}">
+                <label class="small" for="cp-quitar-{{ i }}">{{ _('Quitar') }}</label></td>
+            </tr>
+          {% endfor %}
+          {% if avisos.copias|length < avisos.max_copias %}{% set i = avisos.copias|length %}
+            <tr>
+              <td><input type="email" class="form-control form-control-sm" name="copia_email_{{ i }}" placeholder="{{ _('almacen@clinica.com') }}" aria-label="{{ _('Añadir un email en copia') }}"></td>
+              {% for t, nombre in avisos.tipos.items() %}
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="copia_tipos_{{ i }}" value="{{ t }}" id="cp-{{ i }}-{{ t }}" {{ 'checked' if t in ('envio',) }}>
+                <label class="visually-hidden" for="cp-{{ i }}-{{ t }}">{{ _('El email nuevo recibe «%(aviso)s»', aviso=nombre) }}</label></td>
+              {% endfor %}<td></td>
+            </tr>
+          {% endif %}
+          </tbody>
+        </table>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <button class="btn btn-sm btn-primary">{{ _('Guardar avisos') }}</button>
+          <span class="small text-muted">{{ _('Los correos llevan enlaces a la plataforma: quien no tiene usuario no los podrá abrir.') }}</span>
+        </div>
+      </form>
+    </div></div>
+    {% endif %}
+  </div>
+{% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Pestañas de la ficha: un #ancla (#avisos, #catalogo, #precios, #facturas, #pedidos…) abre su pestaña
+(function () {
+  function abrirPestana() {
+    const destino = location.hash && document.getElementById(location.hash.slice(1));
+    const panel = destino && destino.closest('.ficha-pestanas > .tab-content > .tab-pane');
+    if (!panel) return;
+    const boton = document.querySelector('[data-bs-target="#' + panel.id + '"]');
+    if (boton) bootstrap.Tab.getOrCreateInstance(boton).show();
+    if (destino !== panel) destino.scrollIntoView({ block: 'start' });
+  }
+  abrirPestana();
+  window.addEventListener('hashchange', abrirPestana);
+})();
+(function () {
+  function restaurar() {
+    const id = location.hash === '#precios-productos' ? 'tab-precios-productos' :
+      location.hash === '#precios' ? 'tab-precios-kits' : null;
+    const boton = id && document.getElementById(id);
+    if (boton) bootstrap.Tab.getOrCreateInstance(boton).show();
+  }
+  restaurar();
+  window.addEventListener('hashchange', restaurar);
+})();
+</script>
+{% if catalogo %}<script src="{{ url_for('static', filename='js/catalogo_cliente.js') }}"></script>{% endif %}
+{% endblock %}

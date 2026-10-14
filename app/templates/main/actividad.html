@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion %}
+{# Toda la actividad de los pedidos (app/main/inicio_yikon.py: consulta_actividad y eventos).
+   Las mismas frases que la casilla "Última actividad" del inicio, pero completa y con filtros. #}
+{% block contenido %}
+<h1 class="h3 mb-1"><i class="fas fa-history me-2 text-marca" aria-hidden="true"></i>{{ _('Actividad') }}</h1>
+<p class="text-muted">{{ _('Quién ha hecho qué en los pedidos: altas, cambios de estado, documentos y facturas. El detalle completo de cada pedido está en su historial.') }}</p>
+<form method="get" class="card card-body mb-3 py-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4"><label class="form-label small mb-0" for="f-cliente">{{ _('Cliente') }}</label>
+      <select name="cliente_id" id="f-cliente" class="form-select form-select-sm">
+        <option value="">{{ _('Todos') }}</option>
+        {% for c in clientes %}<option value="{{ c.id }}" {{ 'selected' if c.id == cliente_id }}>{{ c.nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-desde">{{ _('Desde') }}</label>
+      <input type="date" name="desde" id="f-desde" class="form-control form-control-sm" value="{{ desde.isoformat() if desde else '' }}"></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-hasta">{{ _('Hasta') }}</label>
+      <input type="date" name="hasta" id="f-hasta" class="form-control form-control-sm" value="{{ hasta.isoformat() if hasta else '' }}"></div>
+    <div class="col-auto"><button class="btn btn-sm btn-primary">{{ _('Filtrar') }}</button></div>
+    {% if cliente_id or desde or hasta %}<div class="col-auto"><a href="{{ url_for('main.actividad') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Quitar filtros') }}</a></div>{% endif %}
+  </div>
+</form>
+<div class="card"><div class="card-body">
+  {% for a in eventos %}
+  <div class="actividad-fila"><span><i class="fas {{ a.icono }} fa-fw text-muted me-2" aria-hidden="true"></i>{{ a.html }}
+      {% if not cliente_id %}<span class="small text-muted">· {{ a.cliente.nombre }}</span>{% endif %}</span>
+    <span class="small text-muted text-nowrap">{{ a.fecha|fecha_hora }}</span></div>
+  {% else %}<p class="text-muted mb-0">{{ _('No hay actividad con estos filtros.') if cliente_id or desde or hasta else _('Todavía no hay actividad.') }}</p>{% endfor %}
+</div></div>
+{{ paginacion(pagina, 'main.actividad') }}
+{% endblock %}

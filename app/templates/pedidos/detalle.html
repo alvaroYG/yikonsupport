@@ -1,0 +1,735 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import estado_pedido, estado_factura, campo, lote_caducidad, seccion %}
+{% set ver_importes = current_user.puede('pedidos.ver_importes') %}
+
+{# Campos del envío (fecha estimada, transportista, nº y enlace de seguimiento).
+   Se usan al pasar a "Enviado" y en "Datos de envío". `formulario`: id del <form> al
+   que pertenecen si están pintados fuera de él (atributo form="..."). #}
+{% macro campos_envio(f, formulario=None) %}
+  {% set extra = {"form": formulario} if formulario else {} %}
+  <div class="row g-2">
+    <div class="col-12">{{ f.fecha_entrega_estimada.label(class_="form-label small mb-1") }}
+      {{ f.fecha_entrega_estimada(class_="form-control form-control-sm", min=pedido.fecha.isoformat(), **extra) }}
+      <div class="form-text mt-0">{{ f.fecha_entrega_estimada.description }}</div></div>
+    <div class="col-sm-6"><label class="form-label small mb-1" for="{{ f.transportista.id }}">{{ f.transportista.label.text }} <span class="text-danger" aria-hidden="true">*</span></label>
+      {{ f.transportista(class_="form-control form-control-sm", list="transportistas", **extra) }}</div>
+    <div class="col-sm-6"><label class="form-label small mb-1" for="{{ f.numero_seguimiento.id }}">{{ f.numero_seguimiento.label.text }} <span class="text-danger" aria-hidden="true">*</span></label>
+      {{ f.numero_seguimiento(class_="form-control form-control-sm", **extra) }}</div>
+  </div>
+{% endmacro %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-start mb-3 position-relative" id="cabecera-pedido">
+  <div><h1 class="h3 mb-1">{{ _('Pedido %(ref)s', ref=pedido.referencia_interna or '#' ~ pedido.id) }} {{ estado_pedido(pedido) }}</h1>
+    <div class="text-muted">
+      {% if current_user.puede('clientes.ver') %}<a href="{{ url_for('clientes.detalle', id=pedido.cliente.id) }}">{{ pedido.cliente.nombre }}</a>
+      {% else %}{{ pedido.cliente.nombre }}{% endif %}
+      · {{ pedido.fecha|fecha }}
+      {% if pedido.referencia %}· {{ _('Ref. empresa: %(ref)s', ref=pedido.referencia) }}{% endif %}
+      {% if pedido.fecha_entrega_estimada and pedido.estado == 'enviado' %}
+        · <strong class="text-body">🚚 {{ _('Entrega estimada: %(fecha)s', fecha=pedido.fecha_entrega_estimada|fecha) }}</strong>{% endif %}
+      {% if pedido.creado_por %}· {{ _('creado por %(nombre)s', nombre=pedido.creado_por.nombre) }}{% endif %}</div>
+    {# Seguimiento del envío: lo ve también el cliente #}
+    {% if pedido.estado in ('enviado', 'entregado') and (pedido.transportista or pedido.numero_seguimiento or pedido.enlace_seguimiento) %}
+    <div class="seguimiento mt-2">
+      <i class="fas fa-truck me-1"></i>
+      {% if pedido.transportista %}<strong>{{ pedido.transportista }}</strong>{% endif %}
+      {% if pedido.numero_seguimiento %}· {{ _('Nº de seguimiento') }}: <span class="lote-codigo">{{ pedido.numero_seguimiento }}</span>{% endif %}
+      {% if pedido.enlace_seguimiento %}· <a href="{{ pedido.enlace_seguimiento }}" target="_blank" rel="noopener noreferrer">{{ _('Seguir el envío ↗') }}</a>{% endif %}
+    </div>
+    {% endif %}</div>
+  {# Acciones del pedido: botones de solo icono. El texto va en title (mensaje al pasar el
+     ratón, que ficha_pedido.js convierte en el aviso de Bootstrap) y en aria-label (lectores
+     de pantalla). "Empezar preparación" conserva su texto: es el paso principal del flujo. #}
+  <div class="d-flex flex-wrap gap-2 justify-content-end" id="acciones-pedido">
+    {# Abre o cierra todas las secciones de la ficha (js/ficha_pedido.js) #}
+    <button type="button" class="btn btn-outline-secondary" id="btn-secciones"
+            data-abrir="{{ _('Abrir todo') }}" data-cerrar="{{ _('Cerrar todo') }}"
+            title="{{ _('Abrir todo') }}" aria-label="{{ _('Abrir todo') }}"><i class="fas fa-expand-alt" aria-hidden="true"></i></button>
+    {# Repetir: abre la ventana de nuevo pedido con los mismos productos ya puestos #}
+    {% if repetir_json and nuevo_pedido_form %}
+      <a href="{{ url_for('pedidos.nuevo', repetir=pedido.id, cliente_id=pedido.cliente_id) }}" class="btn btn-outline-primary"
+         data-bs-toggle="modal" data-bs-target="#modal-pedido" data-repetir="{{ repetir_json }}"
+         data-cliente-id="{{ pedido.cliente_id }}"
+         title="{{ _('Repetir pedido') }}" aria-label="{{ _('Repetir pedido') }}"><i class="fas fa-redo" aria-hidden="true"></i></a>
+    {% endif %}
+    {% if estado_form %}
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-estado"
+              title="{{ _('Cambiar estado') }}" aria-label="{{ _('Cambiar estado') }}"><i class="fas fa-exchange-alt" aria-hidden="true"></i></button>{% endif %}
+    {# Los pasos del flujo con su propio botón (el resto, en "Cambiar estado") #}
+    {% if current_user.puede('pedidos.preparar') and pedido.lineas and pedido.estado == 'aceptado' %}
+      <form method="post" action="{{ url_for('pedidos.empezar_preparacion', id=pedido.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary" style="white-space:nowrap"><i class="fas fa-box-open me-1"></i> {{ _('Empezar preparación') }}</button></form>{% endif %}
+    {% if pedido.estado == 'enviado' and (current_user.puede('pedidos.recibir') or current_user.puede('pedidos.enviar')) %}
+      <form method="post" action="{{ url_for('pedidos.marcar_recibido', id=pedido.id) }}"
+            onsubmit='return confirm({{ (_("¿Confirma que ha recibido el pedido?") if current_user.rol == "cliente" else _("¿Marcar como recibido en nombre del cliente?"))|tojson }})'>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary" title="{{ _('Marcar como recibido') }}" aria-label="{{ _('Marcar como recibido') }}"><i class="fas fa-flag-checkered" aria-hidden="true"></i></button></form>{% endif %}
+    {# Incidencias: el cliente avisa de un problema con un pedido que ya tiene (ventana más abajo) #}
+    {% if puede_abrir_incidencia %}
+      <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modal-incidencia">
+        <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Hay un problema con este pedido') }}</button>
+    {% endif %}
+    {# Chats del pedido (se abren debajo, ver "Chats del pedido" más abajo). Dos botones distintos para
+       Yikon, para no confundir lo que va al cliente con lo interno; el cliente solo tiene el suyo. #}
+    {% if mensaje_form or mensajes %}
+      <button type="button" class="btn btn-outline-primary boton-chat" data-abre-chat="mensajes" aria-controls="mensajes" aria-expanded="false"
+              title="{{ _('Mensajes sobre este pedido') if current_user.rol == 'cliente' else _('Mensajes con el cliente') }}">
+        <i class="fas fa-comments" aria-hidden="true"></i>{% if current_user.rol != 'cliente' %}<span class="ms-1">{{ _('Cliente') }}</span>{% else %}<span class="visually-hidden">{{ _('Mensajes sobre este pedido') }}</span>{% endif %}
+        {% if mensajes_sin_leer %}<span class="contador-chat" data-contador-chat>{{ mensajes_sin_leer }}<span class="visually-hidden"> {{ _('sin leer') }}</span></span>{% endif %}</button>
+    {% endif %}
+    {% if interno_form %}
+      <button type="button" class="btn boton-chat boton-chat-interno" data-abre-chat="interno" aria-controls="interno" aria-expanded="false"
+              title="{{ _('Chat interno: solo Yikon') }}">
+        <i class="fas fa-lock" aria-hidden="true"></i><span class="ms-1">{{ _('Interno') }}</span>
+        {% if internos_sin_leer %}<span class="contador-chat" data-contador-chat>{{ internos_sin_leer }}<span class="visually-hidden"> {{ _('sin leer') }}</span></span>{% endif %}</button>
+    {% endif %}
+    {% if factura_form %}
+      <a href="#facturas" class="btn btn-outline-primary" title="{{ _('Registrar factura') }}" aria-label="{{ _('Registrar factura') }}"><i class="fas fa-file-invoice" aria-hidden="true"></i></a>{% endif %}
+  </div>
+
+  {# ---------- Chats del pedido: se abren debajo de la cabecera (js/chat_pedido.js) ----------
+     - "mensajes": con el cliente (lo ven las dos partes). Lo de Yikon tarda unos segundos en
+       llegarle al cliente, por si hay que deshacerlo.
+     - "interno": solo Yikon (admin, logística y Soporte de cliente). Otro color y otro botón.
+     Se abren solos si se llega con #mensajes o #interno (campana, Pendientes, emails). #}
+  {% if mensaje_form or mensajes %}
+  <section class="chat-panel" id="mensajes" data-chat-panel hidden aria-label="{{ _('Mensajes sobre este pedido') }}"{% if deshacer %} data-abrir{% endif %}>
+    <div class="chat-panel-cab"><strong><i class="fas fa-comments me-1" aria-hidden="true"></i>{{ _('Mensajes con %(cliente)s', cliente=pedido.cliente.nombre) if current_user.rol != 'cliente' else _('Mensajes sobre este pedido') }}</strong>
+      <button type="button" class="btn-close" data-cierra-chat aria-label="{{ _('Cerrar') }}"></button></div>
+    {% if deshacer %}{% include "mensajes/_deshacer.html" %}{% endif %}
+    {% with form=mensaje_form, accion=url_for('mensajes.enviar_pedido', pedido_id=pedido.id),
+            url_nuevos=url_for('mensajes.nuevos_pedido', pedido_id=pedido.id), cliente_chat=pedido.cliente %}
+      {% include "mensajes/_conversacion.html" %}
+    {% endwith %}
+  </section>
+  {% endif %}
+  {% if interno_form %}
+  <section class="chat-panel chat-panel-interno" id="interno" data-chat-panel hidden aria-label="{{ _('Chat interno') }}">
+    <div class="chat-panel-cab"><strong><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('Chat interno') }}</strong>
+      <button type="button" class="btn-close btn-close-white" data-cierra-chat aria-label="{{ _('Cerrar') }}"></button></div>
+    <div class="chat-panel-aviso">{{ _('Solo Yikon · el cliente no ve esto') }}</div>
+    {% with mensajes=internos, form=interno_form, interno=True,
+            accion=url_for('mensajes.enviar_interno', pedido_id=pedido.id),
+            url_nuevos=url_for('mensajes.nuevos_interno', pedido_id=pedido.id) %}
+      {% include "mensajes/_conversacion.html" %}
+    {% endwith %}
+  </section>
+  {% endif %}
+</div>
+
+
+{# Aviso cuando el FAS lo ha devuelto a preparación (rechazó las fotos) #}
+{% if pedido.devuelto and current_user.rol != 'cliente' %}
+<div class="alert alert-warning border-2 border-warning">
+  <strong>{{ _('⚠ Devuelto por %(rol)s.', rol=rol_fas) }}</strong>
+  {{ _('%(usuario)s rechazó la validación el %(fecha)s:',
+       usuario=pedido.ultima_revision.usuario.nombre if pedido.ultima_revision.usuario else '',
+       fecha=pedido.ultima_revision.fecha|fecha_hora) }}
+  <div class="mt-1 fst-italic">«{{ pedido.ultima_revision.comentario }}»</div>
+  {% if puede_subir_fotos %}<div class="small mt-1">{{ _('Corrige el pedido, cambia las fotos si hace falta y vuelve a enviarlo a validación.') }}</div>{% endif %}
+</div>
+{% endif %}
+
+{# Incidencias abiertas (Yikon): un aviso por cada una, con lo que dice el cliente. Se contesta en el
+   chat del pedido y se cierra en la sección "Incidencias" (app/incidencias.py) #}
+{% if current_user.rol != 'cliente' %}
+{% for inc in incidencias if inc.abierta %}
+<div class="alert alert-warning border-2 border-warning aviso-incidencia" role="alert">
+  <div class="d-flex flex-wrap align-items-start gap-2">
+    <div class="me-auto">
+      <strong><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Problema abierto: %(motivo)s', motivo=inc.motivo_nombre) }}</strong>
+      <span class="small">· {{ _('%(quien)s, el %(fecha)s', quien=inc.creada_por.nombre if inc.creada_por else pedido.cliente.nombre, fecha=inc.creada|fecha_hora) }}{% if inc.fotos %} · {{ ngettext('%(num)s foto', '%(num)s fotos', inc.fotos|length) }}{% endif %}</span>
+      <div class="mt-1 fst-italic texto-incidencia">«{{ inc.texto }}»</div>
+    </div>
+    <div class="d-flex gap-2">
+      {% if mensaje_form %}<button type="button" class="btn btn-sm btn-outline-dark" data-abre-chat="mensajes"><i class="fas fa-comments me-1" aria-hidden="true"></i>{{ _('Contestar en el chat') }}</button>{% endif %}
+      <a class="btn btn-sm btn-dark" href="#incidencias">{{ _('Ver y resolver') }}</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{# ====================================================================================
+   LA FICHA, EN DOS COLUMNAS DE SECCIONES PLEGABLES (macro `seccion` de _macros.html)
+     Izquierda (ancha): lo que ES el pedido → contenido, lotes, facturas, proforma, fotos.
+     Derecha (estrecha): lo de consulta    → documentos, envío, historial.
+   Los mensajes no están en la ficha: van en los botones de chat de la cabecera (más arriba).
+   El orden no cambia nunca. Cada sección enseña su resumen en la cabecera, esté abierta o
+   cerrada. Qué está abierto lo recuerda el navegador de cada persona (js/ficha_pedido.js);
+   una sección con algo que hacer (data-forzar) llega siempre abierta.
+   En pantallas estrechas las dos columnas se apilan (CSS: .ficha-columnas).
+   ==================================================================================== #}
+<div class="ficha-columnas">
+<div class="ficha-principal">
+
+{# ---------- Contenido del pedido: kits (con sus productos) y productos sueltos ----------
+   - Los kits llevan el precio (por kit); sus productos no tienen precio propio.
+   - Yikon (admin, logística, FAS): precios editables hasta que el pedido sale (puede_cambiar_precios);
+     cantidades, quitar y añadir, solo mientras se prepara la proforma (puede_modificar).
+   - Un formulario "Guardar cambios" con todos los precios y cantidades.
+   - Los ✕ están dentro de la tabla pero pertenecen a OTRO formulario vacío (form="form-quitar",
+     debajo): no se pueden meter formularios dentro de otro, y si fueran del de "Guardar",
+     pulsar Enter en un precio "pulsaría" el primer botón del formulario, el ✕ del primer kit.
+     formaction dice a qué dirección va cada ✕. #}
+{# ---------- Incidencias: problemas que ha avisado el cliente (abiertas y resueltas) ---------- #}
+{% if incidencias %}
+{% set abiertas = incidencias|selectattr('abierta')|list %}
+{% set resumen_incidencias %}{% if abiertas %}{{ ngettext('%(num)s abierta', '%(num)s abiertas', abiertas|length) }}{% else %}{{ _('Todas resueltas') }}{% endif %}{% endset %}
+{% call seccion('incidencias', _('Incidencias'), 'fa-exclamation-triangle', resumen_incidencias, abierta=abiertas|length > 0, forzar=abiertas|length > 0, contador=incidencias|length, clase='destacada' if abiertas else '', novedad='incidencias' in novedades) %}
+  {% for inc in incidencias %}
+  <article class="incidencia {{ 'incidencia-abierta' if inc.abierta }}">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+      <i class="fas {{ iconos_motivo.get(inc.motivo, 'fa-question') }} text-muted" aria-hidden="true"></i>
+      <strong>{{ inc.motivo_nombre }}</strong>
+      {% if inc.abierta %}<span class="badge est-alerta"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Abierta') }}</span>
+      {% else %}<span class="badge est-ok"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Resuelta') }}</span>{% endif %}
+      <span class="small text-muted ms-auto">{{ inc.creada|fecha_hora }}{% if inc.creada_por and current_user.rol != 'cliente' %} · {{ inc.creada_por.nombre }}{% endif %}</span>
+    </div>
+    <p class="mb-2 texto-incidencia">{{ inc.texto }}</p>
+    {% if inc.fotos %}
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      {% for f in inc.fotos %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('mensajes.descargar_adjunto', adjunto_id=f.id) }}"><i class="fas fa-image me-1" aria-hidden="true"></i>{{ f.nombre_original }}</a>{% endfor %}
+    </div>{% endif %}
+    {% if not inc.abierta %}
+    <div class="incidencia-resuelta small">
+      <strong>{{ _('Resuelta el %(fecha)s', fecha=inc.resuelta_el|fecha) }}{% if inc.resuelta_por and current_user.rol != 'cliente' %} · {{ inc.resuelta_por.nombre }}{% endif %}:</strong>
+      <span class="texto-incidencia">{{ inc.nota_resolucion }}</span></div>
+    {% elif puede_resolver_incidencia %}
+    <form method="post" action="{{ url_for('pedidos.resolver_incidencia', id=pedido.id, incidencia_id=inc.id) }}" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="form-label small mb-1" for="nota-incidencia-{{ inc.id }}">{{ _('Nota para el cliente (qué se ha hecho)') }}</label>
+      <textarea class="form-control form-control-sm" id="nota-incidencia-{{ inc.id }}" name="nota" rows="2" maxlength="3000" required
+                placeholder="{{ _('Le enviamos hoy un kit de reposición.') }}"></textarea>
+      <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
+        <button class="btn btn-sm btn-primary"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Resuelta') }}</button>
+        <span class="small text-muted">{{ _('La nota le llega al cliente por el chat del pedido.') }}</span>
+      </div>
+    </form>
+    {% elif current_user.rol == 'cliente' %}
+    <p class="small text-muted mb-0">{{ _('Le contestaremos en los mensajes de este pedido.') }}</p>
+    {% endif %}
+  </article>
+  {% endfor %}
+{% endcall %}
+{% endif %}
+
+{% set editar = puede_modificar or puede_cambiar_precios %}
+{% set columnas = 2 + (3 if ver_importes else 0) + (1 if puede_modificar else 0) %}
+{% set resumen_contenido %}{% if pedido.kits %}{{ ngettext('%(num)s kit', '%(num)s kits', pedido.kits|sum(attribute='cantidad')) }}{% endif %}{% if pedido.kits and pedido.lineas_sueltas %} · {% endif %}{% if pedido.lineas_sueltas %}{{ ngettext('%(num)s producto suelto', '%(num)s productos sueltos', pedido.lineas_sueltas|length) }}{% endif %}{% if not pedido.lineas %}{{ _('Vacío') }}{% endif %}{% if ver_importes and pedido.lineas %} · {{ pedido.total|euros }}{% endif %}{% endset %}
+{% call seccion('contenido', _('Contenido del pedido'), 'fa-boxes', resumen_contenido, novedad='contenido' in novedades) %}
+<form method="post" action="{{ url_for('pedidos.guardar_cambios', id=pedido.id) }}" novalidate>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<table class="table align-middle mb-0 tabla-pedido">
+  <thead><tr><th>{{ _('Kit / producto') }}</th><th class="num">{{ _('Cant.') }}</th>
+    {% if ver_importes %}<th class="num">{{ _('Precio') }}</th><th class="num">{{ _('IVA') }}</th><th class="num">{{ _('Subtotal') }}</th>{% endif %}
+    {% if puede_modificar %}<th></th>{% endif %}</tr></thead>
+  <tbody>
+  {% for kp in pedido.kits %}
+    <tr class="fila-kit-pedido">
+      <td><i class="fas fa-box-open me-2 text-marca" aria-hidden="true"></i><strong>{{ kp.kit.nombre }}</strong>
+        <span class="small text-muted">{{ kp.kit.referencia }}</span>
+        {% if kp.modificado and current_user.rol != 'cliente' %}
+          <span class="badge est-pendiente ms-1" title="{{ _('Lleva productos o cantidades distintos del kit estándar') }}">{{ _('✎ modificado') }}</span>{% endif %}</td>
+      <td class="num fw-semibold">{% if puede_modificar %}
+          <input name="cantidad_kit_{{ kp.id }}" value="{{ kp.cantidad }}" type="number" min="1" max="1000"
+                 class="form-control form-control-sm text-end input-cantidad" aria-label="{{ _('Nº de kits') }} · {{ kp.kit.nombre }}">
+          <div class="small text-muted fw-normal">{{ _('kits') }}</div>
+        {% else %}{{ ngettext('%(num)s kit', '%(num)s kits', kp.cantidad) }}{% endif %}</td>
+      {% if ver_importes %}
+      <td class="num">{% if puede_cambiar_precios %}
+          <input name="precio_kit_{{ kp.id }}" value="{{ kp.precio_unitario }}" inputmode="decimal"
+                 class="form-control form-control-sm text-end input-precio" aria-label="{{ _('Precio de un kit') }} · {{ kp.kit.nombre }}">
+          <div class="small text-muted">{{ _('por kit') }}</div>
+        {% else %}{{ kp.precio_unitario|euros }}{% endif %}</td>
+      <td class="num">{{ kp.iva_pct|int }} %</td><td class="num fw-semibold">{{ kp.subtotal|euros }}</td>{% endif %}
+      {% if puede_modificar %}<td class="text-end">
+        <button form="form-quitar" class="btn btn-sm btn-outline-secondary" formaction="{{ url_for('pedidos.borrar_kit', id=pedido.id, kit_pedido_id=kp.id) }}"
+                title="{{ _('Quitar este kit') }}" aria-label="{{ _('Quitar este kit') }}">✕</button></td>{% endif %}
+    </tr>
+    {% for l in kp.lineas %}
+    <tr class="fila-componente">
+      <td class="ps-5">{{ l.producto.referencia }} — {{ l.producto.nombre }}</td>
+      <td class="num">{% if puede_modificar %}
+          <input name="cantidad_linea_{{ l.id }}" value="{{ l.cantidad }}" type="number" min="1"
+                 class="form-control form-control-sm text-end input-cantidad" aria-label="{{ _('Cantidad') }} · {{ l.producto.nombre }}">
+        {% else %}{{ l.cantidad }}{% endif %}</td>
+      {% if ver_importes %}<td></td><td></td><td></td>{% endif %}
+      {% if puede_modificar %}<td class="text-end">
+        <button form="form-quitar" class="btn btn-sm btn-link text-secondary" formaction="{{ url_for('pedidos.borrar_linea', id=pedido.id, linea_id=l.id) }}"
+                title="{{ _('Quitar línea') }}" aria-label="{{ _('Quitar línea') }}">✕</button></td>{% endif %}
+    </tr>
+    {% endfor %}
+  {% endfor %}
+  {% if pedido.kits and pedido.lineas_sueltas %}
+    <tr class="fila-separador"><td colspan="{{ columnas }}">{{ _('Productos sueltos') }}</td></tr>
+  {% endif %}
+  {% for l in pedido.lineas_sueltas %}
+    <tr><td>{{ l.producto.referencia }} — {{ l.producto.nombre }}</td>
+      <td class="num">{% if puede_modificar %}
+          <input name="cantidad_linea_{{ l.id }}" value="{{ l.cantidad }}" type="number" min="1"
+                 class="form-control form-control-sm text-end input-cantidad" aria-label="{{ _('Cantidad') }} · {{ l.producto.nombre }}">
+        {% else %}{{ l.cantidad }}{% endif %}</td>
+      {% if ver_importes %}
+      <td class="num">{% if puede_cambiar_precios %}
+          <input name="precio_linea_{{ l.id }}" value="{{ l.precio_unitario }}" inputmode="decimal"
+                 class="form-control form-control-sm text-end input-precio" aria-label="{{ _('Precio') }} · {{ l.producto.nombre }}">
+        {% else %}{{ l.precio_unitario|euros }}{% endif %}
+        {% if l.descuento_pct %}<div class="small text-muted">{{ _('dto. %(n)s %%', n=l.descuento_pct|int) }}</div>{% endif %}</td>
+      <td class="num">{{ l.iva_pct|int }} %</td><td class="num">{{ l.subtotal|euros }}</td>{% endif %}
+      {% if puede_modificar %}<td class="text-end">
+        <button form="form-quitar" class="btn btn-sm btn-outline-secondary" formaction="{{ url_for('pedidos.borrar_linea', id=pedido.id, linea_id=l.id) }}"
+                title="{{ _('Quitar línea') }}" aria-label="{{ _('Quitar línea') }}">✕</button></td>{% endif %}</tr>
+  {% endfor %}
+  {% if not pedido.lineas %}<tr><td colspan="{{ columnas }}" class="text-muted">{{ _('El pedido no tiene líneas.') }}</td></tr>{% endif %}
+  </tbody>
+  {% if ver_importes %}
+  <tfoot>
+    <tr><th colspan="4" class="num">{{ _('Base imponible') }}</th><td class="num">{{ pedido.base_imponible|euros }}</td>{% if puede_modificar %}<td></td>{% endif %}</tr>
+    <tr><th colspan="4" class="num">{{ _('IVA') }}</th><td class="num">{{ pedido.total_iva|euros }}</td>{% if puede_modificar %}<td></td>{% endif %}</tr>
+    <tr><th colspan="4" class="num">{{ _('Total') }}</th><th class="num">{{ pedido.total|euros }}</th>{% if puede_modificar %}<td></td>{% endif %}</tr>
+  </tfoot>{% endif %}</table>
+{% if editar and pedido.lineas %}
+<div class="d-flex justify-content-end align-items-center gap-3 mt-3">
+  <span class="small text-muted">{{ _('Escribe el precio final: sustituye al precio automático.') if puede_cambiar_precios }}</span>
+  <button class="btn btn-primary">{{ _('Guardar cambios') }}</button>
+</div>
+{% endif %}
+</form>
+{% if puede_modificar %}
+{# El formulario de los ✕: vacío, solo lleva la protección CSRF. Cada ✕ pone su dirección. #}
+<form id="form-quitar" method="post" action="{{ url_for('pedidos.detalle', id=pedido.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
+{% endif %}
+
+{% if kit_form or linea_form %}
+<div class="row g-3 mt-2 pt-3 border-top">
+  {% if kit_form and kit_form.kit_id.choices %}
+  <form method="post" action="{{ url_for('pedidos.anadir_kit', id=pedido.id) }}" class="col-lg-6 row g-2 align-items-end" novalidate>
+    {{ kit_form.hidden_tag() }}
+    <div class="col-7">{{ kit_form.kit_id.label(class_="form-label small mb-1") }}{{ kit_form.kit_id(class_="form-select form-select-sm") }}</div>
+    <div class="col-2">{{ kit_form.cantidad.label(class_="form-label small mb-1") }}{{ kit_form.cantidad(class_="form-control form-control-sm", min=1) }}</div>
+    <div class="col-3">{{ kit_form.submit(id=False, class_="btn btn-sm btn-outline-primary w-100") }}</div>
+  </form>
+  {% endif %}
+  {% if linea_form %}
+  <form method="post" action="{{ url_for('pedidos.anadir_linea', id=pedido.id) }}" class="col-lg-6 row g-2 align-items-end" novalidate>
+    {{ linea_form.hidden_tag() }}
+    <div class="col-5">{{ linea_form.producto_id.label(class_="form-label small mb-1") }}{{ linea_form.producto_id(class_="form-select form-select-sm") }}</div>
+    <div class="col-2">{{ linea_form.cantidad.label(class_="form-label small mb-1") }}{{ linea_form.cantidad(class_="form-control form-control-sm", min=1) }}</div>
+    <div class="col-2">{{ linea_form.precio.label(class_="form-label small mb-1") }}{{ linea_form.precio(class_="form-control form-control-sm", placeholder=_("catálogo")) }}</div>
+    <div class="col-3">{{ linea_form.submit(id=False, class_="btn btn-sm btn-outline-primary w-100") }}</div>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+{% endcall %}
+
+{% include "pedidos/_lotes.html" %}
+
+{# Lotes que salieron con este pedido: trazabilidad interna (el cliente no lo ve) #}
+{% if lotes_enviados and current_user.puede('pedidos.ver_lotes') %}
+{% set resumen_enviados %}{% for l in lotes_enviados %}{{ l.lote.codigo if l.lote else '—' }} × {{ l.unidades }}{{ ' · ' if not loop.last }}{% endfor %}{% endset %}
+{% call seccion('lotes-enviados', _('Lotes enviados'), 'fa-tags', resumen_enviados) %}
+  <p class="small text-muted mb-2">{{ _('Sube el COA de cada uno de estos lotes en «Documentos del pedido», para que el cliente lo tenga.') }}</p>
+  <table class="table table-sm mb-0 align-middle"><tbody>{% for l in lotes_enviados %}
+    <tr><td>{{ l.articulo.nombre }}{% if l.articulo.tipo_articulo == 'kit' %} <span class="small text-muted">· {{ _('kit cerrado') }}</span>{% endif %}</td>
+      <td>{% if l.lote %}<a href="{{ url_for('inventario.rastrear_lote', q=l.lote.codigo) }}" class="lote-codigo text-decoration-none"
+                            title="{{ _('Ver a qué otros pedidos fue este lote') }}">{{ l.lote.codigo }}</a>{% else %}—{% endif %}</td>
+      <td class="small text-muted">{{ _('cad. %(fecha)s', fecha=l.lote.caducidad|fecha) if l.lote and l.lote.caducidad }}</td>
+      <td class="num">{{ _('%(n)s uds.', n=l.unidades) }}</td></tr>
+  {% endfor %}</tbody></table>
+{% endcall %}
+{% endif %}
+
+{# ---------- Facturas de este pedido ----------
+   Yikon: lista, PDF y registrar una nueva con los importes del pedido.
+   Cliente: sus facturas con el PDF (sin notas internas), solo las ya enviadas. #}
+{% set gestiona = current_user.puede('facturas.ver') %}
+{# El cliente solo ve las que ya le hemos enviado (no las que están en revisión o por enviar) #}
+{% set facturas_visibles = pedido.facturas if gestiona else pedido.facturas|selectattr('enviada')|list %}
+{% if gestiona or (current_user.puede('facturas.ver_propias') and facturas_visibles) %}
+{% set resumen_facturas %}{% for f in facturas_visibles %}{{ f.numero }} ({{ f.estado_nombre }}){{ ' · ' if not loop.last }}{% else %}{{ _('Sin facturas') }}{% endfor %}{% endset %}
+{# Abierta si toca facturarlo (enviado o recibido y sin factura) y quien entra las registra #}
+{% call seccion('facturas', _('Facturas'), 'fa-file-invoice', resumen_facturas, abierta=(factura_form is not none and not pedido.facturas and pedido.estado in ('enviado', 'entregado')), contador=facturas_visibles|length, novedad='facturas' in novedades) %}
+  {% for f in facturas_visibles %}
+  <div class="doc-fila">
+    <div class="d-flex justify-content-between align-items-center gap-2">
+      <span class="fw-semibold">{{ f.numero }}</span>{{ estado_factura(f) }}</div>
+    <div class="small text-muted d-flex justify-content-between gap-2">
+      <span>{{ f.fecha_emision|fecha }}{% if f.fecha_vencimiento %} · {{ _('vence el %(fecha)s', fecha=f.fecha_vencimiento|fecha) }}{% endif %}</span>
+</div>
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+      {% if f.pdf_archivo %}<a href="{{ url_for('facturas.descargar_pdf', id=f.id) }}" class="btn btn-sm btn-outline-primary" title="{{ f.pdf_nombre }}"><i class="fas fa-file-pdf me-1" aria-hidden="true"></i>{{ _('Descargar PDF') }}</a>
+      {% elif not gestiona %}<span class="small text-muted">{{ _('PDF pendiente') }}</span>{% endif %}
+      {% if factura_pdf_form %}
+      {# Subir o sustituir el PDF de esta factura: elegir el archivo lo envía solo #}
+      <form method="post" enctype="multipart/form-data" action="{{ url_for('facturas.subir_pdf', id=f.id) }}" class="d-inline">
+        {{ factura_pdf_form.hidden_tag() }}<input type="hidden" name="volver" value="pedido">
+        <label class="btn btn-sm btn-link p-0" for="pdf-factura-{{ f.id }}">{{ _('📎 Subir PDF corregido') if f.fase == 'cambios' else (_('Sustituir') if f.pdf_archivo else _('📎 Subir PDF')) }}</label>
+        <input type="file" name="pdf" id="pdf-factura-{{ f.id }}" accept="application/pdf,.pdf" class="visually-hidden" onchange="this.form.submit()">
+      </form>{% endif %}
+      {% if current_user.puede('facturas.editar') %}<a href="{{ url_for('facturas.editar', id=f.id) }}" class="btn btn-sm btn-outline-secondary ms-auto">{{ _('Editar') }}</a>{% endif %}
+    </div>
+    {% if gestiona %}
+    {# Revisión por Soporte de cliente y envío al cliente (app/facturas/routes.py) #}
+    {% if f.fase == 'cambios' and f.revision_comentario %}
+    <div class="alert alert-warning py-1 px-2 small mt-2 mb-0">↩ {{ _('%(nombre)s pide:', nombre=f.revisado_por.nombre if f.revisado_por else rol_fas) }} «{{ f.revision_comentario }}»
+      {% if current_user.puede('facturas.editar') %}<br><span class="text-muted">{{ _('Sube el PDF corregido y vuelve a revisión.') }}</span>{% endif %}</div>
+    {% endif %}
+    {% if f.fase == 'revision' and current_user.puede('facturas.revisar') %}
+    <form method="post" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="form-label small mb-0" for="comentario-{{ f.id }}">{{ _('Si hay que cambiar algo') }}</label>
+      <textarea class="form-control form-control-sm" id="comentario-{{ f.id }}" name="comentario" rows="2" placeholder="{{ _('Qué hay que cambiar (obligatorio para devolverla)') }}"></textarea>
+      <div class="d-flex gap-2 mt-1">
+        <button class="btn btn-sm btn-primary" formaction="{{ url_for('facturas.aprobar', id=f.id) }}"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Aprobar') }}</button>
+        <button class="btn btn-sm btn-outline-primary" formaction="{{ url_for('facturas.devolver', id=f.id) }}"><i class="fas fa-undo me-1" aria-hidden="true"></i>{{ _('Pedir cambios') }}</button></div>
+    </form>
+    {% elif f.fase == 'revision' %}<p class="small text-muted mb-0 mt-1">{{ _('Esperando la revisión de %(rol)s.', rol=rol_fas) }}</p>
+    {% endif %}
+    {% if f.fase == 'por_enviar' and current_user.puede('facturas.editar') %}
+    <form method="post" action="{{ url_for('facturas.marcar_enviada', id=f.id) }}" class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-primary"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i>{{ _('Enviar por email') }}</button>
+      <span class="small text-muted">{{ _('Púlsalo al mandarla: entonces el cliente también la ve aquí.') }}</span></form>
+    {% endif %}
+    {% if f.revisado_el %}<p class="small text-muted mb-0 mt-1">{{ _('Revisión: %(estado)s por %(nombre)s el %(fecha)s', estado=_('aprobada') if f.revision == 'aprobada' else _('pidió cambios'), nombre=f.revisado_por.nombre if f.revisado_por else '—', fecha=f.revisado_el|fecha) }}{% if f.enviada %} · {{ _('enviada el %(fecha)s', fecha=f.enviada_el|fecha) }}{% endif %}</p>
+    {% elif f.enviada %}<p class="small text-muted mb-0 mt-1">{{ _('Enviada al cliente el %(fecha)s', fecha=f.enviada_el|fecha) }}</p>{% endif %}
+    {% endif %}
+  </div>
+  {% else %}<p class="text-muted mb-0">{{ _('Sin facturas registradas.') }}</p>{% endfor %}
+
+  {% if factura_form %}
+  {# Registrar la factura aquí mismo: el PDF, su nº y el vencimiento. Sin importes: la factura se
+     hace a mano en la plantilla de Excel con "Preparar factura". #}
+  <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center gap-2 flex-wrap">
+    <span class="small text-muted">{{ _('La factura se hace en la plantilla de Excel.') }}</span>
+    <a href="{{ url_for('facturas.datos_pedido', pedido_id=pedido.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-invoice me-1" aria-hidden="true"></i>{{ _('Preparar factura') }}</a></div>
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('facturas.nueva_desde_pedido', pedido_id=pedido.id) }}"
+        class="row g-2 align-items-end mt-1" novalidate id="registrar-factura">
+    {{ factura_form.hidden_tag() }}
+    <div class="col-12">{{ factura_form.pdf.label(class_="form-label small mb-0") }}{{ factura_form.pdf(class_="form-control form-control-sm") }}</div>
+    <div class="col-12">{{ factura_form.numero.label(class_="form-label small mb-0") }}{{ factura_form.numero(class_="form-control form-control-sm", id="factura-numero") }}
+      <div class="form-text mt-0">{{ _('Es la referencia del pedido.') }}</div></div>
+    <div class="col-6">{{ factura_form.fecha_emision.label(class_="form-label small mb-0") }}{{ factura_form.fecha_emision(class_="form-control form-control-sm") }}</div>
+    <div class="col-6">{{ factura_form.fecha_vencimiento.label(class_="form-label small mb-0") }}{{ factura_form.fecha_vencimiento(class_="form-control form-control-sm") }}</div>
+    <div class="col-12"><div class="form-check small">{{ factura_form.revisar(class_="form-check-input") }}
+      <label class="form-check-label" for="{{ factura_form.revisar.id }}"><strong>{{ _('Que la revise %(rol)s antes de enviarla', rol=rol_fas) }}</strong>
+        {% if pedido.cliente.logisticos %}<br><span class="text-muted">{{ pedido.cliente.logisticos|map(attribute='nombre')|join(', ') }}{% if pedido.cliente.revisar_facturas %} · {{ _('este cliente tiene la revisión activada') }}{% endif %}</span>{% endif %}</label></div></div>
+    <div class="col-12">{{ factura_form.submit(id=False, class_="btn btn-sm btn-primary w-100") }}</div>
+  </form>
+  {% endif %}
+{% endcall %}
+{% endif %}
+
+{% include "pedidos/_proforma.html" %}
+
+{# ---------- Fotos de preparación (nunca visibles para el cliente) ---------- #}
+{% if current_user.puede('pedidos.fotos.ver') and (pedido.fotos or puede_subir_fotos or validacion_form) %}
+{% set rev = pedido.ultima_revision %}
+{% set resumen_fotos %}{{ ngettext('%(num)s foto', '%(num)s fotos', pedido.fotos|length) if pedido.fotos else _('Sin fotos') }}{% if pedido.estado == 'en_validacion' %} · {{ _('esperando validación') }}{% elif rev and rev.aprobado %} · {{ _('validado por %(nombre)s', nombre=rev.usuario.nombre if rev.usuario else '—') }}{% elif rev %} · {{ _('devuelto por %(nombre)s', nombre=rev.usuario.nombre if rev.usuario else '—') }}{% endif %}{% endset %}
+{# Se abre sola cuando hay algo que hacer aquí: subir fotos o validarlas #}
+{% call seccion('fotos', _('Fotos de preparación'), 'fa-camera', resumen_fotos, abierta=false, forzar=fotos_form or validacion_form, novedad='fotos' in novedades) %}
+  {% if puede_subir_fotos %}<div class="text-end mb-2"><a href="{{ url_for('pedidos.preparar_pedido', id=pedido.id) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-mobile-alt me-1"></i>{{ _('Vista móvil') }}</a></div>{% endif %}
+  {% if pedido.fotos %}
+  <div class="d-flex flex-wrap gap-3 mb-3">
+    {% for f in pedido.fotos %}
+    <div class="text-center">
+      <a href="{{ url_for('pedidos.ver_foto', id=pedido.id, foto_id=f.id) }}" target="_blank">
+        <img src="{{ url_for('pedidos.ver_foto', id=pedido.id, foto_id=f.id) }}" alt="{{ f.nombre_original }}"
+             class="foto-pedido border rounded"></a>
+      <div class="small text-muted">{{ f.fecha|fecha_hora('%d/%m %H:%M') }}</div>
+      {% if puede_subir_fotos %}
+      <form method="post" action="{{ url_for('pedidos.borrar_foto', id=pedido.id, foto_id=f.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-link text-secondary p-0">{{ _('Quitar') }}</button></form>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}<p class="text-muted">{{ _('Todavía no hay fotos.') }}</p>{% endif %}
+
+  {% if fotos_form %}
+  <div class="row g-2 align-items-end">
+    <form method="post" enctype="multipart/form-data" action="{{ url_for('pedidos.subir_fotos', id=pedido.id) }}" class="col-md-8 d-flex gap-2 align-items-end">
+      {{ fotos_form.hidden_tag() }}
+      <div class="flex-fill">{{ fotos_form.fotos.label(class_="form-label small") }}{{ fotos_form.fotos(class_="form-control") }}</div>
+      {{ fotos_form.submit(id=False, class_="btn btn-outline-primary") }}
+    </form>
+    {% if pedido.fotos %}
+    <form method="post" action="{{ url_for('pedidos.enviar_a_validacion', id=pedido.id) }}" class="col-md-4 text-md-end">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primary">{{ _('Enviar a validación →') }}</button></form>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if validacion_form %}
+  <form method="post" action="{{ url_for('pedidos.validar', id=pedido.id) }}" class="border-top pt-3" novalidate>
+    {{ validacion_form.hidden_tag() }}
+    <p class="mb-2">{{ _('Revisa las fotos. ¿El pedido está bien preparado y se puede enviar?') }}</p>
+    {% if current_user.rol != 'fas' %}
+    <p class="small text-muted mb-2">{{ _('ℹ Normalmente valida %(rol)s. Úsalo solo si no puede hacerlo: quedará registrado que lo validaste tú.', rol=rol_fas) }}</p>
+    {% endif %}
+    {{ campo(validacion_form.comentario, rows=2) }}
+    <div class="d-flex gap-2">
+      {{ validacion_form.aprobar(class_="btn btn-primary") }}
+      {{ validacion_form.rechazar(class_="btn btn-outline-danger") }}
+    </div>
+  </form>
+  {% elif pedido.estado == 'en_validacion' %}
+  <p class="text-muted small mb-0">{{ _('Esperando la validación de %(rol)s.', rol=rol_fas) }}</p>
+  {% endif %}
+
+  {% if pedido.revisiones %}
+  <details class="mt-3"><summary class="small">{{ _('Historial de validaciones (%(n)s)', n=pedido.revisiones|length) }}</summary>
+    <ul class="small mt-2 mb-0">{% for r in pedido.revisiones %}
+      <li>{{ r.fecha|fecha_hora }} · {{ r.usuario.nombre if r.usuario }} ·
+        <strong>{{ _('✓ Validado') if r.aprobado else _('✕ Rechazado') }}</strong>{{ ' — «' ~ r.comentario ~ '»' if r.comentario }}</li>
+    {% endfor %}</ul></details>
+  {% endif %}
+{% endcall %}
+{% endif %}
+
+</div>
+
+<div class="ficha-lateral">
+
+
+{# ---------- Documentos del pedido (los ve también el cliente) ----------
+   Los sube el cliente (su orden de compra…) o Yikon (p. ej. los COA de los lotes enviados). #}
+{% set resumen_docs %}{{ pedido.documentos|map(attribute='nombre_original')|join(' · ') if pedido.documentos else _('Sin documentos') }}{% endset %}
+{% call seccion('documentos', _('Documentos'), 'fa-paperclip', resumen_docs, contador=pedido.documentos|length, novedad='documentos' in novedades) %}
+  {% for d in pedido.documentos %}
+  <div class="doc-fila">
+    <a href="{{ url_for('pedidos.descargar_documento', id=pedido.id, doc_id=d.id) }}" class="doc-nombre"><i class="fas fa-download me-1" aria-hidden="true"></i>{{ d.nombre_original }}</a>
+    <div class="small text-muted d-flex justify-content-between gap-2">
+      <span>{{ d.tamano_legible }} · {{ d.subido_por.nombre if d.subido_por }} · {{ d.fecha|fecha_hora('%d/%m/%Y') }}</span>
+      {% if puede_borrar_documento(d) %}
+      <form method="post" action="{{ url_for('pedidos.borrar_documento', id=pedido.id, doc_id=d.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-link text-secondary p-0">{{ _('Quitar') }}</button></form>{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted">{{ _('Todavía no hay documentos.') }}</p>
+  {% endfor %}
+  {% if documento_form %}
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('pedidos.subir_documento', id=pedido.id) }}" class="mt-2" novalidate>
+    {{ documento_form.hidden_tag() }}
+    {{ documento_form.documento.label(class_="form-label small") }}
+    {{ documento_form.documento(class_="form-control form-control-sm", accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.odt,.ods,.rtf,.txt,.jpg,.jpeg,.png,.eml,.msg,.zip") }}
+    <div class="form-text">{{ documento_form.documento.description }}
+      {% if current_user.rol != 'cliente' %}<br><i class="fas fa-info-circle me-1" aria-hidden="true"></i>{{ _('Aquí van también los COA de los lotes enviados. El cliente ve todos los documentos de su pedido.') }}
+      {% else %}<br><i class="fas fa-file-word me-1" aria-hidden="true"></i><a href="{{ url_for('pedidos.modelo_pedido_compra') }}">{{ _('Descargar nuestro modelo de pedido de compra (Word)') }}</a>{% endif %}</div>
+    {{ documento_form.submit(id=False, class_="btn btn-sm btn-outline-primary w-100 mt-2") }}
+  </form>
+  {% endif %}
+{% endcall %}
+
+
+{% if envio_form %}
+{% set resumen_envio %}{{ [pedido.transportista, pedido.numero_seguimiento]|select|join(' · ') or _('Sin datos') }}{% endset %}
+{% call seccion('envio', _('Datos de envío'), 'fa-truck', resumen_envio, abierta=false, novedad='envio' in novedades) %}
+  <form method="post" action="{{ url_for('pedidos.cambiar_datos_envio', id=pedido.id) }}" novalidate>
+    {{ envio_form.hidden_tag() }}
+    {{ campos_envio(envio_form) }}
+    {{ envio_form.submit(id=False, class_="btn btn-outline-secondary w-100 mt-3") }}
+    <div class="form-text">{{ _('Si cambias algo, el cliente recibe un email con los datos nuevos.') }}</div>
+  </form>
+{% endcall %}
+{% endif %}
+
+{# ---------- Historial: línea de tiempo del pedido (sale de la auditoría) ---------- #}
+{% set iconos = iconos_estado %}
+{% if historial %}
+{% set resumen_historial %}{{ historial[-1].titulo }} · {{ historial[-1].fecha|fecha_hora('%d/%m %H:%M') }}{% endset %}
+{% call seccion('historial', _('Historial'), 'fa-stream', resumen_historial, abierta=false) %}
+  <ol class="historial">
+    {% for e in historial %}
+    <li class="{{ 'es-estado' if e.estado else '' }}">
+      <span class="historial-icono"{% if e.estado %} style="background: var(--e-{{ e.estado }}); color: var(--t-{{ e.estado }}); border-color: var(--b-{{ e.estado }})"{% endif %}><i class="fas {{ iconos.get(e.estado, 'fa-pen') }}"></i></span>
+      <div><strong>{{ e.titulo }}</strong>
+        {% if e.forzado %}<span class="badge est-alerta ms-1">{{ _('⚠ fuera del flujo normal') }}</span>{% endif %}
+        {% if e.detalle %}<span class="text-muted"> · {{ e.detalle }}</span>{% endif %}
+        <div class="small text-muted">{{ e.fecha|fecha_hora }}{{ ' · ' ~ e.quien if e.quien }}</div></div>
+    </li>
+    {% endfor %}
+  </ol>
+{% endcall %}
+{% endif %}
+</div>
+</div>
+
+{# Ventana "Hay un problema con este pedido" (el cliente; app/incidencias.py) #}
+{% if puede_abrir_incidencia %}
+<div class="modal fade" id="modal-incidencia" tabindex="-1" aria-labelledby="modal-incidencia-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+    <form method="post" action="{{ url_for('pedidos.abrir_incidencia', id=pedido.id) }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-header"><h2 class="modal-title h5" id="modal-incidencia-titulo"><i class="fas fa-exclamation-triangle me-2 text-marca" aria-hidden="true"></i>{{ _('Hay un problema con este pedido') }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button></div>
+      <div class="modal-body">
+        <fieldset class="mb-3"><legend class="form-label">{{ _('¿Qué ha pasado?') }}</legend>
+          <div class="motivos-incidencia">
+          {% for clave, nombre in motivos_incidencia.items() %}
+            <input type="radio" class="btn-check" name="motivo" id="motivo-{{ clave }}" value="{{ clave }}" required {{ 'checked' if loop.first }}>
+            <label class="btn btn-outline-secondary" for="motivo-{{ clave }}"><i class="fas {{ iconos_motivo.get(clave) }} me-1" aria-hidden="true"></i>{{ nombre }}</label>
+          {% endfor %}
+          </div>
+        </fieldset>
+        <label class="form-label" for="texto-incidencia">{{ _('Cuéntenos el problema') }}</label>
+        <textarea class="form-control" id="texto-incidencia" name="texto" rows="4" maxlength="3000" required
+                  placeholder="{{ _('Qué producto, cuántas unidades, cómo llegó…') }}"></textarea>
+        <label class="form-label mt-3" for="fotos-incidencia">{{ _('Fotos (opcional)') }}</label>
+        <input class="form-control" type="file" id="fotos-incidencia" name="fotos" multiple accept="image/jpeg,image/png,.jpg,.jpeg,.png">
+        <div class="form-text">{{ _('JPG o PNG, hasta %(n)s fotos.', n=max_fotos_incidencia) }}</div>
+        <p class="small text-muted mt-3 mb-0"><i class="fas fa-comments me-1" aria-hidden="true"></i>{{ _('Lo verá su contacto en Yikon y le contestaremos en los mensajes de este pedido.') }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-link" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+        <button class="btn btn-primary">{{ _('Enviar aviso') }}</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endif %}
+
+{# ---------- Ventana "Cambiar estado" (la abre el botón de arriba) ----------
+   Si el estado elegido resta stock, al enviar se cierra y sale la ventana de confirmación de stock. #}
+{% if estado_form %}
+<div class="modal fade" id="modal-estado" tabindex="-1" aria-labelledby="modal-estado-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+    <form method="post" action="{{ url_for('pedidos.cambiar_estado', id=pedido.id) }}" id="form-estado"
+          data-destinos-con-salida="{{ destinos_con_salida|join(',') }}" novalidate>
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="modal-estado-titulo">{{ _('Cambiar estado') }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small mb-2">{{ _('Estado actual:') }} {{ estado_pedido(pedido) }}</p>
+        {{ estado_form.hidden_tag() }}
+        <label class="form-label" for="{{ estado_form.estado.id }}">{{ _('Nuevo estado') }}</label>
+        {{ estado_form.estado(class_="form-select") }}
+        <input type="hidden" name="confirmar_stock" value="0">
+        {% if current_user.puede('pedidos.forzar_estado') %}
+        <p class="small text-muted mt-2 mb-0">{{ _('Como admin puedes elegir cualquier estado. Si te saltas el flujo normal (p. ej. enviar sin validar), quedará marcado en la auditoría. El stock se descuenta igualmente.') }}</p>
+        {% endif %}
+        {# Datos del envío: aparecen al elegir "Enviado" (ver script) #}
+        {% if 'enviado' in estado_form.estado.choices|map('first') %}
+        <div class="mt-3 pt-3 border-top" id="bloque-fecha-entrega" hidden>
+          {{ campos_envio(estado_form) }}
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+        {{ estado_form.submit(id=False, class_="btn btn-primary") }}
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endif %}
+
+{# ---------- Ventana de confirmación de salida de stock ---------- #}
+{% if destinos_con_salida %}
+<div class="modal fade" id="modal-stock" tabindex="-1" aria-labelledby="modal-stock-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title h5" id="modal-stock-titulo">{{ _('⚠ Confirmar salida de stock') }}</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+    </div>
+    <div class="modal-body">
+      {% set ref_html %}<strong>{{ pedido.referencia_interna }}</strong>{% endset %}
+      <p>{{ _('Al enviar %(ref)s se restarán del inventario de la oficina:', ref=ref_html) }}</p>
+      <table class="table table-sm align-middle mb-2">
+        <thead><tr><th>{{ _('Artículo') }}</th><th class="num">{{ _('Se restan') }}</th><th class="num">{{ _('Disponible') }}</th><th class="num">{{ _('Quedarán') }}</th></tr></thead>
+        <tbody>{% for f in salida_stock %}
+          <tr><td>{{ f.articulo.nombre }}{% if f.articulo.tipo_articulo == 'kit' %} <span class="small text-muted">· {{ _('kit cerrado') }}</span>{% endif %}
+              {# Salen los lotes RESERVADOS para este pedido (los de la proforma). No se eligen aquí:
+                 se eligen antes, en la tarjeta "Lotes de este pedido". #}
+              {% for lote, n in f.lotes %}<div class="small text-muted"><i class="fas fa-lock me-1" aria-hidden="true"></i><span class="lote-codigo">{{ lote.codigo }}</span> × {{ n }}{{ ' · ' ~ _('cad. %(fecha)s', fecha=lote.caducidad|fecha) if lote.caducidad }}</div>{% endfor %}
+              {% if not f.suficiente %}<div class="small"><span class="badge est-alerta"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('faltan %(n)s por asignar a un lote', n=f.unidades - f.reservadas) }}</span></div>{% endif %}</td>
+            <td class="num fw-semibold">−{{ f.unidades }}</td>
+            <td class="num">{{ f.stock }}</td>
+            <td class="num">{{ f.restante if f.restante >= 0 else 0 }}</td></tr>
+        {% endfor %}</tbody>
+      </table>
+      {% if salida_stock|selectattr('suficiente', 'false')|list %}
+        {% set sin_lote %}<strong>{{ _('Hay unidades sin lote asignado') }}</strong>{% endset %}
+        <p class="small mb-0">{{ _('%(sin_lote)s: el envío no se podrá hacer hasta asignarlas en la tarjeta «Lotes de este pedido».', sin_lote=sin_lote) }}
+          <a href="#lotes" data-bs-dismiss="modal">{{ _('Ir a los lotes') }}</a></p>
+      {% else %}
+        <p class="small mb-1"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('Salen los lotes reservados para este pedido. Si en la caja va otro lote, cancela y cámbialo antes en «Lotes de este pedido».') if not pedido.con_proforma else _('Salen los lotes reservados para este pedido: son los que el cliente aprobó en la proforma.') }}</p>
+        <p class="small text-muted mb-0">{{ _('Si luego se anula el envío, las unidades vuelven al stock y quedan reservadas otra vez para este pedido.') }}</p>
+      {% endif %}
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+      <button type="button" class="btn btn-primary" id="btn-confirmar-stock" {{ 'disabled' if salida_stock|selectattr('suficiente', 'false')|list }}>{{ _('Sí, enviar y restar del stock') }}</button>
+    </div>
+  </div></div>
+</div>
+{% endif %}
+{# Las notas las escriben Yikon (admin, logística, FAS): son internas, el cliente no las ve #}
+{# Sugerencias de transportista para los campos de envío (una sola vez en la página) #}
+<datalist id="transportistas">{% for t in transportistas %}<option value="{{ t }}">{% endfor %}</datalist>
+
+{% if pedido.notas and current_user.rol != 'cliente' %}<p class="mt-3 text-muted" style="white-space:pre-line"><strong>{{ _('Notas:') }}</strong> {{ pedido.notas }}</p>{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/mensajes.js') }}"></script>
+<script>
+// Muestra "Fecha estimada de entrega" solo cuando el estado elegido es "Enviado"
+(function () {
+  const bloque = document.getElementById("bloque-fecha-entrega");
+  const select = document.querySelector('#form-estado select[name="estado"]');
+  if (!bloque || !select) return;
+  // Al elegir "Enviado": se ven los datos del envío y transportista + nº de seguimiento
+  // pasan a ser obligatorios (el servidor lo comprueba también)
+  const obligatorios = bloque.querySelectorAll('input[name="transportista"], input[name="numero_seguimiento"]');
+  function actualizar() {
+    const enviado = select.value === "enviado";
+    bloque.hidden = !enviado;
+    obligatorios.forEach(function (i) { i.required = enviado; });
+  }
+  select.addEventListener("change", actualizar);
+  actualizar();
+})();
+</script>
+{% if destinos_con_salida %}
+<script>
+// Si el estado elegido resta stock, en vez de enviar el formulario directamente
+// mostramos la ventana de confirmación. Al confirmar, marcamos confirmar_stock=1 y enviamos.
+// (El servidor comprueba ese campo: sin él no resta nada aunque se salten esta ventana.)
+(function () {
+  const form = document.getElementById("form-estado");
+  const destinos = form.dataset.destinosConSalida.split(",");
+  const confirmado = form.querySelector('input[name="confirmar_stock"]');
+  const modal = new bootstrap.Modal(document.getElementById("modal-stock"));
+  const ventanaEstado = document.getElementById("modal-estado");
+
+  form.addEventListener("submit", function (evento) {
+    const elegido = form.querySelector('select[name="estado"]').value;
+    if (destinos.includes(elegido) && confirmado.value !== "1") {
+      evento.preventDefault();
+      // Bootstrap no apila ventanas: se cierra la de "Cambiar estado" y, al cerrarse, sale la de stock
+      ventanaEstado.addEventListener("hidden.bs.modal", function () { modal.show(); }, { once: true });
+      bootstrap.Modal.getOrCreateInstance(ventanaEstado).hide();
+    }
+  });
+  const botonConfirmar = document.getElementById("btn-confirmar-stock");
+  botonConfirmar.addEventListener("click", function () {
+    confirmado.value = "1";
+    form.requestSubmit();
+  });
+})();
+</script>
+{% endif %}
+{% if lotes_pedido and modo_lotes %}<script src="{{ url_for('static', filename='js/lotes_pedido.js') }}"></script>{% endif %}
+<script src="{{ url_for('static', filename='js/ficha_pedido.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat_pedido.js') }}"></script>
+{% endblock %}

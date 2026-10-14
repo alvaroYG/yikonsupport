@@ -1,0 +1,4 @@
+{% if transportista %}
+{{ _('Transportista: %(nombre)s', nombre=transportista) }}{% endif %}{% if numero_seguimiento %}
+{{ _('Nº de seguimiento: %(numero)s', numero=numero_seguimiento) }}{% endif %}{% if enlace_seguimiento %}
+{{ _('Seguimiento: %(enlace)s', enlace=enlace_seguimiento) }}{% endif %}

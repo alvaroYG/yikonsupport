@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <a href="{{ url_for('mensajes.lista') }}" class="small">{{ _('← Mensajes') }}</a>
+    <h1 class="h3 mb-0">{% if current_user.rol == 'cliente' %}{% if soportes %}{{ _('Conversación con %(nombres)s', nombres=soportes|map(attribute='nombre')|join(', ')) }}{% else %}{{ _('Conversación con Yikon Genomics') }}{% endif %}
+      {% else %}{{ _('Conversación general con %(cliente)s', cliente=cliente.nombre) }}{% endif %}</h1>
+    <div class="small text-muted">{% if current_user.rol == 'cliente' %}{{ _('¿Es sobre un pedido concreto? Escríbelo en el chat de ese pedido: así lo ve también quien lo prepara y lo envía.') }}
+      {% else %}{{ _('Privada entre el cliente y su %(rol)s. Lo de un pedido va en la conversación de su ficha.', rol=rol_fas) }}{% endif %}</div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if current_user.puede('clientes.ver') %}
+    <a href="{{ url_for('clientes.detalle', id=cliente.id) }}" class="btn btn-outline-secondary btn-sm">{{ _('Ficha del cliente') }}</a>{% endif %}
+    <a href="{{ url_for('mensajes.lista', cliente_id=cliente.id) }}" class="btn btn-outline-secondary btn-sm">{{ _('Conversaciones de sus pedidos') }}</a>
+  </div>
+</div>
+{% if not form and current_user.rol != 'cliente' %}
+<div class="alert alert-info small">{{ _('Esta conversación es privada entre el cliente y su %(rol)s. Solo ves los mensajes que te han compartido.', rol=rol_fas) }}</div>
+{% endif %}
+<div class="card"><div class="card-body">
+  {% if deshacer %}{% include "mensajes/_deshacer.html" %}{% endif %}
+  {% include "mensajes/_conversacion.html" %}
+</div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/mensajes.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat_pedido.js') }}"></script>{% endblock %}

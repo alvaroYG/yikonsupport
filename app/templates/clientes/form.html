@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+<h1 class="h3">{{ title }}</h1>
+<div class="card" style="max-width:800px"><div class="card-body">
+<form method="post" novalidate>{{ form.hidden_tag() }}
+  <div class="row">
+    <div class="col-md-6">{{ campo(form.nombre) }}</div><div class="col-md-6">{{ campo(form.razon_social) }}</div>
+    <div class="col-md-4">{{ campo(form.cif) }}</div><div class="col-md-8">{{ campo(form.prefijo) }}</div>
+    <div class="col-md-6">{{ campo(form.email) }}</div><div class="col-md-6">{{ campo(form.telefono) }}</div>
+    <div class="col-md-6">{{ campo(form.persona_contacto) }}</div><div class="col-md-6">{{ campo(form.logisticos, size=4) }}</div>
+    <div class="col-md-8">{{ campo(form.direccion) }}</div><div class="col-md-4">{{ campo(form.ciudad) }}</div>
+    <div class="col-12">{{ campo(form.notas, rows=3) }}</div><div class="col-12">{{ campo(form.activo) }}</div>
+  </div>
+  {{ form.submit(id=False, class_="btn btn-primary") }}
+  <a href="{{ url_for('clientes.lista') }}" class="btn btn-link">{{ _('Cancelar') }}</a>
+</form></div></div>
+{% endblock %}

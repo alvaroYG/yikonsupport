@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import paginacion, estado_ticket, prioridad_ticket %}
+{#
+  Lista de tickets. El equipo de soporte ve todos y el FAS los de sus clientes (con contadores arriba y filtros por
+  estado, prioridad, quién lo lleva y cliente); el cliente, los de su empresa.
+  Primero los activos, los más urgentes arriba. Los que tienen novedades van marcados.
+#}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-0"><i class="fas fa-life-ring me-2 text-marca" aria-hidden="true"></i>{{ _('Soporte ChromGo') }}</h1>
+    <div class="small text-muted">{{ _('Incidencias con la plataforma de análisis ChromGo.') if yikon else _('Sus incidencias con ChromGo y nuestras respuestas.') }}</div>
+  </div>
+  {% if current_user.puede('soporte.crear') %}
+  <a href="{{ url_for('soporte.nuevo') }}" class="btn btn-primary"><i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Nuevo ticket') }}</a>
+  {% endif %}
+</div>
+
+{% if yikon %}
+{# Contadores de Yikon (FAS: solo de sus clientes; "Los llevo yo" solo el equipo de soporte).
+   Cada uno es un enlace al filtro correspondiente #}
+<div class="row g-2 mb-3">
+  {% for clave, texto, icono, args in [
+      ('sin_asignar', _('Sin asignar'), 'fa-inbox', {'asignado': 'nadie'}),
+      ('mios', _('Los llevo yo'), 'fa-user-check', {'asignado': 'mios'}),
+      ('urgentes', _('Urgentes o alta'), 'fa-angle-double-up', {'prioridad': 'altas'}),
+      ('esperando', _('Esperando al cliente'), 'fa-hourglass-half', {'estado': 'esperando_cliente'})] if clave in resumen %}
+  <div class="col-6 col-md-{{ 3 if resumen|length == 4 else 4 }}">
+    <a href="{{ url_for('soporte.lista', **args) }}" class="card card-body py-2 text-reset text-decoration-none contador-soporte">
+      <div class="small text-muted"><i class="fas {{ icono }} me-1" aria-hidden="true"></i>{{ texto }}</div>
+      <div class="fs-4 fw-bold">{{ resumen[clave] }}</div></a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<form method="get" class="card card-body mb-3 py-2">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-{{ '3' if yikon else '4' }}"><label class="form-label small mb-0" for="f-estado">{{ _('Estado') }}</label>
+      <select name="estado" id="f-estado" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="activos" {{ 'selected' if filtros.estado == 'activos' }}>{{ _('Activos (sin resolver)') }}</option>
+        <option value="todos" {{ 'selected' if filtros.estado == 'todos' }}>{{ _('Todos') }}</option>
+        {% for k, v in estados.items() %}<option value="{{ k }}" {{ 'selected' if filtros.estado == k }}>{{ v }}</option>{% endfor %}
+      </select></div>
+    {% if yikon %}
+    <div class="col-md-2"><label class="form-label small mb-0" for="f-prioridad">{{ _('Prioridad') }}</label>
+      <select name="prioridad" id="f-prioridad" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todas') }}</option>
+        <option value="altas" {{ 'selected' if filtros.prioridad == 'altas' }}>{{ _('Urgente o alta') }}</option>
+        {% for k, v in prioridades.items() %}<option value="{{ k }}" {{ 'selected' if filtros.prioridad == k }}>{{ v }}</option>{% endfor %}
+      </select></div>
+    <div class="col-md-2"><label class="form-label small mb-0" for="f-asignado">{{ _('Lo lleva') }}</label>
+      <select name="asignado" id="f-asignado" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Cualquiera') }}</option>
+        {% if equipo %}<option value="mios" {{ 'selected' if filtros.asignado == 'mios' }}>{{ _('Yo') }}</option>{% endif %}
+        <option value="nadie" {{ 'selected' if filtros.asignado == 'nadie' }}>{{ _('Nadie (sin asignar)') }}</option>
+      </select></div>
+    <div class="col-md-2"><label class="form-label small mb-0" for="f-cliente">{{ _('Cliente') }}</label>
+      <select name="cliente_id" id="f-cliente" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todos') }}</option>
+        {% for c in clientes %}<option value="{{ c.id }}" {{ 'selected' if filtros.cliente_id == c.id }}>{{ c.nombre }}</option>{% endfor %}
+      </select></div>
+    {% endif %}
+    <div class="col"><label class="form-label small mb-0" for="f-q">{{ _('Buscar') }}</label>
+      <div class="input-group input-group-sm">
+        <input type="search" name="q" id="f-q" value="{{ filtros.q }}" class="form-control" maxlength="100" placeholder="{{ _('Nº, asunto o ID de muestra') }}">
+        <button class="btn btn-outline-secondary"><i class="fas fa-search" aria-hidden="true"></i><span class="visually-hidden">{{ _('Buscar') }}</span></button></div></div>
+  </div>
+</form>
+
+<div class="card"><div class="table-responsive">
+<table class="table table-hover align-middle mb-0 tabla-tickets">
+  <thead><tr><th>{{ _('Nº') }}</th><th>{{ _('Asunto') }}</th>{% if yikon %}<th>{{ _('Cliente') }}</th>{% endif %}
+    <th>{{ _('Prioridad') }}</th><th>{{ _('Estado') }}</th>{% if yikon %}<th>{{ _('Lo lleva') }}</th>{% endif %}<th>{{ _('Última actividad') }}</th></tr></thead>
+  <tbody>
+  {% for t in pagina.items %}
+  {% set nuevos = no_leidos.get(t.id, 0) %}
+  <tr class="{{ 'sin-leer' if nuevos }}">
+    <td class="text-nowrap"><a href="{{ url_for('soporte.detalle', id=t.id) }}" class="fw-semibold">{{ t.numero }}</a></td>
+    <td><a href="{{ url_for('soporte.detalle', id=t.id) }}" class="text-reset text-decoration-none {{ 'fw-bold' if nuevos }}">{{ t.asunto }}</a>
+      {% if nuevos %}<span class="badge rounded-pill bg-marca ms-1">{{ ngettext('%(num)s nuevo', '%(num)s nuevos', nuevos) }}</span>{% endif %}
+      <div class="small text-muted">{{ t.categoria_nombre }}{% if t.referencia %} · <span class="lote-codigo">{{ t.referencia }}</span>{% endif %}</div></td>
+    {% if yikon %}<td class="small">{{ t.cliente.nombre }}</td>{% endif %}
+    <td>{{ prioridad_ticket(t) }}</td>
+    <td>{{ estado_ticket(t) }}</td>
+    {% if yikon %}<td class="small">{{ t.asignado_a.nombre if t.asignado_a else '—' }}</td>{% endif %}
+    <td class="small text-nowrap">{{ t.actualizado|fecha_hora }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="text-center text-muted py-5">
+    <i class="fas fa-check-circle fa-2x mb-2 d-block" aria-hidden="true"></i>
+    {% if filtros.estado == 'activos' and not filtros.q %}{{ _('No hay tickets abiertos.') }}
+      {% if not yikon %}{{ _('Si tiene un problema con ChromGo, pulse «Nuevo ticket».') }}{% endif %}
+    {% else %}{{ _('No hay tickets con estos filtros.') }}{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+<div class="mt-2">{{ paginacion(pagina, 'soporte.lista') }}</div>
+{% endblock %}

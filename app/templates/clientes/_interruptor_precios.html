@@ -1,0 +1,13 @@
+{# Interruptor "ve precios" de un cliente. Cada clic envía el formulario (sin JavaScript:
+   el botón lleva el valor contrario al actual). Sin permiso, solo se muestra el estado. #}
+{% if current_user.puede('clientes.precios_visibles') %}
+<form method="post" action="{{ url_for('clientes.cambiar_ver_precios', id=cliente.id) }}" class="d-inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="volver" value="{{ volver or 'ficha' }}">
+  <button name="ver_precios" value="{{ '0' if cliente.ver_precios else '1' }}"
+          class="btn btn-sm interruptor {{ 'activo' if cliente.ver_precios }}" role="switch" aria-checked="{{ 'true' if cliente.ver_precios else 'false' }}"
+          title="{{ _('Pulsa para que deje de ver los precios') if cliente.ver_precios else _('Pulsa para que vea los precios') }}">
+    <span class="interruptor-bola" aria-hidden="true"></span>
+    <span class="interruptor-texto">{{ _('Sí') if cliente.ver_precios else _('No') }}</span></button>
+</form>
+{% else %}{{ _('Sí') if cliente.ver_precios else _('No') }}{% endif %}

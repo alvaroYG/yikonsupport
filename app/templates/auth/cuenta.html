@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import campo %}
+{% block contenido %}
+<h1 class="h3">{{ _('Mi cuenta') }}</h1>
+<p class="text-muted">{{ current_user.nombre }} · {{ current_user.email }} · {{ current_user.rol_nombre }}</p>
+<div class="card" style="max-width:480px"><div class="card-body">
+  <h2 class="h5">{{ _('Cambiar contraseña') }}</h2>
+  <form method="post" novalidate>{{ form.hidden_tag() }}
+    {{ campo(form.actual) }}{{ campo(form.nueva) }}{{ campo(form.confirmar) }}
+    {{ form.submit(id=False, class_="btn btn-primary") }}</form>
+</div></div>
+{% endblock %}

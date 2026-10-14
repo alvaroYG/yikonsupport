@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{# Administración → Correos enviados. Lógica: app/admin/correos_estado.py y app/correo.py (_registrar) #}
+{% from "_macros.html" import paginacion %}
+{% macro estado_correo(c) %}
+  {% if c.estado == 'enviado' %}<span class="badge est-correo-ok"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Enviado') }}</span>
+  {% else %}<span class="badge est-correo-mal"><i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Falló') }}</span>{% endif %}
+  {% if c.reenvio_de_id %}<span class="small text-muted ms-1" title="{{ _('Reenvío') }}"><i class="fas fa-redo" aria-hidden="true"></i><span class="visually-hidden">{{ _('Reenvío') }}</span></span>{% endif %}
+{% endmacro %}
+{% block contenido %}
+<h1 class="h3 mb-1">{{ _('Correos enviados') }}</h1>
+<p class="text-muted small mb-3">{% if current_user.puede('correos.reenviar') %}{{ _('Cada email que sale de la plataforma. Se guardan 6 meses.') }}
+  {% else %}{{ _('Los avisos que han recibido tus clientes. Se guardan 6 meses.') }}{% endif %}</p>
+<form method="get" class="card card-body mb-3 py-2" role="search">
+  <div class="row g-2 align-items-end">
+    <div class="col-md"><label class="form-label small mb-0" for="f-q">{{ _('Buscar') }}</label>
+      <div class="input-group input-group-sm">
+        <input type="search" name="q" id="f-q" value="{{ q }}" class="form-control" maxlength="100" placeholder="{{ _('Destinatario, asunto o nº de pedido') }}">
+        <button class="btn btn-outline-secondary"><i class="fas fa-search" aria-hidden="true"></i><span class="visually-hidden">{{ _('Buscar') }}</span></button></div></div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-estado">{{ _('Estado') }}</label>
+      <select name="estado" id="f-estado" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todos') }}</option>
+        {% for clave, nombre in estados.items() %}<option value="{{ clave }}" {{ 'selected' if estado == clave }}>{{ nombre }}</option>{% endfor %}</select></div>
+    {% if grupos %}<div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-grupo">{{ _('Qué') }}</label>
+      <select name="grupo" id="f-grupo" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{{ _('Todos') }}</option>
+        {% for clave, nombre in grupos.items() %}<option value="{{ clave }}" {{ 'selected' if grupo == clave }}>{{ nombre }}</option>{% endfor %}</select></div>{% endif %}
+    <div class="col-6 col-md-2"><label class="form-label small mb-0" for="f-dias">{{ _('Desde') }}</label>
+      <select name="dias" id="f-dias" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="7" {{ 'selected' if dias == 7 }}>{{ _('Últimos 7 días') }}</option>
+        <option value="30" {{ 'selected' if dias == 30 }}>{{ _('Últimos 30 días') }}</option>
+        <option value="183" {{ 'selected' if dias == 183 }}>{{ _('Últimos 6 meses') }}</option></select></div>
+    {% if hay_filtros %}<div class="col-auto"><a href="{{ url_for('admin.correos') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Quitar filtros') }}</a></div>{% endif %}
+  </div>
+</form>
+<div class="table-responsive">
+<table class="table table-sm bg-white small align-middle">
+  <thead><tr><th>{{ _('Fecha') }}</th><th>{{ _('Para') }}</th><th>{{ _('Asunto') }}</th><th>{{ _('Qué') }}</th><th>{{ _('Estado') }}</th><th></th></tr></thead>
+  <tbody>{% for c in pagina.items %}
+    <tr><td class="text-nowrap">{{ c.fecha|fecha_hora }}</td><td class="text-break">{{ c.para }}</td>
+        <td><a href="{{ url_for('admin.correo', id=c.id) }}">{{ c.asunto }}</a></td>
+        <td class="text-muted">{{ nombre_tipo(c.tipo) }}</td><td class="text-nowrap">{{ estado_correo(c) }}</td>
+        <td class="text-end"><a href="{{ url_for('admin.correo', id=c.id) }}" class="btn btn-sm btn-outline-secondary">{{ _('Ver') }}</a></td></tr>
+  {% else %}<tr><td colspan="6" class="text-muted">{{ _('No hay correos con estos filtros.') }}</td></tr>{% endfor %}
+  </tbody></table>
+</div>
+{{ paginacion(pagina, 'admin.correos') }}
+{% endblock %}

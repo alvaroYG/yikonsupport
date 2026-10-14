@@ -1,0 +1,32 @@
+{% if current_user.is_authenticated and current_user.rol in ['admin', 'logistica', 'fas', 'soporte'] and not g.solo_lectura %}
+<div class="alert alert-info m-3" id="aviso-correos-revision" hidden>
+  <button class="btn btn-sm btn-outline-primary" type="button" id="abrir-correos-revision">{{ _('Revisar correos pendientes') }} <span data-total-correos></span></button>
+  <span class="small ms-2">{{ _('No se enviarán hasta que los confirmes.') }}</span>
+</div>
+<div class="modal fade" id="modal-revision-correo" tabindex="-1" aria-labelledby="titulo-revision-correo" data-bs-backdrop="static"
+     data-lista="{{ url_for('revision_correo.pendientes') }}" data-base="{{ url_for('revision_correo.pendientes')|replace('/pendientes', '') }}">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title fs-5" id="titulo-revision-correo">{{ _('Revisar correo antes de enviar') }}</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar sin guardar los cambios') }}"></button></div>
+    <form id="form-revision-correo" class="d-flex flex-column overflow-hidden">
+      <div class="modal-body">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <p class="small text-muted">{{ _('La acción en la plataforma ya se ha guardado. Este correo aún no se ha enviado. Los borradores caducan en 24 horas.') }}</p>
+        <label class="form-label" for="revision-correo-para">{{ _('Destinatarios') }}</label>
+        <input id="revision-correo-para" class="form-control mb-3" readonly>
+        <label class="form-label" for="revision-correo-asunto">{{ _('Asunto') }}</label>
+        <input id="revision-correo-asunto" class="form-control mb-3" maxlength="300" required>
+        <label class="form-label" for="revision-correo-texto">{{ _('Mensaje') }}</label>
+        <textarea id="revision-correo-texto" class="form-control" rows="12" maxlength="100000" required></textarea>
+        <div class="alert alert-danger mt-3 mb-0" role="alert" data-error-correo hidden></div>
+        <div class="small text-muted mt-2" data-posicion-correo></div>
+      </div>
+      <div class="modal-footer flex-wrap">
+        <button type="button" class="btn btn-outline-danger me-auto" data-accion-correo="descartar">{{ _('Descartar correo') }}</button>
+        <button type="button" class="btn btn-outline-secondary" data-accion-correo="guardar">{{ _('Guardar para después') }}</button>
+        <button type="submit" class="btn btn-primary">{{ _('Enviar correo') }}</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+<script src="{{ url_for('static', filename='js/revision_correo.js') }}"></script>
+{% endif %}
