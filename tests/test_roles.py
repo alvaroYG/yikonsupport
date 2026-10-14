@@ -5,7 +5,7 @@ Los roles del 30/09 en el flujo del pedido:
 """
 from app.extensions import db
 from app.models import Lote, MovimientoInventario, Pedido, Producto
-from tests.conftest import login, pedido_cliente, reservar_lotes, subir_foto
+from tests.conftest import doc_pedido, login, pedido_cliente, reservar_lotes, subir_foto
 
 
 def _pedido_en_preparacion(client, cliente="cliA"):
@@ -104,7 +104,7 @@ def test_producto_suelto_de_la_oficina(app, client):
     """Logística crea pedidos para cualquier cliente (con productos sueltos si hace falta)."""
     import json
     login(client, "ofi")
-    r = client.post("/pedidos/nuevo", data={
+    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), 
         "cliente_id": 2, "fecha": "2026-09-30",
         "contenido": json.dumps({"kits": [], "sueltos": [{"producto_id": 1, "cantidad": 2}]})})
     assert r.status_code == 302

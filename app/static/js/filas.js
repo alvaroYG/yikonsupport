@@ -18,13 +18,21 @@ document.querySelectorAll("[data-filas]").forEach(function (contenedor) {
     if (m) siguiente = Math.max(siguiente, parseInt(m[1], 10) + 1);
   });
   function vaciar(fila) {
-    fila.querySelectorAll("select").forEach(function (s) { s.value = s.options[0] ? s.options[0].value : ""; });
+    fila.querySelectorAll("select").forEach(function (s) {
+      s.value = s.options[0] ? s.options[0].value : "";
+      if (s.actualizarSeleccion) s.actualizarSeleccion();
+    });
     fila.querySelectorAll("input").forEach(function (i) { i.value = i.defaultValue && i.type === "number" ? "1" : ""; });
   }
   if (boton) boton.addEventListener("click", function () {
     const filas = contenedor.querySelectorAll(".fila");
     if (filas.length >= maximo) return;
     const nueva = filas[filas.length - 1].cloneNode(true);
+    nueva.querySelectorAll('[data-selector-buscable]').forEach(function (envoltorio) {
+      const select = envoltorio.querySelector('select');
+      select.hidden = false;
+      envoltorio.replaceWith(select);
+    });
     nueva.querySelectorAll("[name]").forEach(function (campo) {
       campo.name = campo.name.replace(patron, prefijo + "-" + siguiente + "-");
       campo.id = campo.name;
@@ -32,6 +40,7 @@ document.querySelectorAll("[data-filas]").forEach(function (contenedor) {
     vaciar(nueva);
     siguiente++;
     contenedor.appendChild(nueva);
+    if (window.iniciarSelectoresBuscables) window.iniciarSelectoresBuscables(nueva);
     const primero = nueva.querySelector("select, input");
     if (primero) primero.focus();
   });

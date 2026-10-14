@@ -1,7 +1,7 @@
 """Capa 2: de lo que puede ver, CUÁLES registros. Aquí se intenta 'colarse'."""
 from app.extensions import db
 from app.models import Cliente, Pedido
-from tests.conftest import ref, login, pedido_cliente
+from tests.conftest import doc_pedido, ref, login, pedido_cliente
 
 
 def _pedido_de(app, cliente_nombre):
@@ -33,7 +33,7 @@ def test_logistics_solo_ve_sus_clientes(app, client):
 def test_logistics_no_crea_pedidos_para_clientes_ajenos(app, client):
     login(client, "loga")
     b = db.session.scalar(db.select(Cliente).filter_by(nombre="Clínica B"))
-    client.post("/pedidos/nuevo", data={"cliente_id": b.id, "fecha": "2026-09-25"})
+    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": b.id, "fecha": "2026-09-25"})
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 0
 
 

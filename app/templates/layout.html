@@ -318,6 +318,8 @@
   {% with form_pedido=nuevo_pedido_form() %}{% include "pedidos/_modal_pedido.html" %}{% endwith %}
 {% endif %}
 {% include "_revision_correo.html" %}
+{# Desplegables con buscador (data-buscable): cliente del pedido, productos de un kit, ampliar un pedido #}
+<script src="{{ url_for('static', filename='js/selectores_buscables.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

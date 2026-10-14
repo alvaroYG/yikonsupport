@@ -3,7 +3,7 @@ import json
 
 from app.extensions import db
 from app.models import Cliente, ComponenteKit, Kit, Pedido, Producto, RegistroAuditoria
-from conftest import contenido, login, pedido_cliente
+from conftest import doc_pedido, contenido, login, pedido_cliente
 
 
 def _segundo_kit():
@@ -40,10 +40,10 @@ def test_por_defecto_todo_y_con_catalogo_propio_solo_lo_marcado(app, client):
     atributo = html.split('data-catalogo="', 1)[1].split('"', 1)[0]
     assert "Kit dos" in atributo and "Kit uno" not in atributo
     # ...y pedir uno que no está, por mucho que se fuerce, no se puede
-    r = client.post("/pedidos/nuevo", data={"contenido": contenido([(1, 1, {1: 1})]), "fecha": "2026-09-25", "referencia": "OC-X"})
+    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(1, 1, {1: 1})]), "fecha": "2026-09-25", "referencia": "OC-X"})
     assert "no está en su catálogo" in r.get_data(as_text=True)
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 0
-    client.post("/pedidos/nuevo", data={"contenido": contenido([(k2.id, 1, {p2.id: 1})]), "fecha": "2026-09-25", "referencia": "OC-Y"})
+    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(k2.id, 1, {p2.id: 1})]), "fecha": "2026-09-25", "referencia": "OC-Y"})
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 1
     # El otro cliente sigue viéndolo todo
     client.post("/auth/logout")
@@ -55,7 +55,7 @@ def test_yikon_puede_pedir_cualquier_cosa_en_su_nombre(app, client):
     k2, p2 = _segundo_kit()
     login(client, "admin")
     _guardar(client, kits=[k2.id])
-    r = client.post("/pedidos/nuevo", data={"cliente_id": 1, "contenido": contenido([(1, 1, {1: 1})]),
+    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "contenido": contenido([(1, 1, {1: 1})]),
                                             "fecha": "2026-09-25", "referencia": "OC-Z"})
     assert r.status_code == 302 and db.session.scalar(db.select(db.func.count(Pedido.id))) == 1
 

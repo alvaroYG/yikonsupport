@@ -11,7 +11,7 @@ from app.extensions import db
 from app.inventario import reservas
 from app.inventario.stock import articulos_con_stock_bajo
 from app.models import Lote, MovimientoInventario, Pedido, Producto, RegistroAuditoria, ReservaLote
-from tests.conftest import contenido, llevar_a_validado, login, pedido_cliente, pdf_proforma
+from tests.conftest import doc_pedido, contenido, llevar_a_validado, login, pedido_cliente, pdf_proforma
 
 F_PRONTO = date.today() + timedelta(days=30)
 F_LEJANO = date.today() + timedelta(days=400)
@@ -48,7 +48,7 @@ def _ultimo():
 def _pedido_yikon(client, cantidad=3, usuario="admin"):
     """Pedido creado por Yikon (sin proforma): nace "aceptado"."""
     login(client, usuario)
-    client.post("/pedidos/nuevo", data={"cliente_id": 1, "fecha": "2026-09-25", "referencia": f"OC-{cantidad}-{usuario}",
+    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "referencia": f"OC-{cantidad}-{usuario}",
                                         "contenido": contenido(sueltos={1: cantidad})})
     return _ultimo()
 

@@ -306,20 +306,25 @@
 {% if kit_form or linea_form %}
 <div class="row g-3 mt-2 pt-3 border-top">
   {% if kit_form and kit_form.kit_id.choices %}
-  <form method="post" action="{{ url_for('pedidos.anadir_kit', id=pedido.id) }}" class="col-lg-6 row g-2 align-items-end" novalidate>
+  {# Kits y productos sueltos en filas completas separadas, con selector buscable (selectores_buscables.js) #}
+  <form method="post" action="{{ url_for('pedidos.anadir_kit', id=pedido.id) }}" class="col-12" novalidate>
     {{ kit_form.hidden_tag() }}
-    <div class="col-7">{{ kit_form.kit_id.label(class_="form-label small mb-1") }}{{ kit_form.kit_id(class_="form-select form-select-sm") }}</div>
-    <div class="col-2">{{ kit_form.cantidad.label(class_="form-label small mb-1") }}{{ kit_form.cantidad(class_="form-control form-control-sm", min=1) }}</div>
-    <div class="col-3">{{ kit_form.submit(id=False, class_="btn btn-sm btn-outline-primary w-100") }}</div>
+    <div class="row g-3 align-items-end p-3 border rounded-3 bg-light">
+    <div class="col-12 col-md-8">{{ kit_form.kit_id.label(class_="form-label small mb-1") }}{{ kit_form.kit_id(class_="form-select", **{"data-buscable": _("Buscar kit por nombre o referencia"), "data-sin-resultados": _("Sin coincidencias")}) }}</div>
+    <div class="col-6 col-md-2">{{ kit_form.cantidad.label(class_="form-label small mb-1") }}{{ kit_form.cantidad(class_="form-control", min=1) }}</div>
+    <div class="col-12 col-md-2">{{ kit_form.submit(id=False, class_="btn btn-outline-primary w-100") }}</div>
+    </div>
   </form>
   {% endif %}
   {% if linea_form %}
-  <form method="post" action="{{ url_for('pedidos.anadir_linea', id=pedido.id) }}" class="col-lg-6 row g-2 align-items-end" novalidate>
+  <form method="post" action="{{ url_for('pedidos.anadir_linea', id=pedido.id) }}" class="col-12" novalidate>
     {{ linea_form.hidden_tag() }}
-    <div class="col-5">{{ linea_form.producto_id.label(class_="form-label small mb-1") }}{{ linea_form.producto_id(class_="form-select form-select-sm") }}</div>
-    <div class="col-2">{{ linea_form.cantidad.label(class_="form-label small mb-1") }}{{ linea_form.cantidad(class_="form-control form-control-sm", min=1) }}</div>
-    <div class="col-2">{{ linea_form.precio.label(class_="form-label small mb-1") }}{{ linea_form.precio(class_="form-control form-control-sm", placeholder=_("catálogo")) }}</div>
-    <div class="col-3">{{ linea_form.submit(id=False, class_="btn btn-sm btn-outline-primary w-100") }}</div>
+    <div class="row g-3 align-items-end p-3 border rounded-3 bg-light">
+    <div class="col-12 col-md-6">{{ linea_form.producto_id.label(class_="form-label small mb-1") }}{{ linea_form.producto_id(class_="form-select", **{"data-buscable": _("Buscar producto por nombre o referencia"), "data-sin-resultados": _("Sin coincidencias")}) }}</div>
+    <div class="col-6 col-md-2">{{ linea_form.cantidad.label(class_="form-label small mb-1") }}{{ linea_form.cantidad(class_="form-control", min=1) }}</div>
+    <div class="col-6 col-md-2">{{ linea_form.precio.label(class_="form-label small mb-1") }}{{ linea_form.precio(class_="form-control", placeholder=_("catálogo")) }}</div>
+    <div class="col-12 col-md-2">{{ linea_form.submit(id=False, class_="btn btn-outline-primary w-100") }}</div>
+    </div>
   </form>
   {% endif %}
 </div>

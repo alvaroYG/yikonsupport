@@ -103,7 +103,7 @@ Admin es un perfil interno: el cliente nunca lo ve nombrado.
 | Ver clientes / editarlos | ✓ / ✓ | (si admin le activa el apartado) | sus clientes / — | — |
 | Catálogo de cada cliente, avisos por email, «Ve precios» | ✓ | | sus clientes | |
 | Productos: ver / editar | ✓ / ✓ | ✓ / ✓ | ✓ / — | catálogo sin precios + SDS |
-| Pedidos: ver y crear | todos | todos | de sus clientes | de su empresa (vía proforma) |
+| Pedidos: ver y crear | todos | todos | de sus clientes | de su empresa (vía proforma; kits y sueltos de su catálogo) |
 | Enviar proformas / aceptarlas o pedir cambios | ✓ / — | ✓ / — | sus clientes / — | — / ✓ |
 | Preparar, hacer fotos y enviar | ✓ | ✓ | | |
 | Validar las fotos (o devolver a preparación) | ✓ (suple) | | sus clientes | |

@@ -6,25 +6,30 @@
 {{ form.hidden_tag() }}
 {% if interno %}
   {# data-proximas: la referencia interna que tocaría a cada cliente (para la insignia de arriba) #}
-  {{ campo(form.cliente_id, **{"data-proximas": form.proximas_json}) }}
+  {# data-buscable: desplegable con buscador (static/js/selectores_buscables.js) #}
+  {{ campo(form.cliente_id, **{"data-proximas": form.proximas_json, "data-buscable": _("Buscar cliente"), "data-sin-resultados": _("Sin coincidencias")}) }}
 {% endif %}
 {# ---- Contenido del pedido: lo pinta y lo recoge static/js/pedido.js ----
-   data-catalogo: los kits con sus productos · data-productos: productos para los sueltos
-   (solo Yikon (admin, logística, FAS)) · data-txt-*: textos traducidos que usa el JavaScript.
+   data-catalogo: los kits con sus productos · data-productos: productos para los sueltos (Yikon: todos
+   los activos; el cliente: los de su catálogo) · data-txt-*: textos traducidos que usa el JavaScript.
+   Cada desplegable de kit o producto lleva un buscador por nombre o referencia.
    El resultado se guarda en el campo oculto "contenido" (JSON; lo pinta hidden_tag) al enviar. #}
 <div class="mb-3" data-pedido
      data-catalogo="{{ form.catalogo_json }}" data-productos="{{ form.productos_json }}"
+     data-txt-buscar-kit="{{ _('Buscar kit por nombre o referencia') }}"
+     data-txt-buscar-producto="{{ _('Buscar producto por nombre o referencia') }}"
+     data-txt-sin-resultados="{{ _('Sin coincidencias. Si ya has seleccionado una opción, se conserva.') }}"
      data-txt-elige-kit="{{ _('— Elige un kit —') }}" data-txt-elige-producto="{{ _('— Elige un producto —') }}"
      data-txt-num-kits="{{ _('Nº de kits') }}" data-txt-quitar-kit="{{ _('Quitar este kit') }}"
      data-txt-quitar="{{ _('Quitar') }}" data-txt-incluir="{{ _('Incluir este producto') }}"
      data-txt-cantidad="{{ _('Cantidad') }}" data-txt-por-kit="{{ _('por kit') }}">
-  <label class="form-label">{{ _('Kits') }}{% if not interno %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
+  <label class="form-label">{{ _('Kits') }}{% if not form.admite_sueltos %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
   <div class="form-text mt-0 mb-2">{{ _('Al elegir un kit salen todos sus productos: puedes desmarcar los que no quieras o cambiar las cantidades.') }}</div>
   {% for e in form.contenido.errors %}<div class="text-danger small mb-2">✕ {{ e }}</div>{% endfor %}
-  <div class="text-danger small mb-2" data-error-kits hidden>✕ {{ _('Añade al menos un kit o un producto.') if interno else _('Añade al menos un kit.') }}</div>
+  <div class="text-danger small mb-2" data-error-kits hidden>✕ {{ _('Añade al menos un kit o un producto.') if form.admite_sueltos else _('Añade al menos un kit.') }}</div>
   <div data-kits></div>
   <button type="button" class="btn btn-sm btn-outline-primary" data-anadir-kit>{{ _('＋ Añadir kit') }}</button>
-  {% if interno %}
+  {% if form.admite_sueltos %}
   <div class="mt-3">
     <label class="form-label">{{ _('Productos sueltos') }}</label>
     <div class="form-text mt-0 mb-2">{{ _('Opcional: productos fuera de un kit (reposiciones, extras…).') }}</div>
@@ -47,7 +52,20 @@
          else _("El nº de referencia de su empresa es obligatorio.") }}</div>
   </div>
 </div>
-{{ campo(form.documento, accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.odt,.ods,.rtf,.txt,.jpg,.jpeg,.png,.eml,.msg,.zip") }}
+{# Documento del pedido: OBLIGATORIO para todos (cliente y Yikon). Pintado a mano para mostrar el error aquí
+   mismo sin enviar el formulario ni perder lo escrito (pedido.js); el servidor también lo exige. #}
+<div class="mb-3">
+  <label class="form-label" for="{{ form.documento.id }}">{{ form.documento.label.text }}{% if form.documento_obligatorio %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</label>
+  {{ form.documento(class_="form-control" ~ (" is-invalid" if form.documento.errors else ""),
+       accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.odt,.ods,.rtf,.txt,.jpg,.jpeg,.png,.eml,.msg,.zip",
+       required=form.documento_obligatorio,
+       **{"aria-describedby": form.documento.id ~ "-ayuda " ~ form.documento.id ~ "-error",
+          "aria-invalid": "true" if form.documento.errors else "false"}) }}
+  <div class="form-text" id="{{ form.documento.id }}-ayuda">{{ form.documento.description }}</div>
+  <div class="text-danger small mt-1" id="{{ form.documento.id }}-error" data-error-documento role="alert"
+       data-obligatorio="✕ {{ _('El documento de pedido es obligatorio.') }}"
+       {% if not form.documento.errors %}hidden{% endif %}>{{ ('✕ ' ~ form.documento.errors[0]) if form.documento.errors else '' }}</div>
+</div>
 {% if not interno %}
 {# Para el cliente que no tiene un modelo propio de pedido: el de Yikon (Word, bilingüe) #}
 <p class="small mt-n2 mb-3 enlace-modelo-pedido">

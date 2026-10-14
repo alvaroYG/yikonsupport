@@ -111,12 +111,15 @@ class _PedidoConLineasForm(FlaskForm):
                       "productos": [{"producto_id": 7, "cantidad": 4}, ...]}, ...],
          "sueltos": [{"producto_id": 9, "cantidad": 1}, ...]}
     Aquí se valida TODO: que los kits existan, que cada producto sea de su kit, las
-    cantidades... y que el cliente no meta productos sueltos.
+    cantidades... y que el cliente solo pida kits y productos sueltos de su catálogo.
+    El documento del pedido es obligatorio para todos (cliente y Yikon).
     """
     contenido = HiddenField()
     fecha = DateField(_l("Fecha del pedido"), default=date.today, validators=[DataRequired()])
-    admite_sueltos = False            # el formulario interno lo pone a True
+    admite_sueltos = True             # productos sueltos (fuera de un kit): Yikon y también el cliente
     kits_permitidos = None            # ids de kits que se pueden pedir (None = todos): el cliente, su catálogo
+    productos_permitidos = None       # ids de productos sueltos que se pueden pedir (None = todos los activos)
+    documento_obligatorio = True      # sin documento no se crea el pedido (cliente y Yikon)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -127,6 +130,9 @@ class _PedidoConLineasForm(FlaskForm):
             [{"id": pid, "texto": texto} for pid, texto in opciones_productos()]) if self.admite_sueltos else "[]"
 
     def validate_documento(self, campo):
+        # La regla la pone el formulario, no algo que llegue del navegador
+        if self.documento_obligatorio and not (campo.data and getattr(campo.data, "filename", "")):
+            raise ValidationError(_("El documento de pedido es obligatorio."))
         comprobar_documento(campo)
 
     def validate_contenido(self, campo):
@@ -170,6 +176,9 @@ class _PedidoConLineasForm(FlaskForm):
                 producto = db.session.get(Producto, _entero(fila.get("producto_id"), 1, 10**9))
                 if producto is None or not producto.activo:
                     raise ValidationError(_("Uno de los productos ya no está disponible. Revisa el pedido."))
+                if self.productos_permitidos is not None and producto.id not in self.productos_permitidos:
+                    raise ValidationError(_("El producto %(producto)s no está en su catálogo. Pídaselo a su contacto en Yikon.",
+                                            producto=producto.nombre))
                 self.sueltos_validos[producto.id] = (self.sueltos_validos.get(producto.id, 0)
                                                      + _entero(fila.get("cantidad"), 1, MAX_UNIDADES))
                 if self.sueltos_validos[producto.id] > MAX_UNIDADES:
@@ -202,13 +211,18 @@ class PedidoClienteForm(_PedidoConLineasForm):
         self.kits_permitidos = kits_permitidos(cliente)
         if self.kits_permitidos is not None:
             self.catalogo_json = json.dumps(catalogo_kits(cliente))
+        # Productos sueltos: los de su catálogo (si tiene uno propio; si no, todos los activos)
+        if cliente is not None and cliente.catalogo_propio:
+            from app.catalogo_cliente import productos_para
+            visibles = productos_para(cliente)
+            self.productos_permitidos = {p.id for p in visibles}
+            self.productos_json = json.dumps([{"id": p.id, "texto": f"{p.referencia} — {p.nombre}"} for p in visibles])
 
     def validate_referencia(self, campo):
         comprobar_referencia_unica(campo, self._cliente_id)
 
 
 class PedidoInternoForm(_PedidoConLineasForm):
-    admite_sueltos = True
     """Formulario de Yikon (admin, logística, FAS): eligen el cliente (FAS, solo los suyos)
     y meten todos los productos de una vez. Los precios salen del catálogo y se
     pueden retocar después en la ficha (descuentos, quitar/añadir líneas)."""

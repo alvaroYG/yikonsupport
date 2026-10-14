@@ -4,7 +4,7 @@ import re
 
 from app.extensions import db
 from app.models import Pedido
-from tests.conftest import contenido, llevar_a_validado, login, pedido_cliente
+from tests.conftest import doc_pedido, contenido, llevar_a_validado, login, pedido_cliente
 
 
 def _pedido_con_historia(client):
@@ -51,11 +51,11 @@ def test_repetir_pedido(app, client):
 
 def test_pedido_interno_exige_cliente_y_productos(app, client):
     login(client, "loga")
-    r = client.post("/pedidos/nuevo", data={"cliente_id": 0, "fecha": "2026-09-01"})
+    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 0, "fecha": "2026-09-01"})
     html = r.get_data(as_text=True)
     assert "Elige el cliente." in html and "Añade al menos un kit" in html
     # logistics no puede crear pedidos para un cliente que no es suyo
-    client.post("/pedidos/nuevo", data={"cliente_id": 2, "fecha": "2026-09-01",
+    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 2, "fecha": "2026-09-01",
                                         "contenido": contenido(sueltos={1: 1})})
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 0
 

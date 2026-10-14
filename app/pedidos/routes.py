@@ -244,13 +244,24 @@ def _rellenar_para_repetir(form):
     id_repetir = request.args.get("repetir", type=int)
     if id_repetir:
         original = pedido_o_404(id_repetir)        # solo pedidos que este usuario puede ver
-        form.contenido.data = _contenido_para_repetir(original, sueltos=form.admite_sueltos)
+        form.contenido.data = _contenido_para_repetir(original, sueltos=form.admite_sueltos,
+                                                      productos_permitidos=form.productos_permitidos)
 
 
-def _contenido_para_repetir(pedido, sueltos):
+def _productos_del_cliente(pedido):
+    """Productos sueltos que puede pedir quien mira el pedido: Yikon, todos (None); el cliente,
+    los de su catálogo si tiene uno propio (app/catalogo_cliente.py)."""
+    if current_user.rol != "cliente" or not pedido.cliente.catalogo_propio:
+        return None
+    from app.catalogo_cliente import productos_para
+    return {p.id for p in productos_para(pedido.cliente)}
+
+
+def _contenido_para_repetir(pedido, sueltos, productos_permitidos=None):
     """El contenido del pedido en el mismo JSON que usa el formulario (ver
     _PedidoConLineasForm), para "Repetir pedido". Solo kits y productos que siguen
-    activos; los sueltos, solo si quien repite puede pedirlos (Yikon (admin, logística, FAS))."""
+    activos; los sueltos, si quien repite puede pedirlos (el cliente, solo los de su catálogo:
+    productos_permitidos)."""
     kits = []
     for kp in pedido.kits:
         if not kp.kit.activo:
@@ -265,7 +276,8 @@ def _contenido_para_repetir(pedido, sueltos):
         if any(p["cantidad"] for p in productos):
             kits.append({"kit_id": kp.kit_id, "cantidad": kp.cantidad, "productos": productos})
     lista_sueltos = [{"producto_id": l.producto_id, "cantidad": l.cantidad}
-                     for l in pedido.lineas_sueltas if l.producto.activo] if sueltos else []
+                     for l in pedido.lineas_sueltas if l.producto.activo
+                     and (productos_permitidos is None or l.producto_id in productos_permitidos)] if sueltos else []
     if not kits and not lista_sueltos:
         return None
     return json.dumps({"kits": kits[:20], "sueltos": lista_sueltos[:40]})
@@ -462,7 +474,7 @@ def detalle(id):
         hoy=date.today(), dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"],
         lotes_enviados=lotes_enviados(pedido) if current_user.puede("pedidos.ver_lotes") else [],
         historial=historial_pedido(pedido, current_user),
-        repetir_json=(_contenido_para_repetir(pedido, sueltos=current_user.rol != "cliente")
+        repetir_json=(_contenido_para_repetir(pedido, sueltos=True, productos_permitidos=_productos_del_cliente(pedido))
                       if current_user.puede("pedidos.crear") else None),
         puede_modificar=_puede_modificar_lineas(pedido),
         puede_subir_fotos=_puede_gestionar_fotos(pedido),

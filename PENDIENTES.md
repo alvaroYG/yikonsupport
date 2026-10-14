@@ -476,6 +476,14 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Recuperado lo de ChatGPT del 9/10** (se había perdido; 14/10): el **cliente pide productos sueltos**
+  (solos o con kits; con catálogo propio, solo los de su catálogo; «Repetir» los conserva), el **documento
+  del pedido es obligatorio para todos** (cliente y Yikon; el error sale en la ventana sin perder lo escrito y
+  el servidor también lo exige) y **desplegables con buscador** (`static/js/selectores_buscables.js`,
+  atributo `data-buscable`): cliente al crear un pedido, productos de un kit, ampliar un pedido; en la
+  ventana de pedido, kits y sueltos con su buscador (`pedido.js`). Se mantiene el campo Fecha del pedido.
+  Test: `test_pedido_sueltos_documento.py` (los tests crean los pedidos con `doc_pedido()` de conftest).
+  Sin usar (restos antiguos): `pedidos/_campos_pedido_cliente.html`, `_modal_pedido_cliente.html`, `pedido_cliente.js`.
 - **Ordenar por las cabeceras** (14/10) en Productos, Kits, Clientes, Pedidos, Facturas, Inventario y
   Movimientos: clic = A→Z / menor→mayor (fechas: lo más reciente primero), otro clic = al revés, con ▲/▼ y
   `aria-sort`. Lo hace el servidor (sirve con la paginación) y mantiene buscador y filtros; vuelve a la página 1.

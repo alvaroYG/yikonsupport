@@ -33,7 +33,8 @@ def test_admin_exporta_un_zip_con_pedidos_proformas_y_documentos(app, client):
     proformas = [n for n in nombres if n.startswith("proformas/")]
     assert len(proformas) == 1 and z.read(proformas[0]).startswith(b"%PDF")
     documentos = [n for n in nombres if n.startswith("documentos/")]
-    assert len(documentos) == 1 and documentos[0].endswith("Orden_ compra.pdf")      # (sin ":" en el nombre)
+    assert len(documentos) == 2                                                   # el del pedido y el añadido después
+    assert any(d.endswith("Orden_ compra.pdf") for d in documentos)               # (sin ":" en el nombre)
     hoja = load_workbook(io.BytesIO(z.read("pedidos.xlsx"))).active
     assert any("OC-77" == c.value for fila in hoja.iter_rows() for c in fila)
     assert "Clínica A" in z.read("LEEME.txt").decode()

@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 
 from app.extensions import db
 from app.models import Lote, MovimientoInventario, Pedido, Producto, User
-from tests.conftest import confirmar_correos, contenido, llevar_a_validado, login, pedido_cliente
+from tests.conftest import doc_pedido, confirmar_correos, contenido, llevar_a_validado, login, pedido_cliente
 from tests.test_inventario import _entrada, _estado, _pedido_confirmado
 
 
@@ -71,7 +71,7 @@ def test_stock_negativo_heredado_no_permite_enviar_de_mas(app, client):
 def test_referencia_de_solo_espacios_en_pedido_interno(app, client):
     login(client, "loga")
     for _i in range(2):
-        r = client.post("/pedidos/nuevo", data={"cliente_id": 1, "fecha": "2026-09-01", "referencia": "   ",
+        r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-01", "referencia": "   ",
                                                 "contenido": contenido(sueltos={1: 1})})
         assert r.status_code == 302
     assert [p.referencia for p in db.session.scalars(db.select(Pedido))] == [None, None]
@@ -90,7 +90,7 @@ def test_repetir_un_pedido_de_mas_de_20_productos(app, client):
     db.session.add_all(prods); db.session.commit()
     login(client, "loga")
     datos = {"cliente_id": 1, "fecha": "2026-09-01",
-             "contenido": contenido(sueltos={p.id: 1 for p in prods[:20]})}
+             "contenido": contenido(sueltos={p.id: 1 for p in prods[:20]}), "documento": doc_pedido()}
     client.post("/pedidos/nuevo", data=datos)
     pedido = db.session.scalar(db.select(Pedido))
     for p in prods[20:]:
@@ -102,7 +102,7 @@ def test_repetir_un_pedido_de_mas_de_20_productos(app, client):
 def test_estadisticas_no_cuentan_pedidos_con_fecha_futura(app, client):
     login(client, "cliA")
     pedido_cliente(client)
-    client.post("/pedidos/nuevo", data={"contenido": contenido([(1, 1, {1: 1})]),
+    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(1, 1, {1: 1})]),
                                         "fecha": (date.today() + timedelta(days=60)).isoformat(),
                                         "referencia": "FUTURO"})
     client.post("/auth/logout"); login(client, "admin")

@@ -21,7 +21,7 @@
                 title="{{ _('Mover arriba') }}" aria-label="{{ _('Mover arriba') }}"><i class="fas fa-chevron-up"></i></button>
         <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" data-bajar-fila
                 title="{{ _('Mover abajo') }}" aria-label="{{ _('Mover abajo') }}"><i class="fas fa-chevron-down"></i></button></div>
-      <div class="col">{{ fila.form.producto_id(class_="form-select", **{"aria-label": _("Producto")}) }}</div>
+      <div class="col">{{ fila.form.producto_id(class_="form-select", **{"aria-label": _("Producto"), "data-buscable": _("Buscar producto por nombre o referencia"), "data-sin-resultados": _("Sin coincidencias")}) }}</div>
       <div class="col-3">{{ fila.form.cantidad(class_="form-control", min=1, **{"aria-label": _("Unidades por kit")}) }}</div>
       <div class="col-1"><button type="button" class="btn btn-outline-secondary w-100" data-quitar-fila title="{{ _('Quitar') }}">✕</button></div>
     </div>

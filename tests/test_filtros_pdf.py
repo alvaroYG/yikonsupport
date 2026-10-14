@@ -1,6 +1,6 @@
 from app.extensions import db
 from app.models import Cliente, Producto
-from tests.conftest import ref, contenido, login, pedido_cliente
+from tests.conftest import doc_pedido, ref, contenido, login, pedido_cliente
 
 
 def _preparar(client):
@@ -10,8 +10,8 @@ def _preparar(client):
     db.session.add(Kit(referencia="K2", nombre="Kit dos", precio=50, componentes=[ComponenteKit(producto=p2, cantidad=1)]))
     db.session.commit()
     login(client, "cliA")
-    client.post("/pedidos/nuevo", data={"contenido": contenido([(1, 1, {1: 1})]), "fecha": "2026-09-01", "referencia": "R1"})
-    client.post("/pedidos/nuevo", data={"contenido": contenido([(2, 2, {2: 2})]), "fecha": "2026-09-20", "referencia": "R2"})
+    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(1, 1, {1: 1})]), "fecha": "2026-09-01", "referencia": "R1"})
+    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(2, 2, {2: 2})]), "fecha": "2026-09-20", "referencia": "R2"})
     client.post("/auth/logout")
     login(client, "cliB"); pedido_cliente(client); client.post("/auth/logout")
 

@@ -2,7 +2,7 @@ from io import BytesIO
 
 from app.extensions import db
 from app.models import DocumentoPedido, Pedido, RegistroAuditoria
-from tests.conftest import login, pedido_cliente
+from tests.conftest import doc_pedido, login, pedido_cliente
 from tests.conftest import contenido as contenido_pedido
 
 PDF = b"%PDF-1.4 orden de compra interna"
@@ -10,7 +10,7 @@ PDF = b"%PDF-1.4 orden de compra interna"
 
 def _pedido_con_documento(client, usuario="cliA", nombre="OC-2026-15.pdf", contenido=PDF, ref="OC-15"):
     login(client, usuario)
-    r = client.post("/pedidos/nuevo", data={
+    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), 
         "contenido": contenido_pedido([(1, 1, {1: 1})]), "fecha": "2026-09-25", "referencia": ref,
         "documento": (BytesIO(contenido), nombre)}, content_type="multipart/form-data")
     return r, db.session.scalar(db.select(Pedido).order_by(Pedido.id.desc()))
@@ -39,7 +39,7 @@ def test_adjuntar_despues_desde_la_ficha(app, client):
     for nombre in ["registro.xlsx", "pedido.docx"]:
         client.post(f"/pedidos/{p.id}/documentos", data={"documento": (BytesIO(b"datos"), nombre)},
                     content_type="multipart/form-data")
-    assert sorted(d.nombre_original for d in p.documentos) == ["pedido.docx", "registro.xlsx"]
+    assert sorted(d.nombre_original for d in p.documentos) == ["pedido.docx", "pedido.pdf", "registro.xlsx"]  # (+ la orden de compra)
     assert db.session.scalar(db.select(db.func.count(RegistroAuditoria.id)).where(
         RegistroAuditoria.detalle.like("documento adjuntado%"))) == 2
 
@@ -96,8 +96,8 @@ def test_admin_sube_el_coa_de_un_pedido_enviado_y_el_cliente_lo_descarga(app, cl
     assert "COA de los lotes enviados" in html                      # recordatorio para Yikon
     client.post(f"/pedidos/{p.id}/documentos", content_type="multipart/form-data",
                 data={"documento": (BytesIO(b"%PDF-1.4 COA lote PA2409"), "COA_PA2409.pdf")})
-    doc = db.session.scalar(db.select(DocumentoPedido))
-    assert doc.nombre_original == "COA_PA2409.pdf"
+    doc = db.session.scalar(db.select(DocumentoPedido).filter_by(nombre_original="COA_PA2409.pdf"))
+    assert doc is not None
     client.post("/auth/logout"); login(client, "cliA")
     html = client.get(f"/pedidos/{p.id}").get_data(as_text=True)
     assert "COA_PA2409.pdf" in html and "COA de los lotes enviados" not in html
