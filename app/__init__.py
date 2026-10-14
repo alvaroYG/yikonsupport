@@ -133,6 +133,17 @@ def _registrar_contexto(app):
         args.update(cambios)
         return args
     app.jinja_env.globals["args_url"] = args_url
+
+    # Archivos estáticos con versión: url_for('static', filename='js/pedido.js') → /static/js/pedido.js?v=1760430000
+    # (la fecha del archivo). nginx deja que el navegador los guarde 7 días; con esto, cuando un archivo
+    # cambia (una actualización), su dirección cambia y el navegador descarga el nuevo sin Ctrl+F5.
+    @app.url_defaults
+    def _version_de_estaticos(endpoint, valores):
+        if endpoint == "static" and "filename" in valores and "v" not in valores:
+            try:
+                valores["v"] = int(os.stat(os.path.join(app.static_folder, valores["filename"])).st_mtime)
+            except (OSError, TypeError):
+                pass
     from app.utils import TAMANOS_DE_PAGINA
     app.jinja_env.globals["tamanos_de_pagina"] = TAMANOS_DE_PAGINA     # (10, 25, 50): pie de las listas
     from app.models import ICONOS_ESTADO
