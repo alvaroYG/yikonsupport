@@ -13,7 +13,7 @@ from app.inventario.stock import (abrir_kit, avisos_caducidad, buscar_o_crear_lo
                                   productos_en_kits_cerrados, productos_solo_en_kits_cerrados, registrar_movimiento)
 from app.models import TIPOS_MOVIMIENTO, Kit, Lote, MovimientoInventario, Pedido, Producto
 from app.permisos import requiere_permiso
-from app.utils import limpiar_busqueda, paginar
+from app.utils import limpiar_busqueda, ordenar, ordenar_lista, paginar, patron_like
 
 bp = Blueprint("inventario", __name__)
 
@@ -58,16 +58,40 @@ def lista():
     if request.args.get("solo_bajo"):
         filas = [f for f in filas if f["bajo"]]
         cerrados = [f for f in cerrados if f["bajo"]]
+    # Buscador: referencia, nombre o marca; un kit, también por los productos que lleva
+    q = limpiar_busqueda(request.args.get("q"), 100)
+    if q:
+        filas = [f for f in filas if _coincide(f["articulo"], q)]
+        cerrados = [f for f in cerrados if _coincide(f["articulo"], q)]
+        montados = [k for k in montados if _coincide(k["kit"], q)]
+    # Cabeceras que ordenan (las tres tablas a la vez, cada una con lo suyo). Sin orden: como siempre.
+    articulo = lambda f: f["articulo"]                                         # noqa: E731
+    claves = {"referencia": lambda f: articulo(f).referencia, "nombre": lambda f: articulo(f).nombre,
+              "disponible": lambda f: f.get("total", f["stock"]), "minimo": lambda f: articulo(f).stock_minimo}
+    filas, orden = ordenar_lista(filas, claves)
+    cerrados, _o = ordenar_lista(cerrados, claves)
+    montados, _o = ordenar_lista(montados, {"referencia": lambda k: k["kit"].referencia, "nombre": lambda k: k["kit"].nombre,
+                                            "disponible": lambda k: k["montables"]})
     form = MovimientoForm()
     abrir_form = AbrirKitForm(formdata=None)
     # Para el formulario: lotes existentes de cada artículo (el navegador los sugiere al escribir)
     lotes_por_articulo = {f"{a.tipo_articulo}-{a.id}": [
         {"codigo": l.codigo, "caducidad": l.caducidad.isoformat() if l.caducidad else ""} for l in a.lotes]
         for a in form.kits + form.productos}
-    return render_template("inventario/lista.html", title=_("Inventario"), filas=filas, cerrados=cerrados,
+    return render_template("inventario/lista.html", title=_("Inventario"), filas=filas, cerrados=cerrados, q=q, orden=orden,
                            kits=montados, form=form, abrir_form=abrir_form, lotes_por_articulo=lotes_por_articulo,
                            reservado_lote=reservado_lote, pedidos_con_reserva=len(reservas.pedidos_con_reserva()),
                            hoy=date.today(), dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
+
+
+def _coincide(articulo, q):
+    """¿El kit o producto tiene «q» en la referencia, el nombre o la marca? Un kit, también si lo
+    lleva alguno de sus productos (como en la página de Kits)."""
+    q = q.lower()
+    textos = [articulo.referencia, articulo.nombre, getattr(articulo, "categoria", None)]
+    if isinstance(articulo, Kit):
+        textos += [t for c in articulo.componentes for t in (c.producto.referencia, c.producto.nombre)]
+    return any(q in t.lower() for t in textos if t)
 
 
 def _disponibilidad_kit(kit, disp):
@@ -177,13 +201,28 @@ def _articulo_de_la_url():
 @bp.route("/movimientos")
 @requiere_permiso("inventario.ver")
 def movimientos():
-    select = db.select(MovimientoInventario).order_by(MovimientoInventario.fecha.desc(),
-                                                     MovimientoInventario.id.desc())
+    M = MovimientoInventario
+    select = db.select(M).order_by(M.fecha.desc(), M.id.desc())
     articulo = _articulo_de_la_url()
     if articulo:
-        select = select.where(filtro_articulo(MovimientoInventario, articulo))
+        select = select.where(filtro_articulo(M, articulo))
+    # Buscador: artículo (referencia o nombre), lote, nota o referencia del pedido
+    q = limpiar_busqueda(request.args.get("q"), 100)
+    if q:
+        patron = patron_like(q)
+        like = lambda col: col.ilike(patron, escape="\\")                  # noqa: E731
+        select = select.where(
+            M.producto.has(like(Producto.referencia) | like(Producto.nombre)) | M.kit.has(like(Kit.referencia) | like(Kit.nombre))
+            | M.lote.has(like(Lote.codigo)) | like(M.nota) | M.pedido.has(like(Pedido.referencia_interna)))
+    nombre_articulo = db.func.lower(db.func.coalesce(
+        db.select(Producto.nombre).where(Producto.id == M.producto_id).scalar_subquery(),
+        db.select(Kit.nombre).where(Kit.id == M.kit_id).scalar_subquery()))
+    select, orden = ordenar(select, {
+        "fecha": M.fecha, "articulo": nombre_articulo, "tipo": M.tipo, "cantidad": M.cantidad,
+        "lote": db.select(db.func.lower(Lote.codigo)).where(Lote.id == M.lote_id).scalar_subquery(),
+    }, desempate=M.id)
     return render_template("inventario/movimientos.html", title=_("Movimientos de inventario"),
-                           pagina=paginar(select), producto=articulo, tipos=TIPOS_MOVIMIENTO)
+                           pagina=paginar(select), producto=articulo, tipos=TIPOS_MOVIMIENTO, q=q, orden=orden)
 
 
 # --------------------------------------------------------------------------- #

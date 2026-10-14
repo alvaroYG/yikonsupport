@@ -10,7 +10,7 @@ from app.models import (ComponenteKit, Kit, KitPedido, LineaPedido, Lote, Movimi
                         Producto, ahora)
 from app.permisos import requiere_permiso
 from app.productos.forms import KitForm, ProductoForm
-from app.utils import paginar
+from app.utils import limpiar_busqueda, ordenar, paginar, patron_like
 
 bp = Blueprint("productos", __name__)
 
@@ -22,13 +22,20 @@ CAMPOS = ["referencia", "nombre", "categoria", "precio", "iva_pct", "controlar_s
 @bp.route("/")
 @requiere_permiso("productos.ver")
 def lista():
-    q = request.args.get("q", "").strip()
+    q = limpiar_busqueda(request.args.get("q"), 100)
     select = db.select(Producto).order_by(Producto.categoria, Producto.nombre)
     if q:
-        select = select.where(Producto.nombre.ilike(f"%{q}%") | Producto.referencia.ilike(f"%{q}%")
-                              | Producto.categoria.ilike(f"%{q}%"))
+        patron = patron_like(q)
+        select = select.where(Producto.nombre.ilike(patron, escape="\\") | Producto.referencia.ilike(patron, escape="\\")
+                              | Producto.categoria.ilike(patron, escape="\\"))
+    # Pulsando las cabeceras (?orden=…): ver utils.ordenar. Sin eso, por marca y nombre, como siempre.
+    select, orden = ordenar(select, {
+        "referencia": db.func.lower(Producto.referencia), "nombre": db.func.lower(Producto.nombre),
+        "marca": db.func.lower(Producto.categoria), "precio": Producto.precio, "iva": Producto.iva_pct,
+        "sds": db.case((Producto.sds_archivo.isnot(None), 0), else_=1),       # con ficha primero
+    }, desempate=Producto.id)
     return render_template("productos/lista.html", title=_("Productos"),
-                           pagina=paginar(select), q=q)
+                           pagina=paginar(select), q=q, orden=orden)
 
 
 @bp.route("/nuevo", methods=["GET", "POST"])
@@ -154,8 +161,22 @@ def borrar(id):
 @bp.route("/kits")
 @requiere_permiso("productos.ver")
 def kits():
-    lista = db.session.scalars(db.select(Kit).order_by(Kit.activo.desc(), Kit.nombre)).all()
-    return render_template("productos/kits.html", title=_("Kits"), kits=lista)
+    """Lista de kits con buscador (también por los productos que lleva: «YK001» saca todos los
+    kits con ese índice), ordenable por las cabeceras y paginada. Los inactivos, siempre al final."""
+    q = limpiar_busqueda(request.args.get("q"), 100)
+    select = db.select(Kit).order_by(Kit.activo.desc(), Kit.nombre)
+    if q:
+        patron = patron_like(q)
+        lleva = Kit.componentes.any(ComponenteKit.producto.has(
+            Producto.referencia.ilike(patron, escape="\\") | Producto.nombre.ilike(patron, escape="\\")))
+        select = select.where(Kit.referencia.ilike(patron, escape="\\") | Kit.nombre.ilike(patron, escape="\\")
+                              | Kit.descripcion.ilike(patron, escape="\\") | lleva)
+    n_productos = db.select(db.func.count(ComponenteKit.id)).where(ComponenteKit.kit_id == Kit.id).scalar_subquery()
+    select, orden = ordenar(select, {
+        "referencia": db.func.lower(Kit.referencia), "nombre": db.func.lower(Kit.nombre),
+        "productos": n_productos, "precio": Kit.precio, "iva": Kit.iva_pct,
+    }, desempate=Kit.id, antes=(Kit.activo.desc(),))
+    return render_template("productos/kits.html", title=_("Kits"), pagina=paginar(select), q=q, orden=orden)
 
 
 def _guardar_componentes(kit, form):

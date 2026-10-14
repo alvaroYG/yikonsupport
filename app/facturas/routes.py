@@ -12,7 +12,7 @@ from app.extensions import db
 from app.facturas.forms import FacturaForm, FacturaPdfForm, FacturaPedidoForm
 from app.models import ESTADOS_FACTURA, FORMATOS_FACTURA, REGIMENES_IVA, Cliente, Factura, Pedido, ahora
 from app.permisos import requiere_permiso
-from app.utils import paginar
+from app.utils import ordenar, paginar
 
 bp = Blueprint("facturas", __name__)
 
@@ -61,22 +61,30 @@ def _facturas_filtradas():
     q = request.args.get("q", "").strip()
     if q:
         select = select.where(Factura.numero.ilike(f"%{q}%"))
-    return select, estado, q
+    # Cabeceras que ordenan (utils.ordenar): la lista y el Excel salen en el mismo orden
+    select, orden = ordenar(select, {
+        "numero": db.func.lower(Factura.numero),
+        "cliente": db.select(db.func.lower(Cliente.nombre)).where(Cliente.id == Factura.cliente_id).scalar_subquery(),
+        "pedido": db.select(db.func.lower(Pedido.referencia_interna)).where(Pedido.id == Factura.pedido_id).scalar_subquery(),
+        "emision": Factura.fecha_emision, "vencimiento": Factura.fecha_vencimiento,
+    }, desempate=Factura.id)
+    return select, estado, q, orden
 
 
 @bp.route("/")
 @requiere_permiso("facturas.ver")
 def lista():
-    select, estado, q = _facturas_filtradas()
+    select, estado, q, orden = _facturas_filtradas()
     return render_template("facturas/lista.html", title=_("Facturas"), pagina=paginar(select),
-                           estados=ESTADOS_FACTURA, estado=estado, q=q, fases=NOMBRES_FASES)
+                           estados=ESTADOS_FACTURA, estado=estado, q=q, fases=NOMBRES_FASES,
+                           orden=orden)
 
 
 @bp.route("/exportar.xlsx")
 @requiere_permiso("facturas.ver")
 def exportar_excel():
     from app.excel import MIMETYPE_XLSX, Columna, generar_excel
-    select, _estado, _q = _facturas_filtradas()
+    select, _estado, _q, _orden = _facturas_filtradas()
     facturas = db.session.scalars(select.limit(20000)).all()
     columnas = [Columna(_("Número"), 16), Columna(_("Cliente"), 30), Columna(_("Pedido"), 14),
                 Columna(_("Emisión"), 12, "fecha"), Columna(_("Vencimiento"), 12, "fecha"),

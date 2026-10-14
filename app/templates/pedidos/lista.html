@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "_macros.html" import paginacion, estado_pedido, leyenda_estados %}
+{% from "_macros.html" import paginacion, estado_pedido, leyenda_estados, th_orden %}
 {% set es_cliente = current_user.rol == 'cliente' %}
 {% set ver_importes = current_user.puede('pedidos.ver_importes') %}
 {% block contenido %}
@@ -52,6 +52,7 @@
       {% if hay_filtros %}<a href="{{ url_for('pedidos.lista') }}" class="btn btn-sm btn-outline-secondary">{{ _('Limpiar') }}</a>{% endif %}
     </div>
   </div>
+  {% if orden %}<input type="hidden" name="orden" value="{{ orden }}">{% endif %}
 </form>
 
 {% if f.contiene %}
@@ -62,8 +63,11 @@
 {% endif %}
 <p class="small text-muted mb-2">{% if hay_filtros %}{{ ngettext('%(num)s pedido con los filtros aplicados', '%(num)s pedidos con los filtros aplicados', pagina.total) }}{% else %}{{ ngettext('%(num)s pedido', '%(num)s pedidos', pagina.total) }}{% endif %}</p>
 <table class="table table-hover bg-white align-middle">
-  <thead><tr><th>{{ _('Ref. interna') }}</th><th>{{ _('Fecha') }}</th>{% if not es_cliente %}<th>{{ _('Cliente') }}</th>{% endif %}
-    <th>{{ _('Ref. empresa') }}</th><th>{{ _('Productos') }}</th><th>{{ _('Estado') }}</th><th>{{ _('Entrega estimada') }}</th>{% if ver_importes %}<th class="num">{{ _('Total') }}</th>{% endif %}</tr></thead>
+  <thead><tr>{{ th_orden('referencia', _('Ref. interna'), orden, 'pedidos.lista') }}{{ th_orden('fecha', _('Fecha'), orden, 'pedidos.lista', primero='desc') }}
+    {% if not es_cliente %}{{ th_orden('cliente', _('Cliente'), orden, 'pedidos.lista') }}{% endif %}
+    {{ th_orden('ref_empresa', _('Ref. empresa'), orden, 'pedidos.lista') }}<th>{{ _('Productos') }}</th>
+    {{ th_orden('estado', _('Estado'), orden, 'pedidos.lista') }}{{ th_orden('entrega', _('Entrega estimada'), orden, 'pedidos.lista', primero='desc') }}
+    {% if ver_importes %}<th class="num">{{ _('Total') }}</th>{% endif %}</tr></thead>
   <tbody>{% for p in pagina.items %}
     <tr><td><a href="{{ url_for('pedidos.detalle', id=p.id) }}">{{ p.referencia_interna or '#' ~ p.id }}</a>
       {% if p.documentos %}<span title="{{ _('%(n)s documento(s) adjunto(s)', n=p.documentos|length) }}">📎</span>{% endif %}

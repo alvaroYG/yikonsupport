@@ -476,6 +476,16 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Ordenar por las cabeceras** (14/10) en Productos, Kits, Clientes, Pedidos, Facturas, Inventario y
+  Movimientos: clic = A→Z / menor→mayor (fechas: lo más reciente primero), otro clic = al revés, con ▲/▼ y
+  `aria-sort`. Lo hace el servidor (sirve con la paginación) y mantiene buscador y filtros; vuelve a la página 1.
+  `utils.ordenar()` (consultas) y `utils.ordenar_lista()` (listas calculadas, como el stock) + macro `th_orden`
+  en `_macros.html`. Pedidos: el estado se ordena por el flujo; el PDF y el Excel salen en el mismo orden.
+  **Kits**: buscador (también por los productos que lleva: «YK001»; se marca el producto que coincide),
+  paginación y Referencia/Nombre en columnas separadas; los inactivos, siempre al final. **Inventario**: buscador
+  (kits y productos; un kit también por sus productos), columna Referencia aparte y se queda en la pestaña
+  (#kits / #productos) al buscar u ordenar. **Movimientos**: buscador (artículo, lote, nota, pedido).
+  Sin ordenar: Total y Productos de Pedidos, Estado de Facturas (se calculan). Test: `test_ordenar.py`.
 - **Estado → copia de seguridad**: `copia_seguridad.sh` deja la hora en `/srv/yikonpo/ultima_copia.txt` y
   el `.env` del servidor lleva `COPIA_SEGURIDAD_MARCA` con esa ruta.
 

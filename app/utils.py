@@ -36,6 +36,48 @@ def paginar(select, parametro="pagina", tamano="por_pagina"):
     )
 
 
+def leer_orden(claves, parametro="orden"):
+    """El orden pedido en la URL: ?orden=nombre (A→Z, menor→mayor) o ?orden=-nombre (al revés).
+    Devuelve (clave, descendente), o (None, False) si no hay orden o la clave no es de las permitidas
+    (así nadie puede ordenar por una columna que no está en la lista)."""
+    valor = request.args.get(parametro, "")
+    clave = valor[1:] if valor.startswith("-") else valor
+    return (clave, valor.startswith("-")) if clave in claves else (None, False)
+
+
+def ordenar(select, columnas, desempate=None, antes=(), parametro="orden"):
+    """
+    Ordena una consulta según la cabecera que se ha pulsado (?orden=clave / ?orden=-clave).
+    columnas: {clave: expresión o (expresión, ...)}. Para texto, usar db.func.lower(...) y así
+      «a» y «A» van juntas. Los vacíos van siempre al final, en los dos sentidos.
+    desempate: columna para que el orden sea siempre el mismo entre páginas (p. ej. Modelo.id).
+    antes: lo que va SIEMPRE primero, se ordene por lo que se ordene (p. ej. activos antes que inactivos).
+    Sin orden válido en la URL devuelve la consulta tal cual (con su orden de siempre) y "".
+    Devuelve (consulta, orden) — orden es el valor de la URL ("nombre", "-precio"...) para las cabeceras.
+    """
+    clave, desc = leer_orden(columnas, parametro)
+    if clave is None:
+        return select, ""
+    exprs = columnas[clave] if isinstance(columnas[clave], (tuple, list)) else (columnas[clave],)
+    orden = [(e.desc() if desc else e.asc()).nulls_last() for e in exprs]
+    if desempate is not None:
+        orden.append(desempate.desc() if desc else desempate.asc())
+    return select.order_by(None).order_by(*antes, *orden), ("-" if desc else "") + clave
+
+
+def ordenar_lista(filas, claves, parametro="orden"):
+    """Lo mismo para listas que se calculan en Python (p. ej. el stock): claves = {clave: función
+    que da el valor de una fila}. Los vacíos (None) van al final. Devuelve (filas, orden)."""
+    clave, desc = leer_orden(claves, parametro)
+    if clave is None:
+        return filas, ""
+    valor = claves[clave]
+    con = [f for f in filas if valor(f) is not None]
+    sin = [f for f in filas if valor(f) is None]
+    texto = lambda v: v.lower() if isinstance(v, str) else v       # noqa: E731
+    return sorted(con, key=lambda f: texto(valor(f)), reverse=desc) + sin, ("-" if desc else "") + clave
+
+
 PRECIO_MAXIMO = Decimal("99999999.99")      # lo que cabe en las columnas Numeric(10, 2)
 
 

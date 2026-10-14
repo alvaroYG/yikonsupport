@@ -49,6 +49,21 @@
   {% endif %}
 {% endmacro %}
 
+{% macro th_orden(clave, texto, orden, endpoint, clase='', primero='asc', url_args={}, pagina='pagina', ancla='') %}
+  {# Cabecera de tabla que ordena al pulsarla (utils.ordenar). Primer clic: A→Z / menor→mayor
+     (primero='desc' para fechas: lo más reciente arriba); el siguiente, al revés. Mantiene el
+     buscador y los filtros de la URL y vuelve a la página 1. La columna activa lleva ▲/▼ (no solo color)
+     y aria-sort para los lectores de pantalla. #}
+  {% set activa = orden and (orden == clave or orden == '-' ~ clave) %}
+  {% set desc = activa and orden.startswith('-') %}
+  {% if activa %}{% set siguiente = clave if desc else '-' ~ clave %}
+  {% else %}{% set siguiente = ('-' ~ clave) if primero == 'desc' else clave %}{% endif %}
+  {% set ancla = ('#' ~ ancla) if ancla else '' %}
+  <th class="{{ clase }}" aria-sort="{{ ('descending' if desc else 'ascending') if activa else 'none' }}">
+    <a class="th-orden{{ ' activa' if activa }}" href="{{ url_for(endpoint, **dict(url_args, **args_url(orden=siguiente, **{pagina: 1}))) ~ ancla }}"
+       title="{{ _('Ordenar por %(columna)s', columna=texto) }}">{{ texto }}<span class="th-orden-flecha" aria-hidden="true">{{ ('▼' if desc else '▲') if activa else '↕' }}</span></a></th>
+{% endmacro %}
+
 {# Estados con texto + icono + color de una paleta segura para daltonismo (azul/naranja/gris) #}
 {% macro estado_factura(f) %}
   {# Antes de llegar al cliente: en revisión, devuelta o por enviar. Después, el estado de pago. #}

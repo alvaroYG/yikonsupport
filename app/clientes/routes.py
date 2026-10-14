@@ -10,7 +10,7 @@ from app.extensions import db
 from app.models import Producto, PrecioProductoCliente
 from app.models import FORMATOS_FACTURA, REGIMENES_IVA, Cliente, Factura, Kit, Pedido, PrecioCliente, User
 from app.permisos import requiere_permiso
-from app.utils import leer_precio, paginar
+from app.utils import leer_precio, ordenar, paginar
 
 bp = Blueprint("clientes", __name__)
 
@@ -67,7 +67,17 @@ def lista():
     else:
         precios = ""
     hay_filtros = bool(q or fas or precios or estado != "activos")
-    return render_template("clientes/lista.html", title=_("Clientes"), pagina=paginar(select), q=q,
+    # Cabeceras que ordenan (utils.ordenar). «Soporte de cliente»: por el primero (A→Z) que lo lleva.
+    from app.models import cliente_logistica
+    primer_fas = (db.select(db.func.min(db.func.lower(User.nombre)))
+                  .join(cliente_logistica, cliente_logistica.c.usuario_id == User.id)
+                  .where(cliente_logistica.c.cliente_id == Cliente.id).scalar_subquery())
+    select, orden = ordenar(select, {
+        "nombre": db.func.lower(Cliente.nombre), "cif": Cliente.cif, "ciudad": db.func.lower(Cliente.ciudad),
+        "contacto": db.func.lower(Cliente.persona_contacto), "fas": primer_fas,
+        "precios": db.case((Cliente.ver_precios.is_(True), 0), else_=1),        # los que ven precios primero
+    }, desempate=Cliente.id)
+    return render_template("clientes/lista.html", title=_("Clientes"), pagina=paginar(select), q=q, orden=orden,
                            estado=estado, fas=fas, lista_fas=lista_fas, precios=precios, hay_filtros=hay_filtros)
 
 

@@ -16,7 +16,7 @@ from app.notificaciones import (avisar_cambio_estado_cliente, avisar_datos_envio
                                 avisar_revisar_urgente)
 from app.inventario import reservas
 from app.inventario.stock import aplicar_cambio_de_estado, lotes_enviados, resumen_salida, sale_de_oficina
-from app.utils import es_entero, limpiar_busqueda
+from app.utils import es_entero, limpiar_busqueda, ordenar
 from app.models import (ESTADOS_PEDIDO, ESTADOS_PEDIDO_CLIENTE, ESTADOS_PREPARACION, TRANSICIONES, puede_alguno,
                         Cliente, DocumentoPedido, FotoPedido, Kit, KitPedido, LineaPedido, Pedido, Producto,
                         RevisionPedido, hilo_de)
@@ -134,6 +134,15 @@ def _pedidos_filtrados():
         select = select.where(Pedido.fecha <= f["hasta"])
         descripcion.append(_("hasta %(fecha)s", fecha=f"{f['hasta']:%d/%m/%Y}"))
     select = select.order_by(Pedido.fecha.desc(), Pedido.id.desc())
+    # Cabeceras que ordenan (utils.ordenar): la lista, el PDF y el Excel salen en el mismo orden.
+    # El estado se ordena por el flujo (proforma → … → recibido), no por orden alfabético.
+    select, f["orden"] = ordenar(select, {
+        "referencia": db.func.lower(Pedido.referencia_interna), "fecha": Pedido.fecha,
+        "cliente": db.select(db.func.lower(Cliente.nombre)).where(Cliente.id == Pedido.cliente_id).scalar_subquery(),
+        "ref_empresa": db.func.lower(Pedido.referencia),
+        "estado": db.case({e: i for i, e in enumerate(ESTADOS_PEDIDO)}, value=Pedido.estado, else_=len(ESTADOS_PEDIDO)),
+        "entrega": Pedido.fecha_entrega_estimada,
+    }, desempate=Pedido.id)
     return select, f, ", ".join(descripcion)
 
 
@@ -153,7 +162,8 @@ def lista():
         current_user, [hilo_de(pedido_id=p.id) for p in pagina.items]) if current_user.puede("mensajes.ver") else {}
     return render_template("pedidos/lista.html", title=_("Pedidos"), pagina=pagina,
                            estados=_estados_filtro(), f=filtros, clientes=clientes,
-                           productos=productos, kits=kits, hay_filtros=any(filtros.values()),
+                           productos=productos, kits=kits, orden=filtros["orden"],
+                           hay_filtros=any(v for k, v in filtros.items() if k != "orden"),
                            sin_leer={int(h.split("-")[1]): n for h, n in sin_leer.items()},
                            novedades=resumen_novedades(current_user, pagina.items))
 

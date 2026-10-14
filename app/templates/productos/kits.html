@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "_macros.html" import paginacion, th_orden %}
 {% block contenido %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">{{ _('Kits') }}</h1>
@@ -7,14 +8,29 @@
     {% if current_user.puede('productos.editar') %}<a href="{{ url_for('productos.nuevo_kit') }}" class="btn btn-primary">{{ _('+ Nuevo kit') }}</a>{% endif %}
   </div></div>
 <p class="text-muted small">{{ _('Un kit agrupa varios productos. El cliente elige el kit y puede quitar productos o cambiar cantidades. El precio de cada cliente se puede personalizar desde su ficha.') }}</p>
-<table class="table bg-white align-middle">
-  <thead><tr><th>{{ _('Kit') }}</th><th>{{ _('Productos (por kit)') }}</th><th class="num">{{ _('Precio estándar') }}</th><th class="num">{{ _('IVA') }}</th><th></th></tr></thead>
-  <tbody>{% for k in kits %}
+<form class="row g-2 mb-3" role="search">
+  <div class="col-md-5"><input name="q" value="{{ q }}" class="form-control" aria-label="{{ _('Buscar kits') }}"
+    placeholder="{{ _('Referencia, nombre o un producto que lleve (p. ej. YK001)') }}"></div>
+  {% if orden %}<input type="hidden" name="orden" value="{{ orden }}">{% endif %}
+  <div class="col-auto"><button class="btn btn-outline-secondary">{{ _('Buscar') }}</button>
+    {% if q %}<a href="{{ url_for('productos.kits', orden=orden or None) }}" class="btn btn-link">{{ _('Quitar búsqueda') }}</a>{% endif %}</div></form>
+<table class="table table-hover bg-white align-middle">
+  <thead><tr>{{ th_orden('referencia', _('Referencia'), orden, 'productos.kits') }}{{ th_orden('nombre', _('Nombre'), orden, 'productos.kits') }}
+    {{ th_orden('productos', _('Productos (por kit)'), orden, 'productos.kits') }}
+    {{ th_orden('precio', _('Precio estándar'), orden, 'productos.kits', 'num') }}{{ th_orden('iva', _('IVA'), orden, 'productos.kits', 'num') }}<th></th></tr></thead>
+  <tbody>{% for k in pagina.items %}
     <tr class="{{ 'text-muted' if not k.activo }}">
-      <td><div class="fw-semibold">{{ k.nombre }}{% if not k.activo %} {{ _('(inactivo)') }}{% endif %}</div><div class="small text-muted">{{ k.referencia }} · {{ _('cerrado') if k.cerrado else _('montado en la oficina') }}</div></td>
-      <td class="small">{% for c in k.componentes %}<div>{{ c.cantidad }} × {{ c.producto.nombre }}</div>{% endfor %}</td>
+      <td class="text-nowrap">{{ k.referencia }}</td>
+      <td><div class="fw-semibold">{{ k.nombre }}{% if not k.activo %} {{ _('(inactivo)') }}{% endif %}</div>
+        <div class="small text-muted">{{ _('cerrado') if k.cerrado else _('montado en la oficina') }}</div></td>
+      <td class="small">{% for c in k.componentes %}
+        {# Si se ha buscado por un producto, se marca dónde está (fondo + negrita, no solo color) #}
+        {% set coincide = q and (q|lower in c.producto.referencia|lower or q|lower in c.producto.nombre|lower) %}
+        <div>{% if coincide %}<mark class="fw-semibold">{% endif %}{{ c.cantidad }} × {{ c.producto.nombre }}
+          <span class="text-muted">· {{ c.producto.referencia }}</span>{% if coincide %}</mark>{% endif %}</div>{% endfor %}</td>
       <td class="num">{{ k.precio|euros }}</td><td class="num">{{ k.iva_pct|int }} %</td>
       <td class="text-end">{% if current_user.puede('productos.editar') %}<a href="{{ url_for('productos.editar_kit', id=k.id) }}" class="btn btn-sm btn-outline-primary">{{ _('Editar') }}</a>{% endif %}</td></tr>
-  {% else %}<tr><td colspan="5" class="text-muted">{{ _('Todavía no hay kits.') }}</td></tr>{% endfor %}</tbody>
+  {% else %}<tr><td colspan="6" class="text-muted">{{ _('Ningún kit coincide con la búsqueda.') if q else _('Todavía no hay kits.') }}</td></tr>{% endfor %}</tbody>
 </table>
+{{ paginacion(pagina, 'productos.kits') }}
 {% endblock %}

@@ -172,7 +172,8 @@ Cada cambio queda en **Auditoría** (quién, cuándo, qué cambió).
   archivos adjuntos, no leídos, avisos en la campana y por email (uno hasta que se lee).
 - **Facturas** (registro de las emitidas por contabilidad, con su PDF oficial); el cliente ve
   las suyas y descarga el PDF. **Estadísticas** (admin).
-- **Exportar** a PDF y Excel respetando filtros y permisos.
+- **Exportar** a PDF y Excel respetando filtros, orden y permisos. Las listas se **ordenan pulsando las cabeceras**
+  (Productos, Kits, Clientes, Pedidos, Facturas, Inventario) y tienen buscador.
 - **Usuarios** por invitación (eligen su contraseña), recuperar contraseña, límite de intentos y
   cierre por inactividad (plazos en Ajustes → **Seguridad**, `app/seguridad.py`). Admin puede **ver
   como** otro usuario, en solo lectura (`app/ver_como.py`).

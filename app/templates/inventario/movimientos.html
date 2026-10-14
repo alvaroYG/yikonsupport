@@ -1,14 +1,23 @@
 {% extends "layout.html" %}
-{% from "_macros.html" import paginacion %}
+{% from "_macros.html" import paginacion, th_orden %}
 {% block contenido %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">{{ _('Movimientos') }}{{ ' · ' ~ producto.nombre if producto }}</h1>
   <a href="{{ url_for('inventario.lista') }}" class="btn btn-outline-secondary">{{ _('← Inventario') }}</a>
 </div>
 {% if producto %}<p class="text-muted">{{ _('Stock actual: %(stock)s unidades', stock='<strong>%s</strong>'|safe|format(producto.stock)) }}</p>{% endif %}
+<form class="row g-2 mb-3" role="search">
+  <div class="col-md-5"><input name="q" value="{{ q }}" class="form-control" aria-label="{{ _('Buscar movimientos') }}"
+    placeholder="{{ _('Artículo, lote, nota o pedido') }}"></div>
+  {% for k in ('orden', 'kit_id', 'producto_id') %}{% if request.args.get(k) %}<input type="hidden" name="{{ k }}" value="{{ request.args.get(k) }}">{% endif %}{% endfor %}
+  <div class="col-auto"><button class="btn btn-outline-secondary">{{ _('Buscar') }}</button>
+    {% if q %}<a href="{{ url_for('inventario.movimientos', **args_url(q=None, pagina=None)) }}" class="btn btn-link">{{ _('Quitar búsqueda') }}</a>{% endif %}</div>
+</form>
 <table class="table table-sm bg-white align-middle">
-  <thead><tr><th>{{ _('Fecha') }}</th>{% if not producto %}<th>{{ _('Artículo') }}</th>{% endif %}<th>{{ _('Tipo') }}</th><th>{{ _('Lote') }}</th>
-    <th class="num">{{ _('Cantidad') }}</th><th>{{ _('Pedido') }}</th><th>{{ _('Nota') }}</th><th>{{ _('Usuario') }}</th></tr></thead>
+  <thead><tr>{{ th_orden('fecha', _('Fecha'), orden, 'inventario.movimientos', primero='desc') }}
+    {% if not producto %}{{ th_orden('articulo', _('Artículo'), orden, 'inventario.movimientos') }}{% endif %}
+    {{ th_orden('tipo', _('Tipo'), orden, 'inventario.movimientos') }}{{ th_orden('lote', _('Lote'), orden, 'inventario.movimientos') }}
+    {{ th_orden('cantidad', _('Cantidad'), orden, 'inventario.movimientos', 'num') }}<th>{{ _('Pedido') }}</th><th>{{ _('Nota') }}</th><th>{{ _('Usuario') }}</th></tr></thead>
   <tbody>{% for m in pagina.items %}
     <tr><td class="text-nowrap">{{ m.fecha|fecha_hora }}</td>
       {% if not producto %}<td>{{ m.articulo.nombre }}{% if m.kit_id %} <span class="small text-muted">· {{ _('kit') }}</span>{% endif %}</td>{% endif %}
@@ -18,7 +27,7 @@
       <td class="num fw-semibold">{{ '%+d'|format(m.cantidad) }}</td>
       <td>{% if m.pedido %}<a href="{{ url_for('pedidos.detalle', id=m.pedido.id) }}">{{ m.pedido.referencia_interna }}</a>{% else %}—{% endif %}</td>
       <td class="small">{{ m.nota or '' }}</td><td class="small">{{ m.usuario.nombre if m.usuario else '—' }}</td></tr>
-  {% else %}<tr><td colspan="8" class="text-muted">{{ _('Sin movimientos todavía.') }}</td></tr>{% endfor %}</tbody>
+  {% else %}<tr><td colspan="8" class="text-muted">{{ _('Ningún movimiento coincide con la búsqueda.') if q else _('Sin movimientos todavía.') }}</td></tr>{% endfor %}</tbody>
 </table>
 {{ paginacion(pagina, 'inventario.movimientos') }}
 {% endblock %}

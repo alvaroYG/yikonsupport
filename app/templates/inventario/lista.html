@@ -1,12 +1,13 @@
 {% extends "layout.html" %}
-{% from "_macros.html" import campo, lote_caducidad %}
+{% from "_macros.html" import campo, lote_caducidad, th_orden %}
 
 {# Una fila de la tabla de stock (sirve igual para un kit cerrado y para un producto) #}
 {% macro fila_stock(f, es_kit=false) %}
   {% set a = f.articulo %}
   <tr>
+    <td class="text-nowrap small">{{ a.referencia }}</td>
     <td><div class="fw-semibold">{{ a.nombre }}</div>
-        <div class="small text-muted">{{ a.referencia }}{{ ' · ' ~ a.categoria if not es_kit and a.categoria }}</div>
+        {% if not es_kit and a.categoria %}<div class="small text-muted">{{ a.categoria }}</div>{% endif %}
         {% if es_kit and a.componentes %}<div class="small text-muted">{{ ngettext('%(num)s producto dentro', '%(num)s productos dentro', a.componentes|length) }}</div>{% endif %}
         {% if f.solo_en_kits %}<div class="small text-muted">{{ _('Va dentro de kits cerrados') }}</div>{% endif %}</td>
     <td class="small">
@@ -80,30 +81,42 @@
         <span class="badge rounded-pill bg-secondary ms-1">{{ filas|length }}</span></button></li>
   </ul>
   <div>
-    <a href="{{ url_for('inventario.lista') }}" class="btn btn-sm {{ 'btn-secondary' if not request.args.get('solo_bajo') else 'btn-outline-secondary' }}">{{ _('Todos') }}</a>
-    <a href="{{ url_for('inventario.lista', solo_bajo=1) }}" class="btn btn-sm {{ 'btn-secondary' if request.args.get('solo_bajo') else 'btn-outline-secondary' }}">{{ _('⚠ Solo stock bajo') }}</a>
+    <a href="{{ url_for('inventario.lista', **args_url(solo_bajo=None)) }}" data-mantiene-pestana class="btn btn-sm {{ 'btn-secondary' if not request.args.get('solo_bajo') else 'btn-outline-secondary' }}">{{ _('Todos') }}</a>
+    <a href="{{ url_for('inventario.lista', **args_url(solo_bajo=1)) }}" data-mantiene-pestana class="btn btn-sm {{ 'btn-secondary' if request.args.get('solo_bajo') else 'btn-outline-secondary' }}">{{ _('⚠ Solo stock bajo') }}</a>
   </div>
 </div>
+
+{# Buscador (kits y productos a la vez). Al buscar u ordenar se queda en la pestaña en la que estabas. #}
+<form class="row g-2 mb-2" role="search" id="buscar-inventario">
+  <div class="col-md-5"><input name="q" value="{{ q }}" class="form-control form-control-sm" aria-label="{{ _('Buscar en el inventario') }}"
+    placeholder="{{ _('Referencia, nombre o marca (un kit, también por sus productos)') }}"></div>
+  {% for k in ('solo_bajo', 'orden') %}{% if request.args.get(k) %}<input type="hidden" name="{{ k }}" value="{{ request.args.get(k) }}">{% endif %}{% endfor %}
+  <div class="col-auto"><button class="btn btn-sm btn-outline-secondary">{{ _('Buscar') }}</button>
+    {% if q %}<a href="{{ url_for('inventario.lista', **args_url(q=None)) }}" data-mantiene-pestana class="btn btn-sm btn-link">{{ _('Quitar búsqueda') }}</a>{% endif %}</div>
+</form>
 
 <div class="tab-content">
   <div class="tab-pane fade show active" id="tab-kits" role="tabpanel">
     <p class="small text-muted mt-2">{{ _('Kits cerrados: llegan del fabricante con una sola etiqueta de lote y caducidad (aunque vengan en varias cajas). Al enviar un pedido sale el kit entero.') }}</p>
     <table class="table bg-white align-middle">
-      <thead><tr><th>{{ _('Kit') }}</th><th>{{ _('Lotes (el que caduca antes, primero)') }}</th>
-        <th class="num">{{ _('Disponible') }}</th><th class="num">{{ _('Mínimo') }}</th><th></th></tr></thead>
+      <thead><tr>{{ th_orden('referencia', _('Referencia'), orden, 'inventario.lista', ancla='kits') }}{{ th_orden('nombre', _('Kit'), orden, 'inventario.lista', ancla='kits') }}
+        <th>{{ _('Lotes (el que caduca antes, primero)') }}</th>
+        {{ th_orden('disponible', _('Disponible'), orden, 'inventario.lista', 'num', ancla='kits') }}{{ th_orden('minimo', _('Mínimo'), orden, 'inventario.lista', 'num', ancla='kits') }}<th></th></tr></thead>
       <tbody>{% for f in cerrados %}{{ fila_stock(f, true) }}
-      {% else %}<tr><td colspan="5" class="text-muted">{{ _('No hay kits con stock bajo.') if request.args.get('solo_bajo') else _('No hay kits cerrados activos.') }}</td></tr>{% endfor %}</tbody>
+      {% else %}<tr><td colspan="6" class="text-muted">{% if q %}{{ _('Ningún kit cerrado coincide con la búsqueda.') }}{% else %}{{ _('No hay kits con stock bajo.') if request.args.get('solo_bajo') else _('No hay kits cerrados activos.') }}{% endif %}</td></tr>{% endfor %}</tbody>
     </table>
 
     {% if kits and not request.args.get('solo_bajo') %}
     <h2 class="h6 mt-4">{{ _('Kits montados en la oficina') }}</h2>
     <p class="small text-muted">{{ _('Estos kits se juntan con productos sueltos: no tienen stock propio. "Se pueden montar" = kits completos con el stock disponible ahora (sin caducados); lo limita el producto que antes se acaba.') }}</p>
     <table class="table bg-white align-middle">
-      <thead><tr><th>{{ _('Kit') }}</th><th>{{ _('Productos (por kit · disponible)') }}</th>
-        <th class="num">{{ _('Se pueden montar') }}</th></tr></thead>
+      <thead><tr>{{ th_orden('referencia', _('Referencia'), orden, 'inventario.lista', ancla='kits') }}{{ th_orden('nombre', _('Kit'), orden, 'inventario.lista', ancla='kits') }}
+        <th>{{ _('Productos (por kit · disponible)') }}</th>
+        {{ th_orden('disponible', _('Se pueden montar'), orden, 'inventario.lista', 'num', ancla='kits') }}</tr></thead>
       <tbody>{% for k in kits %}
         <tr>
-          <td><div class="fw-semibold">{{ k.kit.nombre }}</div><div class="small text-muted">{{ k.kit.referencia }}</div></td>
+          <td class="text-nowrap small">{{ k.kit.referencia }}</td>
+          <td><div class="fw-semibold">{{ k.kit.nombre }}</div></td>
           <td class="small">{% for x in k.componentes %}
             <div>{{ x.c.cantidad }} × {{ x.c.producto.nombre }}
               <span class="text-muted">· {% if x.hay is none %}{{ _('sin control de stock') }}{% else %}{{ _('%(n)s uds.', n=x.hay) }}{% endif %}</span>
@@ -120,10 +133,11 @@
   <div class="tab-pane fade" id="tab-productos" role="tabpanel">
     <p class="small text-muted mt-2">{{ _('Unidades de cada producto: las sueltas más las que hay dentro de los kits cerrados (se calcula solo a partir del stock de kits). Para vender o usar un producto suelto que está dentro de un kit, abre el kit.') }}</p>
     <table class="table bg-white align-middle">
-      <thead><tr><th>{{ _('Producto') }}</th><th>{{ _('Lotes (el que caduca antes, primero)') }}</th>
-        <th class="num">{{ _('Disponible') }}</th><th class="num">{{ _('Mínimo') }}</th><th></th></tr></thead>
+      <thead><tr>{{ th_orden('referencia', _('Referencia'), orden, 'inventario.lista', ancla='productos') }}{{ th_orden('nombre', _('Producto'), orden, 'inventario.lista', ancla='productos') }}
+        <th>{{ _('Lotes (el que caduca antes, primero)') }}</th>
+        {{ th_orden('disponible', _('Disponible'), orden, 'inventario.lista', 'num', ancla='productos') }}{{ th_orden('minimo', _('Mínimo'), orden, 'inventario.lista', 'num', ancla='productos') }}<th></th></tr></thead>
       <tbody>{% for f in filas %}{{ fila_stock(f) }}
-      {% else %}<tr><td colspan="5" class="text-muted">{{ _('No hay productos con stock bajo.') if request.args.get('solo_bajo') else _('No hay productos.') }}</td></tr>{% endfor %}</tbody>
+      {% else %}<tr><td colspan="6" class="text-muted">{% if q %}{{ _('Ningún producto coincide con la búsqueda.') }}{% else %}{{ _('No hay productos con stock bajo.') if request.args.get('solo_bajo') else _('No hay productos.') }}{% endif %}</td></tr>{% endfor %}</tbody>
     </table>
     <p class="small text-muted">{{ _('El mínimo de cada producto se cambia en Productos.') }}</p>
   </div>
@@ -181,6 +195,27 @@
 
 {% block scripts %}
 <script>
+// Pestañas Kits / Productos: se abre la de la dirección (#productos) y, al cambiar de pestaña,
+// la dirección, el buscador y los botones Todos / Solo stock bajo la recuerdan (así al buscar u
+// ordenar no se vuelve a la de Kits).
+(function () {
+  // (#kits / #productos, no el id de la pestaña: así el navegador no salta hasta ella)
+  function marcar(nombre) {
+    history.replaceState(null, '', location.pathname + location.search + '#' + nombre);
+    var form = document.getElementById('buscar-inventario');
+    if (form) form.action = '#' + nombre;
+    document.querySelectorAll('[data-mantiene-pestana]').forEach(function (a) {
+      a.href = a.href.split('#')[0] + '#' + nombre;
+    });
+  }
+  var boton = location.hash && document.querySelector('[data-bs-target="#tab-' + location.hash.slice(1) + '"]');
+  if (boton && window.bootstrap) bootstrap.Tab.getOrCreateInstance(boton).show();
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function (b) {
+    b.addEventListener('shown.bs.tab', function () { marcar(b.dataset.bsTarget.replace('#tab-', '')); });
+  });
+  if (boton) marcar(location.hash.slice(1));
+})();
+
 // Sugerencias de lote: al elegir un kit o producto, el campo "Lote" propone sus lotes ya existentes.
 // Si eliges uno, rellena su caducidad (así una entrada de un lote conocido no se equivoca de fecha).
 (function () {

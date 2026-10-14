@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "_macros.html" import paginacion %}
+{% from "_macros.html" import paginacion, th_orden %}
 {% block contenido %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">{{ _('Clientes') }}</h1>
@@ -35,11 +35,13 @@
     {% if hay_filtros %}<div class="col-auto"><a href="{{ url_for('clientes.lista') }}" class="btn btn-sm btn-outline-secondary">
       <i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Quitar filtros') }}</a></div>{% endif %}
   </div>
+  {% if orden %}<input type="hidden" name="orden" value="{{ orden }}">{% endif %}
 </form>
 <p class="small text-muted mb-2">{{ ngettext('%(num)s cliente', '%(num)s clientes', pagina.total) }}{% if hay_filtros %} · {{ _('con los filtros aplicados') }}{% endif %}</p>
 <table class="table table-hover bg-white align-middle">
-  <thead><tr><th>{{ _('Nombre') }}</th><th>{{ _('CIF') }}</th><th>{{ _('Ciudad') }}</th><th>{{ _('Contacto') }}</th><th>{{ rol_fas }}</th>
-    <th class="text-center" title="{{ _('¿Sus usuarios ven precios en la plataforma?') }}">{{ _('Ve precios') }}</th></tr></thead>
+  <thead><tr>{{ th_orden('nombre', _('Nombre'), orden, 'clientes.lista') }}{{ th_orden('cif', _('CIF'), orden, 'clientes.lista') }}
+    {{ th_orden('ciudad', _('Ciudad'), orden, 'clientes.lista') }}{{ th_orden('contacto', _('Contacto'), orden, 'clientes.lista') }}
+    {{ th_orden('fas', rol_fas, orden, 'clientes.lista') }}{{ th_orden('precios', _('Ve precios'), orden, 'clientes.lista', 'text-center') }}</tr></thead>
   <tbody>{% for c in pagina.items %}
     <tr class="{{ 'text-muted' if not c.activo }}"><td><a href="{{ url_for('clientes.detalle', id=c.id) }}">{{ c.nombre }}</a></td>
       <td>{{ c.cif or '—' }}</td><td>{{ c.ciudad or '—' }}</td><td>{{ c.persona_contacto or '—' }}</td>
