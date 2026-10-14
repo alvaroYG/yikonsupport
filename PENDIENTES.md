@@ -469,6 +469,13 @@ pruebas automáticas con navegador.
   preparación, correo de prueba de Ajustes… Se siguen revisando: los que llevan a alguien de fuera
   (cliente o email en copia), las **invitaciones** (aunque sean para un compañero) y los **reenvíos** del
   registro. `revision_correo.solo_para_el_equipo()`, test: `test_correos_entre_companeros.py`.
+- **Carga desde Excel** (`flask importar-datos plantilla.xlsx [--guardar]`, `app/importar.py`): productos,
+  kits con sus componentes y empresas; sin `--guardar` es una prueba; solo crea (lo que existe no se toca);
+  con un error no guarda nada. Plantilla vacía: `deploy/plantilla_carga.xlsx`. Test: `test_importar.py`.
+  Primera carga: el catálogo de `Kits_1.xlsx` de Álvaro (78 productos, 43 kits) convertido a la plantilla con
+  las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
+  inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
+  «ó». Se corrige todo después desde la web.
 - **Estado → copia de seguridad**: `copia_seguridad.sh` deja la hora en `/srv/yikonpo/ultima_copia.txt` y
   el `.env` del servidor lleva `COPIA_SEGURIDAD_MARCA` con esa ruta.
 

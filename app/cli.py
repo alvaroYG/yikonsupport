@@ -69,6 +69,32 @@ def registrar_comandos(app):
                     shutil.rmtree(ruta) if os.path.isdir(ruta) else os.remove(ruta)
         click.echo("Hecho: la plataforma está a cero (solo quedan los admin).")
 
+    @app.cli.command("importar-datos")
+    @click.argument("archivo", type=click.Path(exists=True, dir_okay=False))
+    @click.option("--guardar", is_flag=True, help="Guardar de verdad (sin esto, solo se comprueba).")
+    def importar_datos(archivo, guardar):
+        """Carga productos, kits y empresas desde la plantilla Excel (ver app/importar.py).
+        Sin --guardar es una prueba: dice qué haría y no guarda nada. Solo crea: lo que ya
+        existe no se toca. Si hay algún error, no se guarda nada."""
+        from app.importar import importar
+        click.echo(f"Base de datos: {db.engine.url.render_as_string(hide_password=True)}")
+        informe = importar(archivo, guardar=guardar)
+        for texto in informe.avisos:
+            click.echo(f"  · {texto}")
+        for texto in informe.errores:
+            click.echo(f"  ✗ {texto}")
+        c, e, s = informe.creados, informe.existentes, informe.sin_precio
+        click.echo(f"Productos: {c['Productos']} nuevos ({s['Productos']} sin precio), {e['Productos']} ya existían")
+        click.echo(f"Kits: {c['Kits']} nuevos ({s['Kits']} sin precio, {c['Componentes']} componentes), {e['Kits']} ya existían")
+        click.echo(f"Empresas: {c['Empresas']} nuevas, {e['Empresas']} ya existían")
+        if informe.errores:
+            click.echo(f"{len(informe.errores)} error(es): NO se ha guardado nada. Corrige el Excel y repite.")
+            raise SystemExit(1)
+        if guardar:
+            click.echo("Guardado.")
+        else:
+            click.echo("Era una PRUEBA: no se ha guardado nada. Si está bien, repite con --guardar.")
+
     @app.cli.command("reservar-pendientes")
     def reservar_pendientes():
         """Reserva lotes (los que caducan antes) para los pedidos abiertos que aún no tienen.

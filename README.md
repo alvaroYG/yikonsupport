@@ -216,6 +216,22 @@ texto sin traducir o si una traducción pierde un `%(variable)s`.
 
 Guía paso a paso en **GIT.md** (instalar, primer commit, día a día, ramas, recibir cambios).
 
+## Cargar datos desde Excel (productos, kits y empresas)
+
+Para meter muchos de golpe en vez de uno a uno: se rellena **`deploy/plantilla_carga.xlsx`** (hojas
+Productos, Kits, Componentes y Empresas; instrucciones en la primera hoja) y se carga con:
+
+```bash
+flask importar-datos plantilla.xlsx            # PRUEBA: dice qué crearía y qué está mal; no guarda nada
+flask importar-datos plantilla.xlsx --guardar  # lo guarda
+```
+
+Solo crea: lo que ya existe (misma referencia, nombre o CIF) no se toca. Si hay algún error, no se
+guarda nada. Todo queda en la auditoría. Stock, precios especiales, catálogo de cada cliente y usuarios
+se hacen desde la web. En el servidor: se sube el Excel con `scp archivo.xlsx alvaro@2.31.22.223:/tmp/`
+y se ejecuta `sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && ../venv/bin/flask importar-datos /tmp/archivo.xlsx"`
+(y luego con `--guardar`). Código: `app/importar.py`; test: `tests/test_importar.py`.
+
 ## Cambiar el modelo de datos
 
 ```bash
