@@ -476,6 +476,10 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Correos y spam** (14/10): cada correo lleva `Date` y `Message-ID` con el dominio del remitente (antes
+  «@plataforma»), y `Reply-To` si se pone `MAIL_REPLY_TO` en el .env (`app/correo.py`, `_cabeceras`). Test:
+  `test_correo_cabeceras.py`. Pendiente en el DNS (dondominio): SPF con `include:spf.brevo.com` y `~all`, y
+  decidir un buzón para las respuestas (yikonsupport.com no tiene MX: no recibe correo).
 - **Estáticos con versión** (14/10): `url_for('static', …)` añade `?v=<fecha del archivo>` (`app/__init__.py`,
   `_version_de_estaticos`). nginx deja guardar los estáticos 7 días y tras una actualización el navegador seguía
   con el JavaScript viejo (la lupa no salía hasta Ctrl+F5). Test: `test_estaticos_version.py`.

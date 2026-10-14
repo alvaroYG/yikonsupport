@@ -89,6 +89,8 @@ class Config:
     EMPRESA_NOMBRE = os.environ.get("EMPRESA_NOMBRE", "Yikon Genomics España")
     EMPRESA_DATOS = os.environ.get("EMPRESA_DATOS", "")
     MAIL_FROM = os.environ.get("MAIL_FROM", "Yikon Genomics PO <no-responder@ejemplo.com>")
+    # Si alguien responde a un aviso, la respuesta va aquí (un buzón que se lea). Vacío: al remitente.
+    MAIL_REPLY_TO = os.environ.get("MAIL_REPLY_TO", "")
     ADMIN_EMAILS = [e.strip() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()]
     PASSWORD_HASH_METHOD = "scrypt"
 

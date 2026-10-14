@@ -166,6 +166,9 @@ def resolver(id):
         # Mantener el tipo que espera el backend de pruebas y el registro.
         msg = BytesParser(policy=policy.default, _class=Correo).parsebytes(bytes(msg))
         msg.meta = meta
+        if msg["Date"]:                                  # la fecha de cuando sale, no de cuando se preparó
+            from email.utils import formatdate
+            msg.replace_header("Date", formatdate(localtime=True))
         error = _entregar(msg, reenvio_de=reenvio, revisado=True)
         db.session.execute(db.update(CorreoBorrador).where(CorreoBorrador.id == id).values(
             estado="fallido" if error else "enviado", mensaje=bytes(msg) if error else None))

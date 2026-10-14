@@ -17,7 +17,7 @@ import re
 import smtplib
 from datetime import datetime
 from email.message import EmailMessage
-from email.utils import make_msgid
+from email.utils import formatdate, make_msgid, parseaddr
 
 from flask import current_app, g, has_request_context
 from sqlalchemy import event
@@ -49,7 +49,14 @@ def _cabeceras(destinatarios, asunto):
     msg["Subject"] = asunto
     msg["From"] = current_app.config["MAIL_FROM"]
     msg["To"] = ", ".join(destinatarios)
-    msg["Message-ID"] = make_msgid(domain="plataforma")
+    # Fecha e identificador con el dominio real del remitente (yikonsupport.com): un Message-ID con un
+    # dominio inventado o un correo sin fecha suman puntos de spam en Gmail, Outlook…
+    msg["Date"] = formatdate(localtime=True)
+    dominio = parseaddr(current_app.config["MAIL_FROM"])[1].rpartition("@")[2] or "localhost"
+    msg["Message-ID"] = make_msgid(domain=dominio)
+    # A dónde van las respuestas (MAIL_REPLY_TO del .env): un buzón que alguien lea
+    if current_app.config.get("MAIL_REPLY_TO"):
+        msg["Reply-To"] = current_app.config["MAIL_REPLY_TO"]
     return msg
 
 
