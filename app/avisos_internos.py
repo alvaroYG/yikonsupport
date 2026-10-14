@@ -1,7 +1,7 @@
 """
 Quién de Yikon recibe cada aviso por email (Administración → Ajustes → Avisos internos).
 
-Una casilla por aviso y rol (admin, Logística, Soporte de cliente). Soporte de cliente solo
+Una casilla por aviso y rol (admin, Facturación, Almacén, Soporte de cliente). Soporte de cliente solo
 recibe los de SUS clientes. Además, cada persona solo recibe lo que puede ver (si a su rol le
 han quitado Facturas en "Qué ve cada rol", no le llegan avisos de facturas). Lo decide solo admin.
 
@@ -18,7 +18,8 @@ from app.correo import enviar_tras_guardar
 from app.extensions import db
 from app.models import Ajuste, User
 
-COLUMNAS = ["admin", "logistica", "fas"]
+COLUMNAS = ["admin", "facturacion", "logistica", "fas"]
+EQUIPOS = ("facturacion", "logistica")       # las columnas que llegan a todos los usuarios de ese rol
 
 
 @dataclass
@@ -34,22 +35,22 @@ class Aviso:
 AVISOS = {
     "proforma_pedida": Aviso(
         _l("Un cliente pide una proforma"), _l("Hasta ahora solo salía en la campana."),
-        "pedidos.proforma.enviar", de_fabrica={"logistica", "fas"}),
+        "pedidos.proforma.enviar", de_fabrica={"facturacion", "fas"}),
     "cambios_proforma": Aviso(
         _l("Un cliente pide cambios a la proforma"), _l("Con lo que pide cambiar (también queda en el chat)."),
-        "pedidos.proforma.enviar", de_fabrica={"fas"}, existia=True),
+        "pedidos.proforma.enviar", de_fabrica={"facturacion", "fas"}, existia=True),
     "proforma_aceptada": Aviso(
         _l("Un cliente acepta la proforma"), _l("Para empezar a prepararlo."),
         "pedidos.ver", de_fabrica={"logistica"}),
     "listo_validar": Aviso(
-        _l("Pedido listo para validar las fotos"), _l("Logística lo ha preparado y ha subido las fotos."),
+        _l("Pedido listo para validar las fotos"), _l("Almacén lo ha preparado y ha subido las fotos."),
         "pedidos.validar", de_fabrica={"fas"}),
     "devuelto": Aviso(
         _l("Pedido devuelto a preparación"), _l("Soporte de cliente rechaza las fotos, con su comentario."),
         "pedidos.ver", posibles={"admin", "logistica"}, de_fabrica={"admin", "logistica"}, existia=True),
     "recibido": Aviso(
         _l("El cliente marca un pedido como recibido"), "",
-        "pedidos.ver", de_fabrica={"admin", "fas"}, existia=True),
+        "pedidos.ver", de_fabrica={"admin", "facturacion", "fas"}, existia=True),
     "mensaje_cliente": Aviso(
         _l("Mensaje nuevo de un cliente"),
         _l("A admin, solo si el cliente no tiene Soporte de cliente asignado (o ninguno lo recibe)."),
@@ -58,9 +59,9 @@ AVISOS = {
         _l("Nota en el chat interno de un pedido"), "",
         "mensajes.internos", de_fabrica={"admin", "fas"}, existia=True),
     "mensaje_compartido": Aviso(
-        _l("Soporte de cliente comparte con Logística un mensaje del cliente"),
-        _l("Desde la conversación general, que es privada entre el cliente y su Soporte."),
-        "mensajes.ver", posibles={"logistica"}, de_fabrica={"logistica"}),
+        _l("Soporte de cliente comparte un mensaje del cliente"),
+        _l("Desde la conversación general, que es privada entre el cliente y su Soporte. Le llega solo al equipo con el que se comparte."),
+        "mensajes.ver", posibles={"facturacion", "logistica"}, de_fabrica={"facturacion", "logistica"}),
     "incidencia": Aviso(
         _l("Un cliente avisa de un problema con un pedido"),
         _l("«Hay un problema con este pedido»: llegó dañado, falta algo, temperatura… Se contesta en el chat del pedido."),
@@ -70,7 +71,7 @@ AVISOS = {
         "facturas.revisar", posibles={"admin", "fas"}, de_fabrica={"fas"}),
     "factura_devuelta": Aviso(
         _l("Factura devuelta por Soporte de cliente"), _l("Con lo que hay que corregir."),
-        "facturas.editar", posibles={"admin", "logistica"}, de_fabrica={"logistica"}),
+        "facturas.editar", posibles={"admin", "facturacion"}, de_fabrica={"facturacion"}),
 }
 
 
@@ -122,16 +123,18 @@ def guardar(marcados) -> list:
 # --------------------------------------------------------------------------- #
 # A quién le llega
 # --------------------------------------------------------------------------- #
-def destinatarios(aviso, cliente, excluir_id=None) -> list:
-    """Los usuarios de Yikon que reciben este aviso sobre este cliente."""
+def destinatarios(aviso, cliente, excluir_id=None, solo_roles=None) -> list:
+    """Los usuarios de Yikon que reciben este aviso sobre este cliente. solo_roles: además, solo
+    esos roles (p. ej. un mensaje compartido solo con Facturación)."""
     guardados = _guardados()
-    roles = {rol for rol in COLUMNAS if activo(aviso, rol, guardados)}
+    roles = {rol for rol in COLUMNAS if activo(aviso, rol, guardados) and (solo_roles is None or rol in solo_roles)}
     usuarios = []
     soporte = [u for u in cliente.logisticos if u.activo] if cliente is not None else []
     if "fas" in roles:
         usuarios += soporte
-    if "logistica" in roles:
-        usuarios += db.session.scalars(db.select(User).filter_by(rol="logistica", activo=True)).all()
+    for equipo in EQUIPOS:
+        if equipo in roles:
+            usuarios += db.session.scalars(db.select(User).filter_by(rol=equipo, activo=True)).all()
     if "admin" in roles and not (aviso == "mensaje_cliente" and soporte and "fas" in roles):
         usuarios += db.session.scalars(db.select(User).filter_by(rol="admin", activo=True)).all()
     vistos, resultado = set(), []
@@ -143,11 +146,11 @@ def destinatarios(aviso, cliente, excluir_id=None) -> list:
     return resultado
 
 
-def avisar(aviso, cliente, contenido, excluir_id=None, plantilla="aviso_interno", pedido_id=None):
+def avisar(aviso, cliente, contenido, excluir_id=None, plantilla="aviso_interno", pedido_id=None, solo_roles=None):
     """Manda el aviso (tras el commit) a quien le toque, cada uno en su idioma.
     contenido(): devuelve {"asunto", y lo que use la plantilla} — se llama ya en el idioma de cada grupo."""
     por_idioma = defaultdict(list)
-    for u in destinatarios(aviso, cliente, excluir_id):
+    for u in destinatarios(aviso, cliente, excluir_id, solo_roles):
         por_idioma[u.idioma or "es"].append(u.email)
     for idioma, emails in por_idioma.items():
         with force_locale(idioma):
@@ -202,15 +205,17 @@ def listo_validar(pedido, quien, excluir_id=None):
         "enlace": _enlace(pedido)}, excluir_id, pedido_id=pedido.id)
 
 
-def mensaje_compartido(mensaje, quien, excluir_id=None):
+def mensaje_compartido(mensaje, quien, destino, nota=None, excluir_id=None):
+    """destino: "logistica" (Almacén) o "facturacion": solo le llega a ese equipo."""
+    from app.permisos import ROLES
     cliente = mensaje.cliente
     avisar("mensaje_compartido", cliente, lambda: {
         "asunto": _("%(quien)s te comparte un mensaje de %(cliente)s", quien=quien, cliente=cliente.nombre),
-        "texto": _("%(quien)s ha compartido con Logística este mensaje de la conversación con %(cliente)s:",
-                   quien=quien, cliente=cliente.nombre) + "\n\n" + (mensaje.texto or "")
-                 + ("\n\n" + _("Nota de %(quien)s: %(nota)s", quien=quien, nota=mensaje.compartido_nota)
-                    if mensaje.compartido_nota else ""),
-        "enlace": url_for("mensajes.conversacion", cliente_id=cliente.id, _external=True)}, excluir_id)
+        "texto": _("%(quien)s ha compartido con %(equipo)s este mensaje de la conversación con %(cliente)s:",
+                   quien=quien, equipo=ROLES[destino], cliente=cliente.nombre) + "\n\n" + (mensaje.texto or "")
+                 + ("\n\n" + _("Nota de %(quien)s: %(nota)s", quien=quien, nota=nota) if nota else ""),
+        "enlace": url_for("mensajes.conversacion", cliente_id=cliente.id, _external=True)}, excluir_id,
+        solo_roles={destino})
 
 
 def _enlace_factura(factura):

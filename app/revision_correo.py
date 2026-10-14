@@ -11,12 +11,12 @@ from app.extensions import db
 from app.models import Cliente, CorreoBorrador, User, ahora
 
 bp = Blueprint("revision_correo", __name__)
-EQUIPO = {"admin", "logistica", "fas", "soporte"}
+EQUIPO = {"admin", "facturacion", "logistica", "fas", "soporte"}
 
 
 def solo_para_el_equipo(msg):
     """True si TODOS los destinatarios son usuarios activos del equipo de Yikon (un aviso entre
-    compañeros: factura para revisar, nota interna, «Compartir con Logística», correo de prueba…).
+    compañeros: factura para revisar, nota interna, «Compartir con…», correo de prueba…).
     Basta un destinatario de fuera (un cliente, un email en copia) para que no lo sea."""
     from email.utils import getaddresses
     direcciones = {d.strip().lower() for _, d in getaddresses([str(msg.get("To") or "")]) if d.strip()}

@@ -65,8 +65,8 @@ def test_el_cliente_marca_recibido_y_avisa_a_admin_y_logistics(app, client):
     assert "Marcar como recibido" in client.get(f"/pedidos/{p.id}").get_data(as_text=True)
     client.post(f"/pedidos/{p.id}/recibido")
     assert db.session.get(Pedido, p.id).estado == "entregado"
-    [msg] = _correos(app)                               # uno para admin + su logistics (no al cliente)
-    assert set(msg["To"].replace(" ", "").split(",")) == {"admin@ejemplo.com", "loga@ejemplo.com"}
+    [msg] = _correos(app)                               # uno para admin, Facturación y su Soporte (no al cliente)
+    assert set(msg["To"].replace(" ", "").split(",")) == {"admin@ejemplo.com", "fac@ejemplo.com", "loga@ejemplo.com"}
     assert "Recibido" in msg["Subject"]
     aviso = db.session.scalar(db.select(Mensaje).filter_by(pedido_id=p.id))
     assert "recibido" in aviso.texto                    # y en la conversación del pedido (campana)

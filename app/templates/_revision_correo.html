@@ -1,4 +1,4 @@
-{% if current_user.is_authenticated and current_user.rol in ['admin', 'logistica', 'fas', 'soporte'] and not g.solo_lectura %}
+{% if current_user.is_authenticated and current_user.rol in ['admin', 'facturacion', 'logistica', 'fas', 'soporte'] and not g.solo_lectura %}
 <div class="alert alert-info m-3" id="aviso-correos-revision" hidden>
   <button class="btn btn-sm btn-outline-primary" type="button" id="abrir-correos-revision">{{ _('Revisar correos pendientes') }} <span data-total-correos></span></button>
   <span class="small ms-2">{{ _('No se enviarán hasta que los confirmes.') }}</span>

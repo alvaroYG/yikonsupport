@@ -7,7 +7,7 @@ Incidencias: "Hay un problema con este pedido".
     conversación sigue allí, en un solo sitio (las fotos son los adjuntos de ese mensaje).
   - Yikon lo ve en la ficha del pedido (aviso arriba), en la pestaña «Incidencias» de Pendientes
     y en la campana; le llega un email a quien diga Ajustes → Avisos internos (de fábrica: su
-    Soporte de cliente y Logística).
+    Soporte de cliente y Almacén).
   - Yikon la cierra con «Resuelta» y una nota, que le llega al cliente por el chat del pedido.
 
 Todo pasa por el alcance de siempre (app/alcance.py): cada uno ve las de los pedidos que ve.

@@ -97,14 +97,18 @@ def _primero(select):
 
 
 def reparto(avisar=print):
-    """{"admin", "logistica", "clientes": [(cliente, su usuario, su Soporte), ×3], "kits": [kit, kit]}
+    """{"admin", "facturacion", "logistica" (Almacén), "clientes": [(cliente, su usuario, su Soporte), ×3], "kits": [kit, kit]}
     con lo que haya en la base de datos; lo que falte, se crea (y se avisa)."""
     activos = db.select(User).filter_by(activo=True).order_by(User.id)
     admin = _primero(activos.filter_by(rol="admin")) or _usuario("admin", "Admin de prueba", "prueba.admin@ejemplo.com")
     logistica = _primero(activos.filter_by(rol="logistica"))
     if logistica is None:
-        logistica = _usuario("logistica", "Logística de prueba", "prueba.logistica@ejemplo.com")
-        avisar(f"    creado {logistica.email} (Logística)")
+        logistica = _usuario("logistica", "Almacén de prueba", "prueba.almacen@ejemplo.com")
+        avisar(f"    creado {logistica.email} (Almacén)")
+    facturacion = _primero(activos.filter_by(rol="facturacion"))
+    if facturacion is None:
+        facturacion = _usuario("facturacion", "Facturación de prueba", "prueba.facturacion@ejemplo.com")
+        avisar(f"    creado {facturacion.email} (Facturación)")
     clientes = db.session.scalars(db.select(Cliente).filter_by(activo=True).order_by(Cliente.id).limit(3)).all()
     if not clientes:
         raise RuntimeError("No hay ningún cliente activo: crea al menos uno (o usa flask datos-prueba sin --sobre-mis-datos)")
@@ -126,7 +130,7 @@ def reparto(avisar=print):
     if not kits:
         raise RuntimeError("No hay ningún kit activo: crea al menos uno")
     db.session.commit()
-    return {"admin": admin, "logistica": logistica, "clientes": trios, "kits": kits if len(kits) == 2 else kits * 2}
+    return {"admin": admin, "facturacion": facturacion, "logistica": logistica, "clientes": trios, "kits": kits if len(kits) == 2 else kits * 2}
 
 
 def _lote_de_prueba(**articulo):
@@ -159,7 +163,7 @@ def crear_escenarios(app, avisar=print):
     """Añade los casos de prueba a lo que haya en la base de datos. Devuelve [(caso, referencia), ...]."""
     nav = Navegador(app)
     r = reparto(avisar)
-    admin, logistica = r["admin"], r["logistica"]
+    admin, logistica, facturacion = r["admin"], r["logistica"], r["facturacion"]
     (cli_a, usu_a, fas_a), (cli_b, usu_b, fas_b), (cli_c, usu_c, fas_c) = r["clientes"]
     kit1, kit2 = r["kits"]
     usuario_de = {cli_a.id: usu_a, cli_b.id: usu_b, cli_c.id: usu_c}
@@ -207,7 +211,7 @@ def crear_escenarios(app, avisar=print):
         valida = date.today() + timedelta(days=30)
         with app.test_request_context():         # (el PDF lleva enlaces: necesita una petición)
             pdf = generar_pdf_proforma(modelo_previo(p, valida, "5-7 días laborables"))
-        nav.como(logistica).post(f"/pedidos/{p.id}/proforma/enviar", "enviar la proforma",
+        nav.como(facturacion).post(f"/pedidos/{p.id}/proforma/enviar", "enviar la proforma",
                                  valida_hasta=valida.isoformat(), plazo_entrega="5-7 días laborables",
                                  pdf=(BytesIO(pdf), "Proforma.pdf"))
         comprobar(p, "proforma_enviada", "enviar la proforma")
@@ -247,7 +251,7 @@ def crear_escenarios(app, avisar=print):
         comprobar(p, "entregado", "marcar recibido")
 
     def factura(p, revisar):
-        nav.como(logistica)
+        nav.como(facturacion)
         datos = {"numero": p.referencia_interna, "fecha_emision": date.today().isoformat(),
                  "fecha_vencimiento": (date.today() + timedelta(days=30)).isoformat(),
                  "pdf": (BytesIO(PDF), f"{p.referencia_interna}.pdf")}
@@ -305,12 +309,12 @@ def crear_escenarios(app, avisar=print):
     p = pedir(cli_c, "factura enviada y pagada")
     recibido(p)
     f = factura(p, revisar=False)
-    nav.como(logistica).post(f"/facturas/{f.id}/enviada", "enviar la factura")
+    nav.como(facturacion).post(f"/facturas/{f.id}/enviada", "enviar la factura")
     nav.post(f"/facturas/{f.id}/pagada", "marcar pagada")
     p = pedir(cli_c, "factura vencida")
     recibido(p)
     f = factura(p, revisar=False)
-    nav.como(logistica).post(f"/facturas/{f.id}/enviada", "enviar la factura")
+    nav.como(facturacion).post(f"/facturas/{f.id}/enviada", "enviar la factura")
     f.fecha_emision, f.fecha_vencimiento = date.today() - timedelta(days=45), date.today() - timedelta(days=15)
     db.session.commit()
 
@@ -340,7 +344,8 @@ def quien_es_quien():
     """Para el final del comando: con qué usuario hace cada papel (los de reparto())."""
     r = reparto(avisar=lambda _t: None)
     lineas = [f"  admin:      {r['admin'].nombre} <{r['admin'].email}>",
-              f"  logística:  {r['logistica'].nombre} <{r['logistica'].email}>"]
+              f"  facturación: {r['facturacion'].nombre} <{r['facturacion'].email}>",
+              f"  almacén:    {r['logistica'].nombre} <{r['logistica'].email}>"]
     for letra, (cliente, usuario, fas) in zip("ABC", r["clientes"]):
         lineas.append(f"  cliente {letra}:  {cliente.nombre} → {usuario.nombre} <{usuario.email}>; "
                       f"su Soporte: {fas.nombre}")

@@ -68,7 +68,7 @@ def test_quien_solo_es_de_soporte_ve_el_aviso(en_pausa, client):
 
 def test_el_formulario_de_usuario_no_ofrece_los_roles_de_soporte(en_pausa, client):
     with en_pausa.test_request_context():
-        assert [c for c, _n in UsuarioForm().rol.choices] == ["admin", "logistica", "fas", "cliente"]
+        assert [c for c, _n in UsuarioForm().rol.choices] == ["admin", "facturacion", "logistica", "fas", "cliente"]
         # ...pero quien ya lo tenía lo conserva al editarlo (si no, el formulario le cambiaría el rol)
         assert "soporte" in [c for c, _n in UsuarioForm(usuario=_usuario("sop")).rol.choices]
     login(client, "admin")

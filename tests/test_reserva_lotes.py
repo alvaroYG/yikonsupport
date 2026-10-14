@@ -102,7 +102,7 @@ def test_pedido_de_yikon_reserva_al_crearlo_el_lote_que_caduca_antes(app, client
 def test_lo_reservado_no_esta_libre_para_otro_pedido(app, client):
     _dos_lotes(client)
     a = _pedido_yikon(client, 4)                       # se lleva 4 de PRONTO
-    b = _pedido_yikon(client, 3, usuario="ofi")        # solo queda 1 libre de PRONTO: el resto, de LEJANO
+    b = _pedido_yikon(client, 3, usuario="fac")        # solo queda 1 libre de PRONTO: el resto, de LEJANO
     assert _reservado(a) == {"PRONTO": 4} and _reservado(b) == {"PRONTO": 1, "LEJANO": 2}
     # y a mano tampoco se puede coger lo de otro pedido
     r = _lotes(client, b, PRONTO=3)
@@ -276,7 +276,7 @@ def test_liberar_una_proforma_sin_contestar_la_retira(app, client):
     _dos_lotes(client)
     p = _proforma_pedida(client)
     login(client, "loga"); _enviar_proforma(client, p); _salir(client)
-    login(client, "ofi")
+    login(client, "fac")
     r = client.post(f"/inventario/reservas/{p.id}/liberar", follow_redirects=True)
     db.session.refresh(p)
     assert "liberada y proforma" in r.get_data(as_text=True)
@@ -292,7 +292,7 @@ def test_una_proforma_aceptada_no_se_libera_desde_inventario(app, client):
     p = _proforma_pedida(client)
     login(client, "loga"); _enviar_proforma(client, p); _salir(client)
     login(client, "cliA"); client.post(f"/pedidos/{p.id}/proforma/responder", data={"aceptar": "1"}); _salir(client)
-    login(client, "ofi")
+    login(client, "fac")
     r = client.post(f"/inventario/reservas/{p.id}/liberar", follow_redirects=True)
     assert "no se puede liberar" in r.get_data(as_text=True)
     assert _reservado(p) == {"PRONTO": 3} and db.session.get(Pedido, p.id).estado == "aceptado"
@@ -320,7 +320,7 @@ def test_el_fas_solo_toca_los_lotes_de_sus_clientes_y_no_libera(app, client):
     login(client, "loga")                              # el suyo sí
     client.post(f"/pedidos/{p.id}/lotes", data={"accion": "automatico"})
     assert _reservado(p) == {"PRONTO": 3}
-    assert client.post(f"/inventario/reservas/{p.id}/liberar").status_code == 403    # liberar es de la oficina
+    assert client.post(f"/inventario/reservas/{p.id}/liberar").status_code == 403    # liberar es de admin y Facturación
     assert _reservado(p) == {"PRONTO": 3}
 
 
@@ -407,7 +407,7 @@ def test_lo_reservado_en_un_lote_caducado_no_quita_stock_libre(app, client):
     _dos_lotes(client)
     a = _pedido_yikon(client, 3)                                     # PRONTO×3
     _lote("PRONTO").caducidad = date.today() - timedelta(days=1); db.session.commit()
-    b = _pedido_yikon(client, 5, usuario="ofi")
+    b = _pedido_yikon(client, 5, usuario="fac")
     assert _reservado(a) == {"PRONTO": 3} and _reservado(b) == {"LEJANO": 5}
     assert "3 reservadas" in client.get("/inventario/").get_data(as_text=True)       # (la etiqueta del lote caducado)
 

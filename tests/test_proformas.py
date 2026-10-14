@@ -77,7 +77,7 @@ def test_pedir_cambios_y_segunda_version(app, client):
     assert p.estado == "cambios_solicitados" and p.proformas[0].estado == "cambios"
     m = db.session.scalar(db.select(Mensaje))
     assert "Quitad los tubos" in m.texto and m.pedido_id == p.id        # queda en los mensajes del pedido
-    assert [c["To"] for c in correos] == ["loga@ejemplo.com"]           # aviso a su logistics, no al cliente
+    assert [c["To"] for c in correos] == ["fac@ejemplo.com, loga@ejemplo.com"]   # a Facturación y su Soporte, no al cliente
     _salir(client)
     login(client, "loga")
     seccion = client.get(f"/pedidos/{p.id}").get_data(as_text=True).split('id="proforma"')[1].split("</section>")[0]

@@ -47,24 +47,50 @@ def test_el_cliente_escribe_a_su_soporte_y_logistica_no_lo_ve(app, client):
 def test_en_el_chat_del_pedido_el_cliente_ve_quien_lo_lee(app, client):
     login(client, "cliA"); pedido_cliente(client)
     html = client.get("/pedidos/1").get_data(as_text=True)
-    assert "lo ven Logística y loga" in html
+    assert "lo ven el equipo de Yikon y loga" in html
 
 
-def test_compartir_con_logistica(app, client):
+def test_compartir_con_almacen_y_despues_con_facturacion(app, client):
     m = _escribe_el_cliente(client)
     login(client, "ofi")
-    assert client.post(f"/mensajes/{m.id}/compartir").status_code == 403    # Logística no comparte
+    assert client.post(f"/mensajes/{m.id}/compartir").status_code == 403    # Almacén no comparte
+    _salir(client)
+    login(client, "fac")
+    assert m.texto not in client.get("/mensajes/cliente/1").get_data(as_text=True)   # Facturación tampoco lo ve aún
+    assert client.post(f"/mensajes/{m.id}/compartir").status_code == 403
     _salir(client)
     correos = _correos(app)
     login(client, "loga")
-    client.post(f"/mensajes/{m.id}/compartir", data={"nota": "¿Hay stock para el martes?"})
+    html = client.get("/mensajes/cliente/1").get_data(as_text=True)
+    assert 'name="destino" value="logistica"' in html and 'name="destino" value="facturacion"' in html
+    client.post(f"/mensajes/{m.id}/compartir", data={"destino": "logistica", "nota": "¿Hay stock para el martes?"})
     assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
-    assert [c["To"] for c in correos] == ["ofi@ejemplo.com"]
+    assert [c["To"] for c in correos] == ["ofi@ejemplo.com"]                # solo a Almacén
     assert m.texto in correos[0].get_content() and "¿Hay stock para el martes?" in correos[0].get_content()
+    assert "compartido con Almacén" in correos[0].get_content()
+    html = client.get("/mensajes/cliente/1").get_data(as_text=True)
+    assert "Compartido con Almacén" in html and 'name="destino" value="logistica"' not in html   # ya está
+    assert client.post(f"/mensajes/{m.id}/compartir", data={"destino": "otro"}).status_code == 400
     _salir(client)
     login(client, "ofi")
     html = client.get("/mensajes/cliente/1").get_data(as_text=True)
-    assert m.texto in html and "Compartido con Logística" in html
+    assert m.texto in html and "Compartido con Almacén" in html
     _salir(client)
+    login(client, "fac")
+    assert m.texto not in client.get("/mensajes/cliente/1").get_data(as_text=True)   # a Facturación, no
+    _salir(client)
+    # Después, también con Facturación: le llega solo a ella y ya lo ve; Almacén lo sigue viendo
+    correos.clear()
+    login(client, "loga")
+    client.post(f"/mensajes/{m.id}/compartir", data={"destino": "facturacion", "nota": "Y el precio"})
+    assert [c["To"] for c in correos] == ["fac@ejemplo.com"]
+    db.session.refresh(m)
+    assert m.compartido_roles == ["logistica", "facturacion"] and m.compartido_nota == "¿Hay stock para el martes? · Y el precio"
+    _salir(client)
+    for quien in ("fac", "ofi"):
+        login(client, quien)
+        html = client.get("/mensajes/cliente/1").get_data(as_text=True)
+        assert m.texto in html and "Compartido con Almacén · Facturación" in html
+        _salir(client)
     login(client, "cliA")
-    assert "Compartido con Logística" not in client.get("/mensajes/cliente/1").get_data(as_text=True)
+    assert "Compartido con" not in client.get("/mensajes/cliente/1").get_data(as_text=True)

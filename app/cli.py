@@ -147,7 +147,8 @@ def registrar_comandos(app):
             return u
 
         crear_usuario("Admin Demo", "admin@ejemplo.com", "admin")
-        crear_usuario("Lucía Logística", "logistica@ejemplo.com", "logistica")   # la oficina
+        crear_usuario("Lucía Almacén", "almacen@ejemplo.com", "logistica")   # el almacén (rol "logistica")
+        crear_usuario("Fernando Facturación", "facturacion@ejemplo.com", "facturacion")
         laura = crear_usuario("Laura FAS", "laura@ejemplo.com", "fas")
         pablo = crear_usuario("Pablo FAS", "pablo@ejemplo.com", "fas")
 
@@ -268,7 +269,8 @@ def registrar_comandos(app):
         click.echo(
             "Datos demo creados (contraseña de todos: demo123456)\n"
             "  admin@ejemplo.com                      → admin\n"
-            "  logistica@ejemplo.com                  → Logística (oficina)\n"
+            "  facturacion@ejemplo.com                → Facturación (proformas y facturas)\n"
+            "  almacen@ejemplo.com                    → Almacén (preparar, enviar, inventario)\n"
             "  laura@ejemplo.com, pablo@ejemplo.com   → Soporte de cliente (rol fas)\n"
             "  norte@, centro@, instituto@ejemplo.com → clientes (norte@ e instituto@ con Soporte ChromGo)\n"
             "  soporte@ejemplo.com                    → Soporte ChromGo\n"

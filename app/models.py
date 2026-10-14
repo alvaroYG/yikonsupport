@@ -420,7 +420,7 @@ ESTADOS_PEDIDO = {
     "proforma_solicitada": _l("Proforma solicitada"),
     "proforma_enviada": _l("Proforma enviada"),
     "cambios_solicitados": _l("Cambios solicitados"),
-    # 4-7. Pedido: aceptado → Logística lo prepara y hace las fotos → el FAS del cliente las valida
+    # 4-7. Pedido: aceptado → Almacén lo prepara y hace las fotos → el FAS del cliente las valida
     #      (o lo devuelve a preparación) → listo para enviar
     "aceptado": _l("Aceptado"),
     "en_preparacion": _l("En preparación"),
@@ -1251,12 +1251,19 @@ class Mensaje(db.Model):
     # que quien lo escribió pueda deshacerlo unos segundos (MENSAJES_DESHACER_SEGUNDOS). Vacío = ya.
     visible_desde = db.Column(db.DateTime(timezone=True))
     interno = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
-    # La conversación general es privada entre el cliente y su Soporte de cliente: Logística solo ve
-    # los mensajes que el Soporte le comparte ("Compartir con Logística"), con una nota opcional.
+    # La conversación general es privada entre el cliente y su Soporte de cliente: Almacén y
+    # Facturación solo ven los mensajes que el Soporte les comparte («Compartir con…»), con una nota
+    # opcional. compartido_con: a qué roles, separados por comas ("logistica", "facturacion" o los dos).
     compartido_el = db.Column(db.DateTime(timezone=True))
+    compartido_con = db.Column(db.String(40))
     compartido_por_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"))
     compartido_por = db.relationship("User", foreign_keys=[compartido_por_id])
     compartido_nota = db.Column(db.String(500))
+
+    @property
+    def compartido_roles(self):
+        """Los roles con los que se ha compartido (["logistica"], ["facturacion"], los dos o [])."""
+        return [r for r in (self.compartido_con or "").split(",") if r]
     fecha = db.Column(db.DateTime(timezone=True), default=ahora, index=True)
     adjuntos = db.relationship("AdjuntoMensaje", back_populates="mensaje", order_by="AdjuntoMensaje.id")
 

@@ -56,8 +56,9 @@ def test_la_proforma_pasa_de_pendiente_de_yikon_a_pendiente_del_cliente(app, cli
     _entrada(client)
     p = _pedir_proforma(client)
     ref = p.referencia_interna
-    # la tienen pendiente quienes envían proformas de ese cliente: su FAS y la oficina
-    assert ref in _grupos(client, "loga")["proformas"] and ref in _grupos(client, "ofi")["proformas"]
+    # la tienen pendiente quienes envían proformas de ese cliente: su FAS y Facturación (Almacén, no)
+    assert ref in _grupos(client, "loga")["proformas"] and ref in _grupos(client, "fac")["proformas"]
+    assert _grupos(client, "ofi") == {}
     assert "proformas" not in _grupos(client, "logb")              # FAS de otra clínica
     assert _grupos(client, "cliA") == {}                           # el cliente, de momento, solo espera
     # abrir el pedido NO la quita: sigue pendiente hasta que se envía
@@ -66,7 +67,7 @@ def test_la_proforma_pasa_de_pendiente_de_yikon_a_pendiente_del_cliente(app, cli
     _enviar_proforma(client, p)
     assert "proformas" not in _grupos(client, "loga")
     assert f'href="/pedidos/{p.id}"' in _grupos(client, "cliA")["responder"]
-    # el cliente acepta: deja de tenerla pendiente y la oficina tiene un pedido por empezar
+    # el cliente acepta: deja de tenerla pendiente y Almacén tiene un pedido por empezar
     login(client, "cliA"); client.post(f"/pedidos/{p.id}/proforma/responder", data={"aceptar": "1"}); _salir(client)
     assert _grupos(client, "cliA") == {}
     assert ref in _grupos(client, "ofi")["aceptados"]
@@ -86,12 +87,15 @@ def test_cambios_pedidos_por_el_cliente_vuelven_a_ser_pendiente_de_yikon(app, cl
 
 def test_lotes_por_asignar_hasta_que_se_asignan(app, client):
     p = _pedir_proforma(client, cantidad=2)            # sin stock: la proforma sale "a confirmar"
-    assert "lotes" not in _grupos(client, "ofi")       # mientras se prepara la proforma aún no cuenta
+    assert "lotes" not in _grupos(client, "fac")       # mientras se prepara la proforma aún no cuenta
     _enviar_proforma(client, p)
-    grupo = _grupos(client, "ofi")["lotes"]
+    grupo = _grupos(client, "fac")["lotes"]
     assert p.referencia_interna in grupo and "faltan 2 unidades" in grupo and f'/pedidos/{p.id}#lotes' in grupo
     assert "faltan 2 unidades" in _grupos(client, "loga")["lotes"]     # su FAS también lo ve
     assert "lotes" not in _grupos(client, "logb")
+    assert "lotes" not in _grupos(client, "ofi")                     # Almacén: aún es proforma, no lo ve
+    login(client, "cliA"); client.post(f"/pedidos/{p.id}/proforma/responder", data={"aceptar": "1"}); _salir(client)
+    assert "faltan 2 unidades" in _grupos(client, "ofi")["lotes"]    # aceptado: ya le toca a Almacén
     _entrada(client)
     assert "faltan 2 unidades" in _grupos(client, "ofi")["lotes"]      # que entre mercancía no lo resuelve solo
     login(client, "ofi"); reservar_lotes(client, p.id); _salir(client)

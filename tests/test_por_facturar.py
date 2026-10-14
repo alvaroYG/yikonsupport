@@ -32,9 +32,9 @@ def _grupo_facturar(app, email):
 
 def test_enviado_sin_factura_sale_por_facturar_hasta_que_se_registra(app, client):
     p = _enviado(client)
-    login(client, "ofi")
+    login(client, "fac")
     assert p.referencia_interna in client.get("/facturas/por-facturar").get_data(as_text=True)
-    assert [f["pedido"].id for f in _grupo_facturar(app, "ofi")["todas"]] == [p.id]
+    assert [f["pedido"].id for f in _grupo_facturar(app, "fac")["todas"]] == [p.id]
     r = client.post(f"/facturas/pedido/{p.id}", content_type="multipart/form-data", data={
         "numero": "F-2026-0145", "fecha_emision": "2026-10-07", "fecha_vencimiento": "2026-11-06",
         "pdf": (BytesIO(b"%PDF-1.4\n" + b"0" * 300), "F-2026-0145.pdf")})
@@ -95,7 +95,7 @@ def test_excel_basico_formato_a_por_defecto(app, client):
     p1 = db.session.scalar(db.select(Producto).filter_by(referencia="P1"))
     lote = Lote(producto=p1, codigo="YK2501-C3", caducidad=date(2027, 11, 30))
     db.session.add(ReservaLote(pedido=p, lote=lote, cantidad=2)); db.session.commit()
-    login(client, "ofi")
+    login(client, "fac")
     html = client.get(f"/facturas/pedido/{p.id}/datos").get_data(as_text=True)
     assert "YK2501-C3" in html and "30/11/2027" in html                     # el lote se ve en la página...
     assert "no tiene configurada la facturación" in html                    # ...y avisa: cliente sin configurar
@@ -131,7 +131,7 @@ def test_la_lista_de_facturas_pone_primero_las_vencidas(app, client):
         Factura(enviada_el=ahora(), numero="F-NUEVA", cliente=p.cliente, fecha_emision=date(2026, 10, 1), fecha_vencimiento=date(2099, 1, 1)),
         Factura(enviada_el=ahora(), numero="F-VENCIDA", cliente=p.cliente, fecha_emision=date(2026, 1, 1), fecha_vencimiento=date(2026, 2, 1))])
     db.session.commit()
-    login(client, "ofi")
+    login(client, "fac")
     html = client.get("/facturas/").get_data(as_text=True)
     assert html.index("F-VENCIDA") < html.index("F-NUEVA")
 
@@ -143,7 +143,7 @@ def _configurar(client, p, formato, regimen, envio=""):
 
 def test_formato_b_ue_con_envio_pactado(app, client):
     p = _enviado(client, cantidad=2)                     # 2 × "Kit uno" a 100 € = 2 × P1 (catálogo 100 €)
-    login(client, "ofi")
+    login(client, "fac")
     r = _configurar(client, p, "B", "ue", "150")
     assert r.status_code == 302 and f"/facturas/pedido/{p.id}/datos" in r.headers["Location"]
     assert datos_para_facturar(p)["avisos"] == []                                  # 2 × 100 = el precio del kit
@@ -173,7 +173,7 @@ def test_formato_c_lista_con_precio_unitario_y_descuento(app, client):
     p.lineas.append(LineaPedido(producto=p1, cantidad=3, precio_unitario=100, iva_pct=21, descuento_pct=50))
     p.cliente.formato_factura, p.cliente.regimen_iva = "C", "export"
     db.session.commit()
-    login(client, "ofi")
+    login(client, "fac")
     celdas, ws = _excel(client, p)
     fila = next(c.row for c in ws["A"] if c.value == "Item")
     # Item, Catalog No., Unit Price, Qty., Price (de la línea, sin descuento: va en los totales)
@@ -194,14 +194,14 @@ def test_facturacion_del_cliente_solo_la_cambia_quien_registra_facturas(app, cli
     p = _enviado(client)
     login(client, "loga")                                  # FAS: no
     assert _configurar(client, p, "C", "ue").status_code == 403
-    client.post("/auth/logout"); login(client, "ofi")
+    client.post("/auth/logout"); login(client, "fac")
     _configurar(client, p, "Z", "ue")                      # formato que no existe: no se guarda
     assert p.cliente.formato_factura is None
 
 
 def test_el_numero_de_factura_viene_puesto_con_la_referencia(app, client):
     p = _enviado(client)
-    login(client, "ofi")
+    login(client, "fac")
     html = client.get(f"/pedidos/{p.id}").get_data(as_text=True)
     import re
     campo = re.search(r'<input[^>]*name="numero"[^>]*>', html).group(0)
@@ -231,7 +231,7 @@ def _cliente_la_ve(client, f):
 
 def test_la_casilla_de_revision_sale_marcada_si_el_cliente_lo_tiene(app, client):
     p = _enviado(client)
-    login(client, "ofi")
+    login(client, "fac")
     _configurar(client, p, "A", "es")                      # sin la casilla: revisión desactivada
     assert not p.cliente.revisar_facturas
     client.post(f"/facturas/cliente/{p.cliente_id}/facturacion", data={
@@ -244,7 +244,7 @@ def test_la_casilla_de_revision_sale_marcada_si_el_cliente_lo_tiene(app, client)
 
 def test_revision_devolver_corregir_aprobar_y_enviar(app, client):
     p = _enviado(client)
-    login(client, "ofi")
+    login(client, "fac")
     f = _registrar_factura(client, p, revisar=True)
     assert f.fase == "revision" and not _cliente_la_ve(client, f)
     # La revisa el Soporte de cliente de ese cliente; otro no puede
@@ -257,8 +257,8 @@ def test_revision_devolver_corregir_aprobar_y_enviar(app, client):
     client.post(f"/facturas/{f.id}/devolver", data={"comentario": "Falta el descuento del 10 %"})
     assert f.fase == "cambios" and f.revision_comentario == "Falta el descuento del 10 %"
     # Aina la ve devuelta, sube el PDF corregido y vuelve a revisión
-    client.post("/auth/logout"); login(client, "ofi")
-    assert [x["texto"] for x in _grupo(app, "ofi", "facturas_devueltas")["todas"]] == [f.numero]
+    client.post("/auth/logout"); login(client, "fac")
+    assert [x["texto"] for x in _grupo(app, "fac", "facturas_devueltas")["todas"]] == [f.numero]
     assert client.post(f"/facturas/{f.id}/enviada").status_code == 302 and not f.enviada   # devuelta: no se envía
     client.post(f"/facturas/{f.id}/subir-pdf", data={"pdf": (BytesIO(b"%PDF-1.4\n" + b"1" * 300), "f2.pdf")},
                 content_type="multipart/form-data")
@@ -267,15 +267,15 @@ def test_revision_devolver_corregir_aprobar_y_enviar(app, client):
     client.post(f"/facturas/{f.id}/aprobar")
     assert f.fase == "por_enviar" and f.revisado_por.email == "loga@ejemplo.com"
     assert not _cliente_la_ve(client, f)                   # aprobada, pero aún no enviada
-    login(client, "ofi")
-    assert [x["texto"] for x in _grupo(app, "ofi", "facturas_enviar")["todas"]] == [f.numero]
+    login(client, "fac")
+    assert [x["texto"] for x in _grupo(app, "fac", "facturas_enviar")["todas"]] == [f.numero]
     client.post(f"/facturas/{f.id}/enviada")
     assert f.enviada and _cliente_la_ve(client, f)
 
 
 def test_sin_revision_va_directa_a_por_enviar(app, client):
     p = _enviado(client)
-    login(client, "ofi")
+    login(client, "fac")
     f = _registrar_factura(client, p, revisar=False)
     assert f.fase == "por_enviar" and f.revision is None
     f.fecha_vencimiento = date(2020, 1, 1); db.session.commit()

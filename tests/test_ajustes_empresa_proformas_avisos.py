@@ -72,7 +72,7 @@ def test_la_proforma_sale_rellena_en_el_idioma_del_cliente(app, client):
 def test_avisos_nuevos_de_la_proforma_con_los_de_fabrica(app, client):
     correos = _correos(app)
     login(client, "cliA"); pedido_cliente(client, con_proforma=True)
-    assert _a(correos) == ["loga@ejemplo.com", "ofi@ejemplo.com"]          # proforma pedida: Logística y su Soporte
+    assert _a(correos) == ["fac@ejemplo.com", "loga@ejemplo.com"]          # proforma pedida: Facturación y su Soporte
     assert "ha pedido una proforma" in correos[0].get_content()
     _salir(client)
     p = db.session.scalar(db.select(Pedido))
@@ -83,7 +83,7 @@ def test_avisos_nuevos_de_la_proforma_con_los_de_fabrica(app, client):
     correos = _correos(app)
     login(client, "cliA")
     client.post(f"/pedidos/{p.id}/proforma/responder", data={"cambios": "1", "comentario": "Quitad los tubos"})
-    assert _a(correos) == ["loga@ejemplo.com"]                              # un solo email (no también el de "mensaje")
+    assert _a(correos) == ["fac@ejemplo.com", "loga@ejemplo.com"]          # un solo email (no también el de "mensaje")
     assert "Quitad los tubos" in correos[0].get_content() and "Cambios a la proforma" in correos[0]["Subject"]
 
 
@@ -107,7 +107,7 @@ def test_facturas_revisar_y_devuelta(app, client):
     login(client, "cliA"); pedido_cliente(client); _salir(client)
     p = db.session.scalar(db.select(Pedido))
     correos = _correos(app)
-    login(client, "ofi")
+    login(client, "fac")
     client.post(f"/facturas/pedido/{p.id}", data={"numero": "F-1", "fecha_emision": date.today().isoformat(),
                                                   "revisar": "y", "pdf": (BytesIO(b"%PDF-1.4 f"), "f.pdf")})
     assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
@@ -118,7 +118,7 @@ def test_facturas_revisar_y_devuelta(app, client):
     login(client, "loga")
     client.post(f"/facturas/{f.id}/devolver", data={"comentario": "Falta el descuento"})
     assert confirmar_correos() == 0                     # aviso entre compañeros: sale solo
-    assert _a(correos) == ["ofi@ejemplo.com"] and "Falta el descuento" in correos[0].get_content()
+    assert _a(correos) == ["fac@ejemplo.com"] and "Falta el descuento" in correos[0].get_content()
 
 
 def test_quien_no_ve_facturas_no_recibe_sus_avisos(app, client):

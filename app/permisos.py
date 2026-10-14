@@ -20,7 +20,10 @@ NOMBRE_FAS = _l("Soporte de cliente")
 
 ROLES = {
     "admin": _l("Administrador"),                # todo; da los accesos (usuarios y clientes)
-    "logistica": _l("Logística"),                # oficina: pedidos, fotos, productos, inventario, facturas
+    "facturacion": _l("Facturación"),            # proformas, facturas, clientes, precios y catálogo
+    # Por dentro sigue llamándose "logistica" (así los usuarios que ya había no cambian); desde el
+    # 14/10/2026 es solo el ALMACÉN: los pedidos desde que el cliente acepta, fotos, envío e inventario
+    "logistica": _l("Almacén"),
     "fas": NOMBRE_FAS,                            # lleva sus clientes asignados: pedidos y ChromGo
     "soporte": _l("Soporte ChromGo"),            # Yikon: tickets de ChromGo
     "cliente": _l("Cliente"),                    # empresa cliente: sus pedidos (y tickets si se le da acceso)
@@ -28,63 +31,70 @@ ROLES = {
 }
 
 # Qué registros ve cada uno (lo aplica alcance.py; aquí solo se agrupan los roles):
-#   admin, logística y soporte → todos · FAS → sus clientes asignados · clientes → su empresa
+#   admin y Facturación → todos · Almacén → todos desde que el cliente acepta (no las proformas)
+#   FAS → sus clientes asignados · clientes → su empresa
 ROLES_CLIENTE = {"cliente", "cliente_chromgo"}      # tienen empresa y solo ven lo suyo
-ROLES_YIKON = {"admin", "logistica", "fas", "soporte"}
-PEDIDOS = {"admin", "logistica", "fas", "cliente"}  # los que trabajan con pedidos
-OFICINA = {"admin", "logistica"}                    # la oficina: todos los pedidos, inventario, facturas
-GESTION = {"admin", "logistica", "fas"}             # Yikon en los pedidos (FAS: solo sus clientes)
+ROLES_YIKON = {"admin", "facturacion", "logistica", "fas", "soporte"}
+ALMACEN = {"admin", "logistica"}                    # preparar, fotos, enviar, inventario
+OFICINA = {"admin", "facturacion"}                  # proformas, facturas, clientes, precios, catálogo
+GESTION = {"admin", "facturacion", "fas"}           # Yikon en lo comercial del pedido (FAS: sus clientes)
+YIKON_PEDIDOS = GESTION | {"logistica"}             # Yikon en los pedidos (Almacén: desde «aceptado»)
+PEDIDOS = YIKON_PEDIDOS | {"cliente"}               # los que trabajan con pedidos
+# Con quién puede compartir el Soporte de cliente un mensaje de la conversación general (es privada)
+COMPARTIR_CON = ("logistica", "facturacion")
 TODOS = PEDIDOS   # (nombre antiguo; OJO: no es set(ROLES), un rol nuevo no hereda nada sin querer)
 
 PERMISOS = {
-    # Clientes (empresas/clínicas): la ficha la ven admin y el FAS (los suyos); Logística no
-    "clientes.ver": {"admin", "fas", "logistica"},   # (Logística: si admin le activa el apartado)
-    "clientes.editar": {"admin"},
-    "clientes.precios_visibles": {"admin", "fas"},     # decidir si un cliente ve precios
-    "clientes.avisos": {"admin", "fas"},
-    "clientes.catalogo": {"admin", "fas"},             # su catálogo: qué kits puede pedir y qué productos ve               # qué avisos por email recibe cada usuario del cliente
+    # Clientes (empresas/clínicas): admin y Facturación, todos; el FAS, los suyos. Almacén no.
+    "clientes.ver": {"admin", "facturacion", "fas"},
+    "clientes.editar": OFICINA,                        # datos, facturación, precios especiales
+    "clientes.asignar_soporte": {"admin"},             # quién es su Soporte de cliente (decide quién ve qué)
+    "clientes.precios_visibles": GESTION,              # decidir si un cliente ve precios
+    "clientes.avisos": GESTION,                        # qué avisos por email recibe cada usuario del cliente
+    "clientes.catalogo": GESTION,                      # su catálogo: qué kits puede pedir y qué productos ve
     "clientes.exportar": {"admin"},                    # descargar todo lo de un cliente en un ZIP
     # Catálogo de productos
-    "productos.ver": GESTION,
-    "productos.editar": OFICINA,
+    "productos.ver": YIKON_PEDIDOS,
+    "productos.editar": OFICINA,                 # (Almacén cambia el stock mínimo desde Inventario)
     "productos.catalogo": {"cliente"},           # el cliente: catálogo activo con SDS, sin precios
     "productos.sds": PEDIDOS,                    # descargar la ficha de seguridad (SDS)
     # Pedidos (cada uno solo los que le tocan: alcance.py)
     "pedidos.ver": PEDIDOS,
-    "pedidos.crear": PEDIDOS,
-    "pedidos.editar": GESTION,
-    "pedidos.ver_importes": GESTION,             # precios, IVA y totales
-    "pedidos.ver_lotes": GESTION,                # trazabilidad: qué lote salió en cada envío
+    "pedidos.crear": GESTION | {"cliente"},      # Almacén no crea pedidos
+    "pedidos.editar": GESTION,                   # líneas, precios, cancelar y reabrir
+    "pedidos.lotes": YIKON_PEDIDOS,              # reservar lotes (Facturación/FAS en la proforma; Almacén, al llegar el stock)
+    "pedidos.ver_importes": GESTION,             # precios, IVA y totales (Almacén no)
+    "pedidos.ver_lotes": YIKON_PEDIDOS,          # trazabilidad: qué lote salió en cada envío
     "pedidos.documentos.ver": PEDIDOS,
     "pedidos.documentos.subir": PEDIDOS,
     # Preparación y validación con fotos (el cliente nunca ve las fotos)
-    "pedidos.fotos.ver": GESTION,
-    "pedidos.preparar": OFICINA,                 # Logística pasa un pedido aceptado a "En preparación"...
-    "pedidos.fotos.subir": OFICINA,              # ...lo prepara y hace las fotos
+    "pedidos.fotos.ver": YIKON_PEDIDOS,
+    "pedidos.preparar": ALMACEN,                 # Almacén pasa un pedido aceptado a "En preparación"...
+    "pedidos.fotos.subir": ALMACEN,              # ...lo prepara y hace las fotos
     "pedidos.validar": {"fas", "admin"},         # el FAS del cliente las valida (admin puede suplirle)
-    "pedidos.enviar": OFICINA,                   # Logística lo envía (y puede marcarlo recibido por el cliente)
+    "pedidos.enviar": ALMACEN,                   # Almacén lo envía (y puede marcarlo recibido por el cliente)
     "pedidos.recibir": {"cliente"},              # el cliente marca que ha recibido el pedido
     "pedidos.forzar_estado": {"admin"},          # admin puede saltarse el flujo (queda en auditoría)
     # Proforma antes del pedido
-    "pedidos.proforma.enviar": GESTION,          # preparar y enviar la proforma
+    "pedidos.proforma.enviar": GESTION,          # preparar y enviar la proforma (FAS: sus clientes)
     "pedidos.proforma.responder": {"cliente"},   # aceptarla (→ "aceptado") o pedir cambios
     "pedidos.proforma.cancelar": {"cliente"},    # el cliente cancela mientras es proforma
     "pedidos.exportar": PEDIDOS,                 # PDF del estado de pedidos
     # Incidencias: "Hay un problema con este pedido" (enviado o recibido). Se habla en el chat del pedido
     "pedidos.incidencias.abrir": {"cliente"},
-    "pedidos.incidencias.resolver": GESTION,     # cerrarla con «Resuelta» y una nota
+    "pedidos.incidencias.resolver": YIKON_PEDIDOS,   # cerrarla con «Resuelta» y una nota
     # Mensajes con el cliente y chat interno de cada pedido (el cliente no ve el interno)
     "mensajes.ver": PEDIDOS,
     "mensajes.enviar": PEDIDOS,
-    "mensajes.internos": GESTION,
+    "mensajes.internos": YIKON_PEDIDOS,
     # La conversación GENERAL de cada cliente es privada entre el cliente y su Soporte de cliente
-    # (admin también la ve, pero el cliente no lo sabe: admin es un perfil interno). Logística no:
-    # solo los mensajes que el Soporte le comparte (alcance.filtrar_mensajes).
+    # (admin también la ve, pero el cliente no lo sabe: admin es un perfil interno). Almacén y
+    # Facturación no: solo los mensajes que el Soporte les comparte (alcance.filtrar_mensajes).
     "mensajes.general": {"admin", "fas", "cliente"},
-    "mensajes.compartir": {"admin", "fas"},          # "Compartir con Logística"
-    # Inventario de la oficina
-    "inventario.ver": OFICINA,
-    "inventario.editar": OFICINA,
+    "mensajes.compartir": {"admin", "fas"},          # "Compartir con Almacén / Facturación"
+    # Inventario de la oficina (Facturación: consulta, para ver stock y caducidades al hacer la proforma)
+    "inventario.ver": ALMACEN | {"facturacion"},
+    "inventario.editar": ALMACEN,
     # Facturas (FAS: solo consulta, de sus clientes)
     "facturas.ver": GESTION,
     "facturas.editar": OFICINA,
@@ -106,10 +116,10 @@ PERMISOS = {
     "usuarios.ver_como": {"admin"},              # ver la plataforma como otro usuario (solo lectura)
     "auditoria.ver": {"admin"},
     "ajustes.editar": {"admin"},                 # plazos de aviso (Administración → Ajustes)
-    "estadisticas.ver": {"admin", "logistica"},
-    "correos.ver": {"admin", "fas"},             # registro de correos enviados (Soporte: los de sus clientes)
+    "estadisticas.ver": OFICINA,
+    "correos.ver": GESTION,                      # registro de correos enviados (Soporte: los de sus clientes)
     "correos.reenviar": {"admin"},
-    "estado.ver": {"admin"},                     # Administración → Estado de la plataforma     # (Logística: si admin le activa el apartado)
+    "estado.ver": {"admin"},                     # Administración → Estado de la plataforma
 }
 
 

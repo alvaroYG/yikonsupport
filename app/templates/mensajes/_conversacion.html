@@ -6,7 +6,7 @@
    Encima de lo que escribes, siempre "Para: …" y el botón dice a quién va (que no se confunda
    lo que va al cliente con lo interno). #}
 {% set soy_cliente = current_user.rol == 'cliente' %}
-{# Para el cliente: la general es con su Soporte de cliente; la de un pedido, con Logística y su Soporte (admin nunca se nombra) #}
+{# Para el cliente: la general es con su Soporte de cliente; la de un pedido, con el equipo de Yikon y su Soporte (admin nunca se nombra) #}
 {% set es_general = pedido is not defined or not pedido %}
 {% set cliente_conv = (cliente_chat if cliente_chat is defined and cliente_chat else none)
      or (cliente if cliente is defined else none) or (pedido.cliente if not es_general else none) %}
@@ -21,9 +21,9 @@
   <form method="post" action="{{ accion }}" class="conversacion-form" enctype="multipart/form-data" novalidate data-form-mensaje>
     {{ form.hidden_tag() }}
     <div class="conversacion-para small mb-1">{{ _('Para:') }}
-      {% if interno %}<strong>{{ _('admin, logística y %(rol)s', rol=rol_fas) }}</strong> · {{ _('el cliente no lo ve') }}
+      {% if interno %}<strong>{{ _('el equipo de Yikon (Facturación, Almacén y %(rol)s)', rol=rol_fas) }}</strong> · {{ _('el cliente no lo ve') }}
       {% elif soy_cliente and es_general and soportes %}<strong>{{ nombres_soporte }}</strong> ({{ _('tu Soporte de cliente') }})
-      {% elif soy_cliente and not es_general %}<strong>Yikon Genomics</strong> · {{ _('lo ven Logística y %(nombres)s', nombres=nombres_soporte) if soportes else _('lo ve Logística') }}
+      {% elif soy_cliente and not es_general %}<strong>Yikon Genomics</strong> · {{ _('lo ven el equipo de Yikon y %(nombres)s', nombres=nombres_soporte) if soportes else _('lo ve el equipo de Yikon') }}
       {% elif soy_cliente %}<strong>Yikon Genomics</strong>
       {% else %}<strong>{{ _('%(cliente)s (cliente)', cliente=(cliente_chat or cliente).nombre) }}</strong> · {{ _('lo verá en la plataforma y le llegará un email') }}{% endif %}</div>
     {{ form.texto(class_="form-control" ~ (' is-invalid' if form.texto.errors else ''), rows=3, maxlength=5000,

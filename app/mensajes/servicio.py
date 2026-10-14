@@ -72,7 +72,7 @@ def mensajes_de(hilo, despues=0):
               .options(selectinload(Mensaje.autor), selectinload(Mensaje.adjuntos))
               .order_by(Mensaje.id.desc()).limit(MAX_EN_PANTALLA))
     if has_request_context() and current_user.is_authenticated:
-        select = filtrar_mensajes(select)      # (el cliente: sin lo que aún se puede deshacer; Logística: lo compartido)
+        select = filtrar_mensajes(select)      # (el cliente: sin lo que aún se puede deshacer; Facturación y Almacén: lo compartido)
     return list(reversed(db.session.scalars(select).all()))
 
 
@@ -230,7 +230,7 @@ def _destinatarios(mensaje):
         return destinatarios("nota_interna", mensaje.cliente)
     if mensaje.de_cliente:
         usuarios = destinatarios("mensaje_cliente", mensaje.cliente)
-        if mensaje.pedido_id is None:      # la general es privada con su Soporte: Logística no
+        if mensaje.pedido_id is None:      # la general es privada con su Soporte: Facturación y Almacén no
             usuarios = [u for u in usuarios if u.puede("mensajes.general")]
         return usuarios
     # Yikon escribe al cliente: sus usuarios con el aviso «Mensajes» marcado (ficha del cliente)

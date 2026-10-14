@@ -9,19 +9,19 @@ inicio. No es lo mismo que las novedades (app/pedidos/novedades.py):
 Qué le sale a cada uno lo deciden sus permisos (app/permisos.py), y siempre dentro de lo que
 puede ver (alcance.filtrar_pedidos: el FAS sus clientes, el cliente su empresa):
 
-  Proformas por enviar ............ quien envía proformas (admin, Logística, FAS)
-  Pedidos aceptados sin empezar ... quien prepara (admin, Logística) y el FAS (para seguirlos)
-  Devueltos por el FAS ............ quien sube las fotos (admin, Logística) y el FAS
-  Lotes por asignar ............... quien lleva el inventario (admin, Logística) y el FAS
-  Listos para enviar .............. quien envía (admin, Logística) y el FAS
-  Por facturar .................... quien registra facturas (admin, Logística)
+  Proformas por enviar ............ quien envía proformas (admin, Facturación, FAS)
+  Pedidos aceptados sin empezar ... quien prepara (admin, Almacén) y el FAS (para seguirlos)
+  Devueltos por el FAS ............ quien sube las fotos (admin, Almacén) y el FAS
+  Lotes por asignar ............... quien reserva lotes (admin, Facturación, Almacén, FAS)
+  Listos para enviar .............. quien envía (admin, Almacén) y el FAS
+  Por facturar .................... quien registra facturas (admin, Facturación)
   Facturas por revisar ............ quien las revisa (admin, FAS: las de sus clientes)
-  Facturas devueltas / por enviar . quien registra facturas (admin, Logística)
+  Facturas devueltas / por enviar . quien registra facturas (admin, Facturación)
   Pendientes de tu validación ..... quien valida (FAS, admin)
   Proformas por responder ......... el cliente
   Enviados, por marcar recibidos .. el cliente
   Mensajes sin leer ............... todos
-  Incidencias abiertas ............ quien las resuelve (admin, Logística, FAS: las de sus clientes)
+  Incidencias abiertas ............ quien las resuelve (admin, Facturación, Almacén, FAS: las de sus clientes)
 
 Para añadir un tipo de pendiente: una función _grupo(...) más en pendientes_de().
 """
@@ -172,7 +172,8 @@ def pendientes_de(usuario, con_vacios=False) -> list:
         grupos.append(_grupo("devueltos", titulo, "fa-undo", [
             _fila(p, f"«{p.ultima_revision.comentario}»" if p.ultima_revision and p.ultima_revision.comentario else "", "fotos")
             for p in devueltos]))
-    if puede("inventario.editar") or es_fas:
+    if puede("pedidos.lotes"):
+        # (Almacén, solo los ya aceptados: los que ve; Facturación y el FAS, también las proformas enviadas)
         grupos.append(_grupo("lotes", _("Lotes por asignar"), "fa-lock", [
             _fila(p, ngettext("falta %(num)s unidad", "faltan %(num)s unidades", n), "lotes")
             for p, n in _lotes_por_asignar()]))

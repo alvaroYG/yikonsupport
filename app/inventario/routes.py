@@ -3,6 +3,7 @@ from datetime import date
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 from flask_babel import force_locale, gettext as _
+from flask_login import current_user
 
 from app.auditoria import registrar
 from app.extensions import db
@@ -147,19 +148,25 @@ def nuevo_movimiento():
 @bp.route("/reservas")
 @requiere_permiso("inventario.ver")
 def lista_reservas():
+    from app.alcance import filtrar_pedidos
+    visibles = set(db.session.scalars(filtrar_pedidos(db.select(Pedido.id))))      # (Almacén: sin las proformas)
     return render_template("inventario/reservas.html", title=_("Lotes reservados"),
-                           filas=reservas.pedidos_con_reserva(), hoy=date.today(),
+                           filas=[f for f in reservas.pedidos_con_reserva() if f["pedido"].id in visibles], hoy=date.today(),
                            dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
 
 
 @bp.route("/reservas/<int:pedido_id>/liberar", methods=["POST"])
-@requiere_permiso("inventario.editar")
+@requiere_permiso("inventario.ver")
 def liberar_reserva(pedido_id):
     """Suelta los lotes de un pedido para que los pueda usar otro. Pensado para proformas que
     el cliente no contesta. Si la proforma estaba enviada se RETIRA: las fechas que vio el
-    cliente ya no están garantizadas, así que no debe poder aceptarla."""
+    cliente ya no están garantizadas, así que no debe poder aceptarla. Es una decisión comercial:
+    la toman admin y Facturación (inventario + proformas), no Almacén ni el Soporte de cliente."""
+    from app.alcance import pedido_o_404
+    if not current_user.puede("pedidos.editar"):
+        abort(403)
     from app.pedidos.routes import _cambiar_estado      # (import aquí: pedidos importa inventario)
-    pedido = db.get_or_404(Pedido, pedido_id)
+    pedido = pedido_o_404(pedido_id)
     volver = redirect(url_for("inventario.lista_reservas"))
     if not pedido.reservas:
         flash(_("Ese pedido ya no tiene lotes reservados."), "info")
@@ -425,3 +432,27 @@ def abrir(id):
     flash(_("%(n)s × %(kit)s abierto(s): sus productos ya están como stock suelto (lote %(lote)s).",
             n=form.cantidad.data, kit=kit.nombre, lote=lote.codigo), "success")
     return redirect(url_for("inventario.lista"))
+
+
+@bp.route("/<any(producto, kit):tipo>/<int:id>/minimo", methods=["POST"])
+@requiere_permiso("inventario.editar")
+def cambiar_minimo(tipo, id):
+    """El stock mínimo de un producto o kit cerrado, desde la tabla del inventario (columna «Mínimo»).
+    Así Almacén lo ajusta sin poder tocar el resto de la ficha (precios, nombre…), que es de Facturación."""
+    from flask_wtf import FlaskForm
+    articulo = _articulo_o_404(tipo, id)
+    volver = redirect(url_for("inventario.lista", **{k: v for k, v in request.args.items() if k in ("q", "orden", "solo_bajo")})
+                      + ("#kits" if tipo == "kit" else "#productos"))
+    if not FlaskForm().validate_on_submit():
+        return volver
+    texto = (request.form.get("stock_minimo") or "").strip()
+    if not texto.isdigit() or int(texto) > 10**6:
+        flash(_("El mínimo tiene que ser un número entero, 0 o más."), "danger")
+        return volver
+    nuevo, antes = int(texto), articulo.stock_minimo
+    if nuevo != antes:
+        articulo.stock_minimo = nuevo
+        registrar("editar", articulo, f"{articulo.referencia} · stock mínimo: {antes} → {nuevo}")
+        db.session.commit()
+        flash(_("%(articulo)s: stock mínimo %(n)s.", articulo=articulo.nombre, n=nuevo), "success")
+    return volver

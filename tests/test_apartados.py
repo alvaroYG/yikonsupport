@@ -44,21 +44,30 @@ def test_quitar_facturas_a_soporte_de_cliente(app, client):
 
 def test_lo_fijo_no_se_quita_aunque_lo_intenten(app, client):
     _guardar(client, [])                                       # todas las casillas desmarcadas
+    login(client, "fac")
+    assert client.get("/facturas/").status_code == 200 and client.get("/clientes/").status_code == 200
+    _salir(client)
     login(client, "ofi")
-    assert client.get("/facturas/").status_code == 200 and client.get("/inventario/").status_code == 200
+    assert client.get("/inventario/").status_code == 200 and client.get("/pedidos/preparar").status_code == 200
     _salir(client)
     login(client, "loga")
     assert client.get("/pedidos/").status_code == 200
     assert client.get("/productos/").status_code == 403       # esto sí era una casilla
 
 
-def test_poner_a_logistica_lo_que_no_tiene(app, client):
+def test_quitar_a_facturacion_lo_cambiable(app, client):
+    """Facturación: inventario (consulta) y estadísticas vienen puestos; admin se los puede quitar.
+    Almacén ya no puede tener Clientes ni Estadísticas (sale «—» en la tabla)."""
+    login(client, "fac")
+    assert client.get("/inventario/").status_code == 200 and client.get("/estadisticas").status_code == 200
+    _salir(client)
+    marcadas = [c for c in _como_venia(app) if c not in ("inventario:facturacion", "estadisticas:facturacion")]
+    _guardar(client, marcadas + ["clientes:logistica", "estadisticas:logistica"])        # (se ignoran)
+    login(client, "fac")
+    assert client.get("/inventario/").status_code == 403 and client.get("/estadisticas").status_code == 403
+    _salir(client)
     login(client, "ofi")
     assert client.get("/clientes/").status_code == 403 and client.get("/estadisticas").status_code == 403
-    _salir(client)
-    _guardar(client, _como_venia(app) + ["clientes:logistica", "estadisticas:logistica"])
-    login(client, "ofi")
-    assert client.get("/clientes/").status_code == 200 and client.get("/estadisticas").status_code == 200
 
 
 def test_tickets_y_documentos_en_pausa_se_activan_por_rol(app, client):

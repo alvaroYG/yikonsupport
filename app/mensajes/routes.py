@@ -92,7 +92,7 @@ def conversacion(cliente_id):
                 return redirect(url_for("mensajes.conversacion", cliente_id=cliente.id))
     servicio.marcar_leido(current_user, hilo)
     db.session.commit()
-    escribe = current_user.puede("mensajes.general")      # Logística: solo lee lo que le comparten
+    escribe = current_user.puede("mensajes.general")      # Facturación y Almacén: solo leen lo que les comparten
     return render_template("mensajes/conversacion.html", deshacer=mensaje_para_deshacer(),
                            title=_("Mensajes · %(cliente)s", cliente=cliente.nombre), cliente=cliente,
                            mensajes=servicio.mensajes_de(hilo), form=form if escribe else None,
@@ -155,21 +155,33 @@ def mensaje_para_deshacer():
 @bp.route("/<int:mensaje_id>/compartir", methods=["POST"])
 @requiere_permiso("mensajes.compartir")
 def compartir(mensaje_id):
-    """Soporte de cliente (o admin) comparte con Logística un mensaje de la conversación general,
-    que es privada: desde entonces Logística lo ve (solo ese) y le llega un aviso."""
+    """Soporte de cliente (o admin) comparte con Almacén o con Facturación (campo «destino») un
+    mensaje de la conversación general, que es privada: desde entonces ese equipo lo ve (solo ese)
+    y le llega un aviso. Se puede compartir después también con el otro."""
     from app import avisos_internos
     from app.auditoria import registrar
+    from app.permisos import COMPARTIR_CON, ROLES
     mensaje = db.session.scalar(filtrar_mensajes(db.select(Mensaje).filter_by(id=mensaje_id)))
     if mensaje is None or mensaje.pedido_id is not None or mensaje.interno:
         abort(404)
-    if mensaje.compartido_el is None:
-        mensaje.compartido_el, mensaje.compartido_por = ahora(), current_user
-        mensaje.compartido_nota = (request.form.get("nota") or "").strip()[:500] or None
-        registrar("editar", mensaje.cliente, "mensaje compartido con Logística"
-                  + (f" · «{mensaje.compartido_nota}»" if mensaje.compartido_nota else ""))
-        avisos_internos.mensaje_compartido(mensaje, current_user.nombre, excluir_id=current_user.id)
+    destino = request.form.get("destino", "logistica")
+    if destino not in COMPARTIR_CON:
+        abort(400)
+    ya = mensaje.compartido_roles
+    if destino not in ya:
+        nota = (request.form.get("nota") or "").strip()[:500] or None
+        if mensaje.compartido_el is None:
+            mensaje.compartido_el, mensaje.compartido_por = ahora(), current_user
+        mensaje.compartido_con = ",".join(ya + [destino])
+        if nota:
+            mensaje.compartido_nota = (f"{mensaje.compartido_nota} · {nota}" if mensaje.compartido_nota else nota)[:500]
+        from flask_babel import force_locale
+        with force_locale("es"):          # la auditoría, siempre en español
+            registrar("editar", mensaje.cliente, f"mensaje compartido con {ROLES[destino]}"
+                      + (f" · «{nota}»" if nota else ""))
+        avisos_internos.mensaje_compartido(mensaje, current_user.nombre, destino, nota, excluir_id=current_user.id)
         db.session.commit()
-        flash(_("Compartido con Logística: ya lo ve y le hemos avisado."), "success")
+        flash(_("Compartido con %(equipo)s: ya lo ve y le hemos avisado.", equipo=ROLES[destino]), "success")
     destino = request.form.get("volver")
     if destino == "flotante":
         return redirect(url_for("mensajes.conversacion", cliente_id=mensaje.cliente_id))

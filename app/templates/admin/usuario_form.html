@@ -29,7 +29,8 @@
   <div class="card-body small">
     <dl class="mb-0 roles-ayuda">
       <dt>{{ _('Administrador') }}</dt><dd>{{ _('Todo. Da de alta usuarios y clientes, ve estadísticas y auditoría.') }}</dd>
-      <dt>{{ _('Logística') }}</dt><dd>{% if form.documentos_activos %}{{ _('La oficina: todos los pedidos, preparar y fotos, enviar, productos, inventario, facturas y documentos internos. Sin clientes, usuarios ni estadísticas.') }}{% else %}{{ _('La oficina: todos los pedidos, preparar y fotos, enviar, productos, inventario y facturas. Sin clientes, usuarios ni estadísticas.') }}{% endif %}</dd>
+      <dt>{{ _('Facturación') }}</dt><dd>{{ _('Proformas y facturas de todos los clientes: preparar y enviar proformas, registrar, enviar y cobrar facturas. Edita clientes, precios y catálogo; el inventario, solo en consulta. Sin preparar ni enviar pedidos.') }}</dd>
+      <dt>{{ _('Almacén') }}</dt><dd>{{ _('Los pedidos desde que el cliente acepta la proforma: preparar y fotos, enviar, lotes e inventario. Sin precios, proformas, facturas ni clientes.') }}</dd>
       <dt>{{ rol_fas }}</dt><dd>{% if form.soporte_activo %}{{ _('Sus clientes asignados (en la ficha de cada cliente): pedidos, validar fotos, mensajes, facturas (consulta), ficha del cliente y sus tickets de ChromGo (responde, pero no cambia el estado).') }}{% else %}{{ _('Sus clientes asignados (en la ficha de cada cliente): pedidos, validar fotos, mensajes, facturas (consulta) y ficha del cliente.') }}{% endif %}</dd>
       {% if form.soporte_activo %}<dt>{{ _('Soporte ChromGo') }}</dt><dd>{{ _('Todos los tickets de ChromGo y documentos internos.') }}</dd>{% endif %}
       <dt>{{ _('Cliente') }}</dt><dd>{% if form.soporte_activo %}{{ _('Los pedidos de su empresa. Con «Acceso a Soporte ChromGo», también sus tickets.') }}{% else %}{{ _('Los pedidos de su empresa.') }}{% endif %}</dd>

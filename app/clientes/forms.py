@@ -41,6 +41,10 @@ class ClienteForm(FlaskForm):
             db.select(User).filter_by(rol="fas", activo=True).order_by(User.nombre)
         ).all()
         self.logisticos.choices = [(u.id, u.nombre) for u in logisticos]
+        # Quién es su Soporte de cliente decide quién ve sus pedidos y su conversación: solo admin
+        from flask_login import current_user
+        if not current_user.puede("clientes.asignar_soporte"):
+            del self.logisticos
 
     def validate_prefijo(self, campo):
         campo.data = (campo.data or "").strip() or prefijo_desde_nombre(self.nombre.data)

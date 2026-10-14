@@ -38,7 +38,7 @@ def _datos_pedido(pedido):
 
 def avisar_revisar_urgente(pedido, comentario, quien):
     """El FAS ha devuelto el pedido a preparación (fotos rechazadas) → email a quien diga Ajustes →
-    Avisos internos (de fábrica: Logística y admin)."""
+    Avisos internos (de fábrica: Almacén y admin)."""
     datos = _datos_pedido(pedido)
     for idioma, emails in _por_idioma_de(avisos_internos.destinatarios("devuelto", pedido.cliente)).items():
         with force_locale(idioma):         # asunto y plantilla se traducen a ese idioma

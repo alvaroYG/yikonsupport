@@ -165,6 +165,10 @@ def _registrar_contexto(app):
     # El nombre visible del rol "fas" para las plantillas: {{ rol_fas }} (ver app/permisos.py)
     from app.permisos import NOMBRE_FAS
     app.jinja_env.globals["rol_fas"] = NOMBRE_FAS
+    # {{ 'facturacion'|nombre_rol }} → «Facturación»; y con quién se puede compartir un mensaje
+    from app.permisos import COMPARTIR_CON, ROLES
+    app.jinja_env.filters["nombre_rol"] = lambda rol: ROLES.get(rol, rol)
+    app.jinja_env.globals["compartir_con"] = COMPARTIR_CON
 
     @app.context_processor
     def avisos():
@@ -219,7 +223,7 @@ def _registrar_contexto(app):
         if current_user.puede("pedidos.validar"):
             avisos["validar"] = contar("en_validacion")    # FAS: esperando su visto bueno
         if current_user.puede("facturas.revisar") or current_user.puede("facturas.editar"):
-            # Facturas antes de llegar al cliente: por revisar (admin, FAS) y devueltas (admin, Logística)
+            # Facturas antes de llegar al cliente: por revisar (admin, FAS) y devueltas (admin, Facturación)
             from app.alcance import filtrar_facturas
             from app.facturas.routes import FASES
             from app.models import Factura
@@ -240,8 +244,8 @@ def _registrar_contexto(app):
             # Soporte ChromGo: tickets con algo nuevo (mensajes del otro lado, notas de compañeros...)
             from app.soporte.servicio import tickets_con_novedades
             avisos["soporte"] = tickets_con_novedades(current_user)
-        if current_user.puede("inventario.ver"):
-            # Iconos de la barra superior (admin): stock bajo y lotes caducados o a punto de caducar
+        if current_user.puede("inventario.editar"):
+            # Iconos de la barra superior (admin y Almacén): stock bajo y lotes caducados o a punto de caducar
             from app.inventario.stock import articulos_con_stock_bajo, avisos_caducidad
             extra["aviso_stock"] = articulos_con_stock_bajo()   # kits cerrados y productos
             extra["aviso_caducidades"] = avisos_caducidad()

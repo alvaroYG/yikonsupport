@@ -8,7 +8,7 @@
     <div class="col-md-6">{{ campo(form.nombre) }}</div><div class="col-md-6">{{ campo(form.razon_social) }}</div>
     <div class="col-md-4">{{ campo(form.cif) }}</div><div class="col-md-8">{{ campo(form.prefijo) }}</div>
     <div class="col-md-6">{{ campo(form.email) }}</div><div class="col-md-6">{{ campo(form.telefono) }}</div>
-    <div class="col-md-6">{{ campo(form.persona_contacto) }}</div><div class="col-md-6">{{ campo(form.logisticos, size=4) }}</div>
+    <div class="col-md-6">{{ campo(form.persona_contacto) }}</div><div class="col-md-6">{% if form.logisticos %}{{ campo(form.logisticos, size=4) }}{% endif %}</div>
     <div class="col-md-8">{{ campo(form.direccion) }}</div><div class="col-md-4">{{ campo(form.ciudad) }}</div>
     <div class="col-12">{{ campo(form.notas, rows=3) }}</div><div class="col-12">{{ campo(form.activo) }}</div>
   </div>

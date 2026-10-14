@@ -476,6 +476,20 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Roles Almacén y Facturación** (14/10, propuesta aprobada por Álvaro): Logística pasa a ser **Almacén**
+  (por dentro sigue siendo el rol `logistica`, así los usuarios no cambian): ve los pedidos desde «aceptado»
+  (`alcance.pedido_de_almacen`; los cancelados, solo si llegaron a aceptarse), prepara, fotos, envía, reserva
+  lotes de lo aceptado e inventario; cambia el **stock mínimo** desde Inventario (columna Mínimo); no crea
+  pedidos ni ve precios, proformas, facturas ni clientes. Rol nuevo **Facturación** (`facturacion`):
+  proformas, facturas, clientes (todo menos asignar el Soporte, que es solo de admin:
+  `clientes.asignar_soporte`), precios, catálogo, estadísticas y correos enviados; inventario en consulta.
+  El FAS sigue enviando proformas de sus clientes. Liberar reservas: admin y Facturación. **Compartir** un
+  mensaje de la conversación general: el Soporte elige Almacén o Facturación (y luego el otro, si hace falta);
+  migración `d4e8a1c6f203` (`Mensaje.compartido_con`; lo que ya estaba compartido pasa a Almacén). Avisos de
+  fábrica: proforma pedida y cambios → Facturación + Soporte; aceptada → Almacén; recibido → admin, Facturación
+  y Soporte; factura devuelta → Facturación. Propuesta: artifact «Almacén y Facturación». Test:
+  `test_almacen_facturacion.py`. **Al desplegar**: `actualizar.sh` (hace la migración) y, en Administración →
+  Usuarios, poner el rol Facturación a quien lleve proformas y facturas.
 - **Correos y spam** (14/10): cada correo lleva `Date` y `Message-ID` con el dominio del remitente (antes
   «@plataforma»), y `Reply-To` si se pone `MAIL_REPLY_TO` en el .env (`app/correo.py`, `_cabeceras`). Test:
   `test_correo_cabeceras.py`. Pendiente en el DNS (dondominio): SPF con `include:spf.brevo.com` y `~all`, y

@@ -8,7 +8,7 @@
 {% endmacro %}
 {% block contenido %}
 <h1 class="h3 mb-1">{{ _('Correos enviados') }}</h1>
-<p class="text-muted small mb-3">{% if current_user.puede('correos.reenviar') %}{{ _('Cada email que sale de la plataforma. Se guardan 6 meses.') }}
+<p class="text-muted small mb-3">{% if current_user.rol != 'fas' %}{{ _('Cada email que sale de la plataforma. Se guardan 6 meses.') }}
   {% else %}{{ _('Los avisos que han recibido tus clientes. Se guardan 6 meses.') }}{% endif %}</p>
 <form method="get" class="card card-body mb-3 py-2" role="search">
   <div class="row g-2 align-items-end">

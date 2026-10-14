@@ -4,7 +4,9 @@ ALCANCE: qué REGISTROS puede ver cada usuario.
 permisos.py responde a "¿puede este rol ver pedidos?" (capa 1).
 Este módulo responde a "¿CUÁLES?" (capa 2):
 
-  - admin, logística → todos (Logística: la oficina, gestiona todos los pedidos)
+  - admin, Facturación → todos
+  - Almacén (rol "logistica") → los pedidos desde que el cliente acepta (no los que aún son
+                       proforma); facturas, ninguna; la ficha de los clientes no (permiso)
   - FAS              → los de los clientes que tiene asignados
   - clientes         → los de su propia empresa
 
@@ -17,17 +19,31 @@ from flask_login import current_user
 from sqlalchemy import or_, false
 
 from app.extensions import db
-from app.models import Cliente, Factura, Mensaje, Pedido, User
+from app.models import ESTADOS_PROFORMA, Cliente, Factura, Mensaje, Pedido, User
 
 # Ven los pedidos, mensajes y facturas de TODOS los clientes (el resto, solo los suyos).
 # (Soporte ChromGo no está: no trabaja con pedidos; sus tickets van por soporte/servicio.py)
-TODOS_LOS_CLIENTES = {"admin", "logistica"}
+TODOS_LOS_CLIENTES = {"admin", "facturacion"}
+ALMACEN = "logistica"          # el almacén: todos los pedidos, pero solo desde «aceptado»
+
+
+def pedido_de_almacen():
+    """Condición: el pedido ya no es una proforma (el cliente la aceptó o lo creó Yikon). Un
+    cancelado lo ve si se canceló después (no tiene proforma pendiente de respuesta: se mira si
+    llegó a aceptarse alguna)."""
+    from app.models import Proforma
+    aceptado_alguna_vez = Pedido.proformas.any(Proforma.estado == "aceptada") | Pedido.con_proforma.is_(False)
+    return Pedido.estado.notin_(ESTADOS_PROFORMA) & ((Pedido.estado != "cancelado") | aceptado_alguna_vez)
 
 
 def filtrar_clientes(select):
     """Recibe un db.select(...) sobre Cliente y le añade el filtro del usuario actual."""
     u = current_user
     if u.rol in TODOS_LOS_CLIENTES:
+        return select
+    if u.rol == ALMACEN:
+        # Todos (para los filtros por cliente de pedidos y actividad). La ficha del cliente no la
+        # abre: no tiene el permiso "clientes.ver".
         return select
     if u.rol == "fas":
         # "clientes cuya lista de logisticos contiene a este usuario"
@@ -42,6 +58,8 @@ def filtrar_pedidos(select):
     u = current_user
     if u.rol in TODOS_LOS_CLIENTES:
         return select
+    if u.rol == ALMACEN:
+        return select.where(pedido_de_almacen())
     if u.rol == "fas":
         return select.where(Pedido.cliente.has(Cliente.logisticos.any(User.id == u.id)))
     if u.es_cliente:
@@ -54,11 +72,15 @@ def filtrar_mensajes(select):
     Los INTERNOS (entre la gente de Yikon) no los ve nunca el cliente: se filtran aquí, en el único
     sitio por el que pasan todas las consultas de mensajes."""
     u = current_user
-    if u.rol in TODOS_LOS_CLIENTES:
+    if u.rol in TODOS_LOS_CLIENTES or u.rol == ALMACEN:
         if u.puede("mensajes.general"):
             return select
-        # Logística: los de los pedidos y, de las conversaciones generales, solo lo compartido con ella
-        return select.where(or_(Mensaje.pedido_id.isnot(None), Mensaje.compartido_el.isnot(None)))
+        # Facturación y Almacén: los de los pedidos que ven y, de las conversaciones generales, solo
+        # lo que el Soporte de cliente les ha compartido (Mensaje.compartido_con)
+        de_pedidos = Mensaje.pedido_id.isnot(None)
+        if u.rol == ALMACEN:
+            de_pedidos = Mensaje.pedido.has(pedido_de_almacen())
+        return select.where(or_(de_pedidos, Mensaje.compartido_con.contains(u.rol)))
     if u.rol == "fas":
         return select.where(Mensaje.cliente.has(Cliente.logisticos.any(User.id == u.id)))
     if u.es_cliente:
@@ -77,6 +99,8 @@ def filtrar_facturas(select):
     u = current_user
     if u.rol in TODOS_LOS_CLIENTES:
         return select
+    if u.rol == ALMACEN:
+        return select.where(false())             # Almacén no ve facturas
     if u.rol == "fas":
         return select.where(Factura.cliente.has(Cliente.logisticos.any(User.id == u.id)))
     if u.es_cliente:

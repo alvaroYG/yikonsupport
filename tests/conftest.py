@@ -14,7 +14,7 @@ def app():
     Escenario de prueba:
       Clínica A  ← FAS "loga"   ← usuario cliente "cliA"
       Clínica B  ← FAS "logb"   ← usuario cliente "cliB"
-      Logística (oficina): "ofi"
+      Almacén: "ofi" (rol "logistica") · Facturación: "fac"
       Soporte ChromGo: "sop" (Yikon) · Cliente ChromGo: "chrA" (Clínica A) y "chrB" (Clínica B)
     """
     app = create_app("test")
@@ -40,7 +40,8 @@ def app():
         # "loga" y "logb" son FAS (antes "logistics"): cada uno lleva una clínica
         usuario("loga", "fas", clientes_asignados=[a])
         usuario("logb", "fas", clientes_asignados=[b])
-        usuario("ofi", "logistica")          # Logística: la oficina (todos los pedidos)
+        usuario("ofi", "logistica")          # Almacén (rol "logistica"): los pedidos desde «aceptado»
+        usuario("fac", "facturacion")        # Facturación: proformas, facturas, clientes, precios
         usuario("cliA", "cliente", empresa=a)
         usuario("cliB", "cliente", empresa=b)
         # Soporte ChromGo: "sop" (equipo de Yikon) y un usuario Cliente ChromGo por clínica

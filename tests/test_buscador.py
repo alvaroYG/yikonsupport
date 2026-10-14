@@ -120,7 +120,7 @@ def test_pedidos_por_el_producto_que_llevan(app, client):
     pa, pb = _escenario(client)                       # los dos pedidos llevan el kit "Kit uno" (K1) con "Kit 1" (P1)
     otro = Producto(referencia="XK-043", nombre="Buffer de conservación", precio=10)
     db.session.add(otro); db.session.commit()
-    login(client, "ofi")                              # un pedido más para la Clínica B, solo con el buffer suelto
+    login(client, "fac")                              # un pedido más para la Clínica B, solo con el buffer suelto
     import json
     client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": pb.cliente_id, "fecha": "2026-10-02",
                                         "contenido": json.dumps({"kits": [], "sueltos": [{"producto_id": otro.id, "cantidad": 4}]})})

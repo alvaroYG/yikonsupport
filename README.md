@@ -7,7 +7,7 @@ facturas, con usuarios por roles. En producción en **https://yikonsupport.com**
 Flask (application factory, blueprints) + SQLAlchemy 2 + Alembic, Flask-Login, Flask-WTF,
 Flask-Babel (es/en), Bootstrap 5.3. SQLite en desarrollo, PostgreSQL en producción. Tests con pytest.
 
-> ⚠ La plataforma **no genera facturas**. Logística (Aina) las hace a mano en contabilidad; la
+> ⚠ La plataforma **no genera facturas**. Facturación las hace a mano en contabilidad; la
 > plataforma solo le da los datos («Preparar factura», en Excel) y **registra** el PDF oficial.
 > Nº de factura = referencia interna del pedido.
 
@@ -32,7 +32,7 @@ flask run --debug                    # http://127.0.0.1:5000
 ```
 
 Usuarios de `flask datos-demo` (contraseña `demo123456`): `admin@ejemplo.com` (admin),
-`logistica@ejemplo.com` (Logística), `laura@ejemplo.com` y `pablo@ejemplo.com` (Soporte de cliente),
+`facturacion@ejemplo.com` (Facturación), `almacen@ejemplo.com` (Almacén), `laura@ejemplo.com` y `pablo@ejemplo.com` (Soporte de cliente),
 `norte@`, `centro@` e `instituto@ejemplo.com` (clientes). Al terminar, el comando lista todos.
 
 En desarrollo (`ENTORNO=dev`) hay además una barra «Entrar como» para cambiar de usuario al probar.
@@ -93,31 +93,36 @@ Todo se define en `app/permisos.py`. Las vistas usan `@requiere_permiso("factura
 plantillas `current_user.puede("facturas.editar")`; **nunca se pregunta por el rol directamente**,
 así que cambiar lo que puede hacer un rol es tocar una sola línea.
 
-Roles: **Administrador** · **Logística** (la oficina) · **Soporte de cliente** (rol `fas`: FAS y
-business developers, cada uno con sus clientes asignados; el nombre visible está en
-`permisos.NOMBRE_FAS`) · **Cliente** · y, en pausa, **Soporte ChromGo** y **Cliente ChromGo**.
-Admin es un perfil interno: el cliente nunca lo ve nombrado.
+Roles: **Administrador** · **Facturación** (proformas, facturas, clientes, precios y catálogo) ·
+**Almacén** (rol `logistica` por dentro: los pedidos desde que el cliente acepta, fotos, envío e
+inventario) · **Soporte de cliente** (rol `fas`: FAS y business developers, cada uno con sus clientes
+asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y, en pausa,
+**Soporte ChromGo** y **Cliente ChromGo**. Admin es un perfil interno: el cliente nunca lo ve nombrado.
 
-| Permiso | Admin | Logística | Soporte de cliente | Cliente |
-|---|:-:|:-:|:-:|:-:|
-| Ver clientes / editarlos | ✓ / ✓ | (si admin le activa el apartado) | sus clientes / — | — |
-| Catálogo de cada cliente, avisos por email, «Ve precios» | ✓ | | sus clientes | |
-| Productos: ver / editar | ✓ / ✓ | ✓ / ✓ | ✓ / — | catálogo sin precios + SDS |
-| Pedidos: ver y crear | todos | todos | de sus clientes | de su empresa (vía proforma; kits y sueltos de su catálogo) |
-| Enviar proformas / aceptarlas o pedir cambios | ✓ / — | ✓ / — | sus clientes / — | — / ✓ |
-| Preparar, hacer fotos y enviar | ✓ | ✓ | | |
-| Validar las fotos (o devolver a preparación) | ✓ (suple) | | sus clientes | |
-| Marcar recibido | ✓ | ✓ (en su nombre) | | ✓ |
-| Saltarse el flujo (queda en auditoría) | ✓ | | | |
-| Importes (precios, IVA, totales) | ✓ | ✓ | ✓ | si su empresa «Ve precios» |
-| Conversación general del cliente | ✓ | solo lo que le comparten | sus clientes | ✓ |
-| Chat del pedido / chat interno | ✓ / ✓ | ✓ / ✓ | ✓ / ✓ | ✓ / — |
-| Incidencias de un pedido: abrir / resolver | — / ✓ | — / ✓ | — / ✓ | ✓ / — |
-| Inventario | ✓ | ✓ | | |
-| Facturas: registrar / revisar antes de enviar | ✓ / ✓ | ✓ / — | — / sus clientes | ver las suyas y el PDF |
-| Correos enviados | todos (y reenviar) | | de sus clientes | |
-| Usuarios, ajustes, auditoría, estado | ✓ | | | |
-| Estadísticas | ✓ | ✓ | | |
+| Permiso | Admin | Facturación | Almacén | Soporte de cliente | Cliente |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Ver clientes / editarlos | ✓ / ✓ | ✓ / ✓ | — | sus clientes / — | — |
+| Asignar el Soporte de cliente de una empresa | ✓ | | | | |
+| Catálogo de cada cliente, avisos por email, «Ve precios» | ✓ | ✓ | | sus clientes | |
+| Productos: ver / editar | ✓ / ✓ | ✓ / ✓ | ✓ / solo el mínimo (Inventario) | ✓ / — | catálogo sin precios + SDS |
+| Pedidos: ver | todos | todos | desde «aceptado» | de sus clientes | de su empresa |
+| Pedidos: crear | ✓ | ✓ | — | sus clientes | vía proforma; kits y sueltos de su catálogo |
+| Enviar proformas / aceptarlas o pedir cambios | ✓ / — | ✓ / — | — | sus clientes / — | — / ✓ |
+| Cambiar líneas y precios, cancelar, reabrir | ✓ | ✓ | — | sus clientes | |
+| Reservar lotes | ✓ | ✓ | ✓ (aceptados) | sus clientes | |
+| Preparar, hacer fotos y enviar | ✓ | | ✓ | | |
+| Validar las fotos (o devolver a preparación) | ✓ (suple) | | | sus clientes | |
+| Marcar recibido | ✓ | | ✓ (en su nombre) | | ✓ |
+| Saltarse el flujo (queda en auditoría) | ✓ | | | | |
+| Importes (precios, IVA, totales) | ✓ | ✓ | — | ✓ | si su empresa «Ve precios» |
+| Conversación general del cliente | ✓ | lo que le comparten | lo que le comparten | sus clientes | ✓ |
+| Chat del pedido / chat interno | ✓ / ✓ | ✓ / ✓ | ✓ / ✓ | ✓ / ✓ | ✓ / — |
+| Incidencias de un pedido: abrir / resolver | — / ✓ | — / ✓ | — / ✓ | — / ✓ | ✓ / — |
+| Inventario | ✓ | consulta | ✓ | | |
+| Facturas: registrar y enviar / revisar antes de enviar | ✓ / ✓ | ✓ / — | — | — / sus clientes | ver las suyas y el PDF |
+| Correos enviados | todos (y reenviar) | todos | | de sus clientes | |
+| Estadísticas | ✓ | ✓ | | | |
+| Usuarios, ajustes, auditoría, estado | ✓ | | | | |
 
 **Desde la web, sin tocar código:** Administración → Ajustes → **Qué ve cada rol** quita o pone
 apartados enteros (Facturas, Clientes, Estadísticas, Tickets ChromGo, Documentos internos…) a cada
@@ -141,11 +146,11 @@ números no se reutilizan aunque se borre un pedido. La proforma es `PF-{referen
    ese momento: los cambios de tarifa no alteran pedidos ya hechos.
 2. **Proforma enviada** → Yikon reserva lotes (FEFO) y envía la proforma con su **PDF obligatorio**.
    El cliente la acepta o pide cambios (**Cambios solicitados** → nueva versión).
-3. **Aceptado** → Logística lo pasa a **En preparación**, lo prepara y sube las fotos.
+3. **Aceptado** → Almacén (que desde aquí ya lo ve) lo pasa a **En preparación**, lo prepara y sube las fotos.
 4. **Pendiente de validación** → el Soporte de cliente valida las fotos (**Listo para enviar**) o lo
    devuelve a preparación.
 5. **Enviado** (transportista, seguimiento, fecha estimada) → el cliente marca **Recibido**.
-6. **Factura** → Logística usa «Preparar factura» (Excel con los datos), la hace en contabilidad y
+6. **Factura** → Facturación usa «Preparar factura» (Excel con los datos), la hace en contabilidad y
    registra el PDF; puede pedir al Soporte de cliente que la revise antes de enviarla. Después,
    «Marcar pagada». Las pendientes con vencimiento pasado salen como vencidas.
 

@@ -36,8 +36,8 @@ def nombre_tipo(tipo):
 
 
 def _visibles(select):
-    """Admin: todos. Soporte de cliente: solo los enviados a sus clientes (no los internos)."""
-    if current_user.puede("correos.reenviar"):
+    """Admin y Facturación: todos. Soporte de cliente: solo los enviados a sus clientes (no los internos)."""
+    if current_user.rol != "fas":
         return select
     return select.where(CorreoEnviado.tipo.like("cliente.%"),
                         CorreoEnviado.cliente.has(Cliente.logisticos.any(User.id == current_user.id)))
@@ -65,7 +65,7 @@ def correos():
         select = select.where(CorreoEnviado.tipo.like(f"{grupo}.%"))
     select = select.where(CorreoEnviado.fecha >= ahora() - timedelta(days=dias))
     return render_template("admin/correos.html", title=_("Correos enviados"), pagina=paginar(select), q=q,
-                           estado=estado, grupo=grupo, dias=dias, grupos=GRUPOS if current_user.puede("correos.reenviar")
+                           estado=estado, grupo=grupo, dias=dias, grupos=GRUPOS if current_user.rol != "fas"
                            else {}, estados=ESTADOS, nombre_tipo=nombre_tipo,
                            hay_filtros=bool(q or estado or grupo or dias != 30))
 

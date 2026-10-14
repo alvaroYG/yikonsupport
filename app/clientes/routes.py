@@ -24,6 +24,9 @@ def _guardar(form, cliente):
         setattr(cliente, campo, valor if valor != "" else None)
     # Relación muchos-a-muchos: se asigna una LISTA de usuarios y SQLAlchemy
     # se encarga de añadir/quitar filas en la tabla intermedia cliente_logistica.
+    # (Solo si el formulario lo trae: quien no es admin no asigna el Soporte de cliente.)
+    if "logisticos" not in form:
+        return
     ids = form.logisticos.data or []
     cliente.logisticos = db.session.scalars(
         db.select(User).where(User.id.in_(ids), User.rol == "fas")
@@ -224,7 +227,7 @@ def borrar_precio_producto(id, precio_id):
 def editar(id):
     cliente = db.get_or_404(Cliente, id)
     form = ClienteForm(obj=cliente, cliente=cliente)
-    if request.method == "GET":
+    if request.method == "GET" and "logisticos" in form:
         form.logisticos.data = [u.id for u in cliente.logisticos]
     if form.validate_on_submit():
         detalle = cambios(cliente, form, CAMPOS)

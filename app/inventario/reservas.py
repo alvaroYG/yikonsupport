@@ -158,7 +158,8 @@ def reparto_sugerido(pedido, hoy=None, sin_caducados=False) -> dict:
 def modo_edicion(pedido, usuario=None):
     """"libre", "completar" o None (ver la cabecera del módulo)."""
     usuario = usuario or current_user
-    if not usuario.puede("pedidos.editar") or pedido.estado not in ESTADOS_CON_RESERVA:
+    # (Almacén también: cuando llega el stock de un pedido aceptado que quedó «a confirmar»)
+    if not usuario.puede("pedidos.lotes") or pedido.estado not in ESTADOS_CON_RESERVA:
         return None
     if pedido.estado in ("proforma_solicitada", "cambios_solicitados") or not pedido.con_proforma:
         return "libre"

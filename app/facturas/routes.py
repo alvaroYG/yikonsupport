@@ -45,7 +45,7 @@ def _guardar(form, factura):
 
 def _facturas_filtradas():
     """Filtros de la URL (?estado=...&q=...). Los usan la lista y el Excel: exportas lo que ves."""
-    # alcance: el FAS solo ve las de sus clientes (admin y Logística, todas)
+    # alcance: el FAS solo ve las de sus clientes (admin y Facturación, todas)
     # Las vencidas, primero; después, las más recientes
     vencida = db.case((db.and_(Factura.estado == "pendiente", Factura.enviada_el.isnot(None),
                                Factura.fecha_vencimiento < date.today()), 0), else_=1)
@@ -168,7 +168,7 @@ def mias():
 
 
 def puede_descargar(factura):
-    """Admin y Logística: todas. FAS: las de sus clientes. Cliente: las de su empresa.
+    """Admin y Facturación: todas. FAS: las de sus clientes. Cliente: las de su empresa.
     (Mismo criterio en la vista y en las plantillas.)"""
     if current_user.puede("facturas.ver"):
         return db.session.scalar(filtrar_facturas(db.select(Factura.id).filter_by(id=factura.id))) is not None

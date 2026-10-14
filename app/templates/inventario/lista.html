@@ -34,7 +34,14 @@
       {% if f.bajo %}<span class="badge est-alerta ms-1">{{ _('⚠ bajo') }}</span>{% endif %}
       {% if f.reservado %}<div class="small text-muted fw-normal text-nowrap"><i class="fas fa-lock me-1" aria-hidden="true"></i>{{ _('%(r)s reservadas · %(l)s libres', r=f.reservado, l=f.libre) }}</div>{% endif %}
       {% if f.caducado %}<div class="small text-muted fw-normal">{{ _('+ %(n)s caducadas', n=f.caducado) }}</div>{% endif %}</td>
-    <td class="num text-muted">{{ a.stock_minimo }}</td>
+    {# Almacén cambia aquí el mínimo (el resto de la ficha es de Facturación) #}
+    <td class="num text-muted">{% if current_user.puede('inventario.editar') %}
+      <form method="post" action="{{ url_for('inventario.cambiar_minimo', tipo=a.tipo_articulo, id=a.id, q=q or None, orden=orden or None, solo_bajo=request.args.get('solo_bajo')) }}" class="d-inline-flex gap-1 justify-content-end">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input name="stock_minimo" value="{{ a.stock_minimo }}" inputmode="numeric" class="form-control form-control-sm text-end" style="width:4.5rem"
+               aria-label="{{ _('Stock mínimo de %(articulo)s', articulo=a.nombre) }}">
+        <button class="btn btn-sm btn-outline-secondary" title="{{ _('Guardar el mínimo') }}" aria-label="{{ _('Guardar el mínimo') }}"><i class="fas fa-check" aria-hidden="true"></i></button>
+      </form>{% else %}{{ a.stock_minimo }}{% endif %}</td>
     <td class="text-end text-nowrap">
       {% if current_user.puede('inventario.editar') %}
       {# Abre la ventana con este artículo ya elegido #}
@@ -127,7 +134,7 @@
       {% endfor %}</tbody>
     </table>
     {% endif %}
-    <p class="small text-muted">{{ _('Que un kit sea cerrado o montado, y su mínimo, se cambia en Kits.') }}</p>
+    <p class="small text-muted">{{ _('Que un kit sea cerrado o montado se cambia en Kits. El mínimo, aquí mismo (columna Mínimo).') if current_user.puede('inventario.editar') else _('Que un kit sea cerrado o montado, y su mínimo, se cambia en Kits.') }}</p>
   </div>
 
   <div class="tab-pane fade" id="tab-productos" role="tabpanel">
@@ -139,7 +146,7 @@
       <tbody>{% for f in filas %}{{ fila_stock(f) }}
       {% else %}<tr><td colspan="6" class="text-muted">{% if q %}{{ _('Ningún producto coincide con la búsqueda.') }}{% else %}{{ _('No hay productos con stock bajo.') if request.args.get('solo_bajo') else _('No hay productos.') }}{% endif %}</td></tr>{% endfor %}</tbody>
     </table>
-    <p class="small text-muted">{{ _('El mínimo de cada producto se cambia en Productos.') }}</p>
+    <p class="small text-muted">{{ _('El mínimo de cada producto se cambia aquí mismo (columna Mínimo).') if current_user.puede('inventario.editar') else _('El mínimo de cada producto se cambia en Productos.') }}</p>
   </div>
 </div>
 <p class="small text-muted">{{ _('El stock baja automáticamente cuando un pedido pasa a <strong>Enviado</strong> y vuelve a subir si ese envío se anula.')|safe }}

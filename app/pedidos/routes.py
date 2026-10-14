@@ -567,7 +567,7 @@ def _ajustar_reservas(pedido):
 
 
 @bp.route("/<int:id>/lotes", methods=["POST"])
-@requiere_permiso("pedidos.editar")
+@requiere_permiso("pedidos.lotes")
 def guardar_lotes(id):
     """
     Tarjeta "Lotes de este pedido": reserva para el pedido las unidades de cada lote.
@@ -1043,7 +1043,7 @@ def validar(id):
     if aprobado:
         flash(_("Pedido validado: listo para enviar."), "success")
     else:
-        flash(_("Pedido devuelto a preparación. Logística recibirá el aviso con tu comentario."), "warning")
+        flash(_("Pedido devuelto a preparación. Almacén recibirá el aviso con tu comentario."), "warning")
     return redirect(url_for("pedidos.detalle", id=id))
 
 
@@ -1055,9 +1055,9 @@ def _puede_subir_documentos(pedido):
 
 
 def _puede_borrar_documento(pedido, documento):
-    """Admin, Logística y el Soporte de cliente de ese cliente, siempre; los demás, lo que
-    subieron ellos mismos mientras el pedido no haya salido."""
-    if current_user.rol in ("admin", "logistica"):
+    """Admin, Facturación, Almacén y el Soporte de cliente de ese cliente, siempre; los demás, lo
+    que subieron ellos mismos mientras el pedido no haya salido."""
+    if current_user.rol in ("admin", "facturacion", "logistica"):
         return True
     if current_user.rol == "fas" and pedido.cliente in current_user.clientes_asignados:
         return True

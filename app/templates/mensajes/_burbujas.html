@@ -15,17 +15,27 @@
     <i class="fas fa-paperclip" aria-hidden="true"></i> {{ a.nombre_original }} <span class="text-muted">({{ a.tamano_legible }})</span></a>
   {% endfor %}
   <div class="burbuja-hora">{{ m.fecha|fecha_hora }}</div>
-  {# Conversación general (privada con el Soporte de cliente): compartir con Logística. El cliente no ve nada de esto #}
+  {# Conversación general (privada con el Soporte de cliente): compartir con Almacén o Facturación
+     (alcance.filtrar_mensajes). El cliente no ve nada de esto #}
   {% if not soy_cliente and not m.interno and not m.pedido_id %}
-    {% if m.compartido_el %}
-    <div class="burbuja-compartido"><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartido con Logística') }}{% if m.compartido_por %} · {{ m.compartido_por.nombre }}{% endif %}
+    {% set ya = m.compartido_roles %}
+    {% if ya %}
+    <div class="burbuja-compartido"><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartido con %(equipos)s', equipos=ya|map('nombre_rol')|join(' · ')) }}{% if m.compartido_por %} · {{ m.compartido_por.nombre }}{% endif %}
       {% if m.compartido_nota %}<div class="fst-italic">«{{ m.compartido_nota }}»</div>{% endif %}</div>
-    {% elif current_user.puede('mensajes.compartir') %}
-    <details class="burbuja-compartir"><summary><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartir con Logística') }}</summary>
+    {% endif %}
+    {% set faltan = compartir_con|reject('in', ya)|list %}
+    {% if faltan and current_user.puede('mensajes.compartir') %}
+    <details class="burbuja-compartir"><summary><i class="fas fa-share me-1" aria-hidden="true"></i>{{ _('Compartir también con…') if ya else _('Compartir con…') }}</summary>
       <form method="post" action="{{ url_for('mensajes.compartir', mensaje_id=m.id) }}" class="mt-1">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label class="visually-hidden" for="nota-{{ m.id }}">{{ _('Nota para Logística (opcional)') }}</label>
-        <input class="form-control form-control-sm mb-1" id="nota-{{ m.id }}" name="nota" maxlength="500" placeholder="{{ _('Nota para Logística (opcional)') }}">
+        <fieldset class="mb-1"><legend class="visually-hidden">{{ _('Con quién') }}</legend>
+          {% for rol in faltan %}
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="destino" value="{{ rol }}" id="destino-{{ m.id }}-{{ rol }}" {{ 'checked' if loop.first }}>
+            <label class="form-check-label small" for="destino-{{ m.id }}-{{ rol }}">{{ rol|nombre_rol }}</label></div>
+          {% endfor %}</fieldset>
+        <label class="visually-hidden" for="nota-{{ m.id }}">{{ _('Nota (opcional)') }}</label>
+        <input class="form-control form-control-sm mb-1" id="nota-{{ m.id }}" name="nota" maxlength="500" placeholder="{{ _('Nota (opcional)') }}">
         <button class="btn btn-sm btn-outline-secondary">{{ _('Compartir') }}</button>
       </form></details>
     {% endif %}

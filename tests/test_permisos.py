@@ -3,29 +3,29 @@ import pytest
 
 from tests.conftest import login
 
-# Usuarios del escenario (conftest): admin · ofi = Logística · loga = FAS · sop = Soporte ChromGo
-# · cliA = Cliente · chrA = Cliente ChromGo
-USUARIOS = ["admin", "ofi", "loga", "sop", "cliA", "chrA"]
+# Usuarios del escenario (conftest): admin · fac = Facturación · ofi = Almacén (rol "logistica") ·
+# loga = FAS · sop = Soporte ChromGo · cliA = Cliente · chrA = Cliente ChromGo
+USUARIOS = ["admin", "fac", "ofi", "loga", "sop", "cliA", "chrA"]
 MATRIZ = [
-    ("/clientes/", {"admin", "loga"}),                      # Logística no ve fichas de clientes
-    ("/clientes/nuevo", {"admin"}),
-    ("/productos/", {"admin", "ofi", "loga"}),
-    ("/productos/nuevo", {"admin", "ofi"}),
+    ("/clientes/", {"admin", "fac", "loga"}),               # Almacén no ve fichas de clientes
+    ("/clientes/nuevo", {"admin", "fac"}),
+    ("/productos/", {"admin", "fac", "ofi", "loga"}),
+    ("/productos/nuevo", {"admin", "fac"}),                 # Almacén: solo el mínimo, desde Inventario
     ("/productos/catalogo", {"cliA"}),
-    ("/pedidos/", {"admin", "ofi", "loga", "cliA"}),
-    ("/pedidos/nuevo", {"admin", "ofi", "loga", "cliA"}),
-    ("/pedidos/preparar", {"admin", "ofi"}),                # prepara y hace fotos Logística
-    ("/mensajes/", {"admin", "ofi", "loga", "cliA"}),
-    ("/facturas/", {"admin", "ofi", "loga"}),               # FAS: consulta (las de sus clientes)
-    ("/facturas/nueva", {"admin", "ofi"}),
+    ("/pedidos/", {"admin", "fac", "ofi", "loga", "cliA"}),
+    ("/pedidos/nuevo", {"admin", "fac", "loga", "cliA"}),   # Almacén no crea pedidos
+    ("/pedidos/preparar", {"admin", "ofi"}),                # prepara y hace fotos Almacén
+    ("/mensajes/", {"admin", "fac", "ofi", "loga", "cliA"}),
+    ("/facturas/", {"admin", "fac", "loga"}),               # FAS: consulta (las de sus clientes)
+    ("/facturas/nueva", {"admin", "fac"}),
     ("/facturas/mias", {"cliA"}),
-    ("/inventario/", {"admin", "ofi"}),
+    ("/inventario/", {"admin", "fac", "ofi"}),              # Facturación: consulta
     ("/soporte/", {"admin", "loga", "sop", "chrA"}),        # cliA: solo si se le da acceso
     ("/soporte/nuevo", {"admin", "sop", "chrA"}),
-    ("/documentos/", {"admin", "ofi", "loga", "sop"}),      # todos menos los clientes
+    ("/documentos/", {"admin", "fac", "ofi", "loga", "sop"}),   # todos menos los clientes
     ("/admin/usuarios", {"admin"}),
     ("/admin/auditoria", {"admin"}),
-    ("/estadisticas", {"admin"}),
+    ("/estadisticas", {"admin", "fac"}),
 ]
 
 

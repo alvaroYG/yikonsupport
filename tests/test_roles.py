@@ -1,7 +1,8 @@
 """
 Los roles del 30/09 en el flujo del pedido:
-  Logística (la oficina) prepara, hace las fotos y envía, en los pedidos de TODOS los clientes;
-  el FAS del cliente valida las fotos (solo las de sus clientes). Logística no valida.
+  Almacén (rol "logistica") prepara, hace las fotos y envía, en los pedidos de TODOS los clientes
+  desde que se aceptan; el FAS del cliente valida las fotos (solo las de sus clientes). Almacén no
+  valida. Desde el 14/10/2026 las proformas y facturas son de Facturación (test_almacen_facturacion.py).
 """
 from app.extensions import db
 from app.models import Lote, MovimientoInventario, Pedido, Producto
@@ -70,13 +71,15 @@ def test_logistica_ve_el_chat_interno_y_todos_los_clientes(app, client):
     assert "Su pedido sale mañana" in html and "Falta una caja" not in html
 
 
-def test_logistica_gestiona_inventario_y_productos_pero_no_clientes(app, client):
+def test_almacen_gestiona_inventario_pero_no_productos_ni_clientes(app, client):
     login(client, "ofi")
     client.post("/inventario/movimiento", data={"articulo": "producto-1", "tipo": "entrada", "cantidad": 5,
                                                 "lote": "L-OFI", "caducidad": "2099-12-31"})
     assert db.session.scalar(db.select(Lote).filter_by(codigo="L-OFI")) is not None
     assert db.session.scalar(db.select(db.func.sum(MovimientoInventario.cantidad))) == 5
-    assert client.get("/productos/1/editar").status_code == 200
+    assert client.get("/productos/1/editar").status_code == 403          # la ficha es de Facturación...
+    client.post("/inventario/producto/1/minimo", data={"stock_minimo": "7"})   # ...el mínimo, desde Inventario
+    assert db.session.get(Producto, 1).stock_minimo == 7
     assert client.get("/clientes/1").status_code == 403
     ruta = next(r.rule for r in app.url_map.iter_rules() if r.endpoint == "clientes.cambiar_ver_precios")
     assert client.post(ruta.replace("<int:id>", "1"), data={"ver_precios": "1"}).status_code == 403
@@ -101,9 +104,12 @@ def test_el_fas_ve_la_ficha_de_sus_clientes_y_activa_precios(app, client):
 
 
 def test_producto_suelto_de_la_oficina(app, client):
-    """Logística crea pedidos para cualquier cliente (con productos sueltos si hace falta)."""
+    """Facturación crea pedidos para cualquier cliente (con productos sueltos si hace falta). Almacén no."""
     import json
     login(client, "ofi")
+    assert client.post("/pedidos/nuevo", data={"cliente_id": 2}).status_code == 403
+    client.post("/auth/logout")
+    login(client, "fac")
     r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), 
         "cliente_id": 2, "fecha": "2026-09-30",
         "contenido": json.dumps({"kits": [], "sueltos": [{"producto_id": 1, "cantidad": 2}]})})

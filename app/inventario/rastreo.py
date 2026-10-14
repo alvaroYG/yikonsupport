@@ -7,7 +7,7 @@ quién avisar.
 
 Se calcula con los movimientos de inventario (lo que REALMENTE salió con cada pedido, neto:
 si un envío se anuló, no cuenta). Quién ve qué:
-  - admin y Logística: todo (stock de la oficina y todos los envíos);
+  - admin y Almacén: todo (stock de la oficina y todos los envíos);
   - el FAS: solo los envíos a SUS clientes, y solo los lotes que les llegaron (no ve el
     inventario de la oficina).
 """

@@ -113,7 +113,7 @@ CASOS = {
         _l("Pedido registrado"), _l("Un pedido sin proforma queda aceptado."), _asunto_estado,
         lambda: _cambio_de_estado(_("Hemos registrado su pedido. Le avisaremos cuando empecemos a prepararlo."))),
     "preparacion": Caso(
-        _l("En preparación"), _l("Logística empieza a preparar el pedido."), _asunto_estado,
+        _l("En preparación"), _l("Almacén empieza a preparar el pedido."), _asunto_estado,
         lambda: _cambio_de_estado(_("Estamos preparando su pedido."))),
     "enviado": Caso(
         _l("Enviado"), _l("El pedido sale de la oficina."), _asunto_estado,

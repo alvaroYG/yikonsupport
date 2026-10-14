@@ -33,7 +33,7 @@
         <div class="lote-fila">{{ lote.articulo.nombre }} · <span class="lote-codigo">{{ lote.codigo }}</span> × {{ n }} {{ lote_caducidad(lote, hoy, dias_aviso) }}</div>{% endfor %}</td>
       <td class="num fw-semibold">{{ f.unidades }}</td>
       <td class="text-end">
-        {% if current_user.puede('inventario.editar') %}
+        {% if current_user.puede('pedidos.editar') %}
           {% if f.liberable %}
           <form method="post" action="{{ url_for('inventario.liberar_reserva', pedido_id=p.id) }}"
                 onsubmit='return confirm({{ (_("¿Liberar los lotes de %(ref)s? Se retirará la proforma enviada: el cliente no podrá aceptarla hasta que le envíes otra.", ref=p.referencia_interna) if p.estado == "proforma_enviada" else _("¿Liberar los lotes de %(ref)s? Esas unidades quedarán libres para otros pedidos.", ref=p.referencia_interna))|tojson }})'>

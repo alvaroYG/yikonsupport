@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from flask import current_app, g, has_app_context
 from flask_babel import lazy_gettext as _l
 
-ROLES_EN_ORDEN = ["admin", "logistica", "fas", "soporte", "cliente", "cliente_chromgo"]
+ROLES_EN_ORDEN = ["admin", "facturacion", "logistica", "fas", "soporte", "cliente", "cliente_chromgo"]
 
 
 @dataclass
@@ -43,38 +43,38 @@ class Apartado:
 APARTADOS = {
     "pedidos": Apartado(
         _l("Pedidos"), "fa-clipboard-list",
-        _l("Lista y ficha de los pedidos, proformas, documentos y el chat con el cliente."),
-        fijos={"admin", "logistica", "fas", "cliente"}),
+        _l("Lista y ficha de los pedidos, proformas, documentos y el chat con el cliente (Almacén: desde que el cliente acepta)."),
+        fijos={"admin", "facturacion", "logistica", "fas", "cliente"}),
     "preparar": Apartado(
         _l("Preparar y fotos"), "fa-camera", _l("Preparar los pedidos, hacer las fotos y enviarlos."),
         fijos={"admin", "logistica"}),
     "inventario": Apartado(
-        _l("Inventario"), "fa-warehouse", _l("Stock, entradas y salidas, reservas de lotes."),
-        fijos={"admin", "logistica"}),
+        _l("Inventario"), "fa-warehouse", _l("Stock, entradas y salidas, reservas de lotes (Facturación: solo consulta)."),
+        permisos=("inventario.ver",), fijos={"admin", "logistica"}, cambiables={"facturacion"}, de_fabrica={"facturacion"}),
     "catalogo": Apartado(
         _l("Kits y productos"), "fa-boxes",
         _l("El catálogo. Al cliente: los productos activos con su ficha de seguridad, sin precios."),
         permisos=("productos.ver", "productos.catalogo"),
-        fijos={"admin"}, cambiables={"logistica", "fas", "cliente"}, de_fabrica={"logistica", "fas", "cliente"}),
+        fijos={"admin", "facturacion"}, cambiables={"logistica", "fas", "cliente"}, de_fabrica={"logistica", "fas", "cliente"}),
     "lotes": Apartado(
         _l("Lotes y trazabilidad"), "fa-search-location",
         _l("La sección «Lotes» de cada pedido (qué lote sale y cuál salió) y «Rastrear lote»."),
         permisos=("pedidos.ver_lotes",),
-        fijos={"admin", "logistica"}, cambiables={"fas"}, de_fabrica={"fas"}),
+        fijos={"admin", "logistica"}, cambiables={"fas", "facturacion"}, de_fabrica={"fas", "facturacion"}),
     "clientes": Apartado(
         _l("Clientes"), "fa-building",
         _l("La ficha de cada cliente: datos, usuarios, facturación (Soporte de cliente: solo los suyos)."),
         permisos=("clientes.ver", "clientes.precios_visibles", "clientes.avisos", "clientes.catalogo"),
-        fijos={"admin"}, cambiables={"fas", "logistica"}, de_fabrica={"fas"}),
+        fijos={"admin", "facturacion"}, cambiables={"fas"}, de_fabrica={"fas"}),
     "facturas": Apartado(
         _l("Facturas"), "fa-file-invoice-dollar",
         _l("Las facturas (al cliente, solo las suyas ya enviadas). Soporte de cliente, además, las revisa."),
         permisos=("facturas.ver", "facturas.revisar", "facturas.ver_propias", "facturas.descargar"),
-        fijos={"admin", "logistica"}, cambiables={"fas", "cliente"}, de_fabrica={"fas", "cliente"},
+        fijos={"admin", "facturacion"}, cambiables={"fas", "cliente"}, de_fabrica={"fas", "cliente"},
         aviso=_l("Sin él, Soporte de cliente no revisa facturas: las que lo pidan las revisará admin.")),
     "estadisticas": Apartado(
         _l("Estadísticas"), "fa-chart-bar", _l("Pedidos por mes, productos más pedidos y facturación por cliente."),
-        permisos=("estadisticas.ver",), fijos={"admin"}, cambiables={"logistica"}),
+        permisos=("estadisticas.ver",), fijos={"admin"}, cambiables={"facturacion"}, de_fabrica={"facturacion"}),
     "tickets": Apartado(
         _l("Tickets ChromGo"), "fa-life-ring",
         _l("Soporte de ChromGo. Al cliente, solo a los usuarios con «Acceso a Soporte ChromGo» en su ficha."),
@@ -85,7 +85,7 @@ APARTADOS = {
     "documentos": Apartado(
         _l("Documentos internos"), "fa-folder-open",
         _l("Logos, plantillas y protocolos del equipo (no son los documentos de los pedidos). Subir y borrar: solo admin."),
-        prefijo="documentos.", cambiables={"admin", "logistica", "fas", "soporte"},
+        prefijo="documentos.", cambiables={"admin", "facturacion", "logistica", "fas", "soporte"},
         interruptor="DOCUMENTOS_INTERNOS", aviso=_l("En pausa: actívalo cuando se empiece a usar.")),
     "administracion": Apartado(
         _l("Administración"), "fa-cogs", _l("Usuarios, auditoría y estos ajustes."), fijos={"admin"}),
