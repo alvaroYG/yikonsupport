@@ -567,7 +567,7 @@ pruebas automáticas con navegador.
   Sin ordenar: Total y Productos de Pedidos, Estado de Facturas (se calculan). Test: `test_ordenar.py`.
 - **Estado → copia de seguridad**: `copia_seguridad.sh` deja la hora en `/srv/yikonpo/ultima_copia.txt` y
   el `.env` del servidor lleva `COPIA_SEGURIDAD_MARCA` con esa ruta.
-- **Datos de facturación y envío + albarán** (15/10): en la ficha del cliente, pestaña «Facturación y envío»
+- **Datos de facturación y envío + albarán** (15/10): en la ficha del cliente, pestaña «Direcciones»
   (la editan admin y Facturación desde «Editar»): facturación = razón social, CIF, dirección, CP, ciudad,
   provincia y país; envío = «Se envía a la dirección de facturación» u otra dirección, destinatario, persona
   que recibe, teléfono e instrucciones de entrega (vacíos = los de la empresa). Migración `a3d8f2b6c914`.
@@ -578,10 +578,14 @@ pruebas automáticas con navegador.
   pedido, fecha, uso y transporte; contenido sin precios; lotes y caducidades (reservados mientras se
   prepara, los que salieron una vez enviado); observaciones, instrucciones y «Recibí conforme». Al pasar a
   «Enviado» se copian los datos en el pedido (`Pedido.datos_albaran`): el albarán de lo enviado no cambia si
-  luego cambia la ficha. Sin dirección de envío no se genera: avisa (también en Preparar y en la pestaña del
-  cliente, «falta el envío»). Test: `test_albaran.py`. **Al desplegar**: `actualizar.sh` hace la migración;
+  luego cambia la ficha. Sin dirección de envío no se genera: avisa (también en Preparar y con ⚠ en la pestaña
+  «Direcciones» del cliente). Test: `test_albaran.py`. **Al desplegar**: `actualizar.sh` hace la migración;
   hay que completar la dirección de los clientes de antes (se envía a la de facturación por defecto, pero
   el CP, la provincia y el país están vacíos).
+- **Ficha del cliente: pestañas más limpias** (15/10): las pestañas son botones redondeados como en la ficha del
+  pedido (la activa con fondo, sin recuadro ni subrayado) y caben en una fila; dentro de cada pestaña se quitó el
+  «cristal» de las tarjetas, que dejaba un recuadro blanco sin margen. «Kits / Productos sueltos» y «Todo el
+  catálogo / Solo lo que se marque» con los colores de la marca (la opción elegida lleva ✓). Solo `main.css`.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

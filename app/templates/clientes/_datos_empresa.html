@@ -1,8 +1,7 @@
 {# Datos de facturación y de envío del cliente (ficha del cliente para Yikon y «Mi empresa» para el
    cliente, que solo los ve). Necesita: cliente. Lo que sale en el albarán (pedidos/albaran.py). #}
 {% set fac = cliente.datos_facturacion() %}{% set env = cliente.datos_envio() %}
-{% macro lugar(d) %}{{ d.direccion or '—' }}{% if d.codigo_postal or d.ciudad %}<br>{{ [d.codigo_postal, d.ciudad]|select|join(' ') }}{% endif
-  %}{% if d.provincia or d.pais %}<br>{{ [d.provincia, d.pais]|select|join(', ') }}{% endif %}{% endmacro %}
+{% macro lugar(d) %}{% set lineas = [d.direccion, [d.codigo_postal, d.ciudad]|select|join(' '), [d.provincia, d.pais]|select|join(', ')]|select|list %}{{ lineas|join('<br>'|safe) if lineas else '—' }}{% endmacro %}
 <div class="row g-4 datos-empresa">
   <div class="col-md-6">
     <h3 class="h6"><i class="fas fa-file-invoice me-2 text-muted" aria-hidden="true"></i>{{ _('Datos de facturación') }}</h3>

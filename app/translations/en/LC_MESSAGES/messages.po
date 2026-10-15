@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-15 09:57+0000\n"
+"POT-Creation-Date: 2026-10-15 10:17+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1304,7 +1304,7 @@ msgid "Nombre comercial"
 msgstr "Trade name"
 
 #: app/clientes/forms.py:15 app/datos_empresa.py:18
-#: app/templates/clientes/_datos_empresa.html:10
+#: app/templates/clientes/_datos_empresa.html:9
 msgid "Razón social"
 msgstr "Legal name"
 
@@ -1320,8 +1320,8 @@ msgid "Teléfono"
 msgstr "Phone"
 
 #: app/clientes/forms.py:27 app/datos_empresa.py:21
-#: app/templates/clientes/_datos_empresa.html:12
-#: app/templates/clientes/_datos_empresa.html:19
+#: app/templates/clientes/_datos_empresa.html:11
+#: app/templates/clientes/_datos_empresa.html:18
 #: app/templates/clientes/detalle.html:41
 msgid "Dirección"
 msgstr "Address"
@@ -2267,7 +2267,7 @@ msgstr "Issues"
 msgid "%(n)s pedidos"
 msgstr "%(n)s orders"
 
-#: app/clientes/forms.py:16 app/templates/clientes/_datos_empresa.html:11
+#: app/clientes/forms.py:16 app/templates/clientes/_datos_empresa.html:10
 msgid "CIF / NIF"
 msgstr "Tax ID (CIF / NIF)"
 
@@ -2335,7 +2335,7 @@ msgid "Dirección de envío"
 msgstr "Shipping address"
 
 #: app/clientes/forms.py:45 app/pedidos/albaran.py:214
-#: app/templates/clientes/_datos_empresa.html:21
+#: app/templates/clientes/_datos_empresa.html:20
 msgid "Instrucciones de entrega"
 msgstr "Delivery instructions"
 
@@ -4228,8 +4228,8 @@ msgid ""
 "%(cliente)s no tiene dirección de envío: complétala en su ficha (Clientes"
 " → Facturación y envío) o pide a Facturación que lo haga."
 msgstr ""
-"%(cliente)s has no shipping address: complete it on their page (Clients"
-" → Billing and shipping) or ask Invoicing to do it."
+"%(cliente)s has no shipping address: complete it on their page (Clients →"
+" Billing and shipping) or ask Invoicing to do it."
 
 #: app/pedidos/routes.py:1129
 msgid "Elige al menos una foto."
@@ -6188,29 +6188,29 @@ msgstr "← Back to sign in"
 msgid "Elige una contraseña nueva"
 msgstr "Choose a new password"
 
-#: app/templates/clientes/_datos_empresa.html:8
+#: app/templates/clientes/_datos_empresa.html:7
 #: app/templates/clientes/form.html:14
 msgid "Datos de facturación"
 msgstr "Billing details"
 
-#: app/templates/clientes/_datos_empresa.html:16
+#: app/templates/clientes/_datos_empresa.html:15
 #: app/templates/clientes/form.html:23 app/templates/pedidos/detalle.html:600
 msgid "Datos de envío"
 msgstr "Shipping details"
 
-#: app/templates/clientes/_datos_empresa.html:18
+#: app/templates/clientes/_datos_empresa.html:17
 msgid "Destinatario"
 msgstr "Recipient"
 
-#: app/templates/clientes/_datos_empresa.html:19
+#: app/templates/clientes/_datos_empresa.html:18
 msgid "La de facturación"
 msgstr "Same as billing"
 
-#: app/templates/clientes/_datos_empresa.html:20
+#: app/templates/clientes/_datos_empresa.html:19
 msgid "Recibe"
 msgstr "Received by"
 
-#: app/templates/clientes/_datos_empresa.html:24
+#: app/templates/clientes/_datos_empresa.html:23
 msgid "Falta la dirección de envío: sin ella no se puede hacer el albarán."
 msgstr ""
 "The shipping address is missing: without it the delivery note cannot be "
@@ -6299,9 +6299,13 @@ msgid "Secciones del cliente"
 msgstr "Client sections"
 
 #: app/templates/clientes/detalle.html:56
-#: app/templates/clientes/detalle.html:78
-msgid "Facturación y envío"
-msgstr "Billing and shipping"
+msgid "Direcciones"
+msgstr "Addresses"
+
+#: app/templates/clientes/detalle.html:56
+#: app/templates/pedidos/detalle.html:581
+msgid "Falta la dirección de envío"
+msgstr "Shipping address missing"
 
 #: app/templates/clientes/detalle.html:56
 msgid "falta el envío"
@@ -6330,6 +6334,10 @@ msgstr "Email notifications"
 #: app/templates/clientes/detalle.html:71
 msgid "Sin pedidos."
 msgstr "No orders."
+
+#: app/templates/clientes/detalle.html:78
+msgid "Facturación y envío"
+msgstr "Billing and shipping"
 
 #: app/templates/clientes/detalle.html:81
 msgid ""
@@ -9246,10 +9254,6 @@ msgstr ""
 #: app/templates/pedidos/detalle.html:571
 msgid "Descargar nuestro modelo de pedido de compra (Word)"
 msgstr "Download our purchase order template (Word)"
-
-#: app/templates/pedidos/detalle.html:581
-msgid "Falta la dirección de envío"
-msgstr "Shipping address missing"
 
 #: app/templates/pedidos/detalle.html:582
 msgid "Albarán"

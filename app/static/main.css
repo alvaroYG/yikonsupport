@@ -1107,14 +1107,33 @@ a.marca-nuevo:hover { background: #274a78; color: #fff; }
 /* Ficha del cliente (Yikon): franja con los datos principales y el resto en pestañas */
 .franja-cliente-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .75rem 1.5rem; align-items: start; }
 .franja-etiqueta { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); margin-bottom: .15rem; }
-.ficha-pestanas > .card-header { background: #fcfbfd; }
-.ficha-pestanas .nav-tabs .nav-link { font-weight: 500; color: var(--texto); }
-.ficha-pestanas .nav-tabs .nav-link.active { font-weight: 700; color: var(--marca-oscuro); border-bottom: 3px solid var(--marca); }
-.cuenta-pestana { background: #eceef4; color: #4a4b57; font-weight: 600; margin-left: .25rem; }
-.nav-link.active .cuenta-pestana { background: #edbde4; color: var(--marca-oscuro); }
-/* Dentro de una pestaña, las tarjetas de siempre sin marco (ya están dentro de la tarjeta de pestañas) */
-.ficha-pestanas .tab-pane > .card { border: 0; box-shadow: none; background: transparent; margin-bottom: 1.5rem !important; }
+/* Pestañas como las de la ficha del pedido: botones redondeados, la activa con fondo (sin recuadro ni subrayado) */
+.ficha-pestanas > .card-header { background: transparent; border-bottom: 1px solid rgba(58, 59, 69, .08); padding: .75rem 1rem; }
+.ficha-pestanas .nav-tabs { border-bottom: 0; gap: .2rem; margin: 0; }
+.ficha-pestanas .nav-tabs .nav-link { display: inline-flex; align-items: center; gap: .35rem; min-height: 2.5rem; padding: .35rem .75rem;
+  border: 0; border-radius: .75rem; margin: 0; background: transparent; font-weight: 600; color: #4a4050; white-space: nowrap; }
+.ficha-pestanas .nav-tabs .nav-link:hover { background: #faf5fa; color: var(--marca-oscuro); }
+.ficha-pestanas .nav-tabs .nav-link:focus-visible { outline: 2px solid var(--marca); outline-offset: 1px; }
+.ficha-pestanas .nav-tabs .nav-link.active { background: #f6e3f3; color: var(--marca-oscuro); font-weight: 700; }
+.cuenta-pestana { background: #eceef4; color: #4a4b57; font-weight: 600; margin-left: .1rem; }
+.nav-link.active .cuenta-pestana { background: #fff; color: var(--marca-oscuro); }
+/* Dentro de una pestaña, las tarjetas de siempre sin marco ni cristal (ya están dentro de la tarjeta de
+   pestañas). !important: la receta del cristal (bloque 3) pone el fondo con !important */
+.ficha-pestanas .tab-pane > .card { border: 0; border-radius: 0; box-shadow: none; background: transparent !important;
+  -webkit-backdrop-filter: none; backdrop-filter: none; margin-bottom: 1.5rem !important; }
 .ficha-pestanas .tab-pane > .card:last-child { margin-bottom: 0 !important; }
+/* Su catálogo: «Todo el catálogo» / «Solo lo que se marque». La elegida, con el fondo de la marca y ✓ (no solo color) */
+.opcion-catalogo { border-radius: .75rem; border-color: rgba(58, 59, 69, .18); color: var(--texto); background: rgba(255, 255, 255, .6); }
+.opcion-catalogo:hover { background: #faf5fa; border-color: var(--marca); color: var(--texto); }
+.btn-check:checked + .opcion-catalogo { background: #f6e3f3; border: 2px solid var(--marca); color: var(--marca-oscuro); }
+.btn-check:checked + .opcion-catalogo strong::before { content: "✓ "; }
+.btn-check:focus-visible + .opcion-catalogo { outline: 2px solid var(--marca); outline-offset: 2px; }
+/* Kits / Productos sueltos (Precios especiales): mismas pastillas, en pequeño y con el color de la marca */
+.ficha-pestanas .nav-pills .nav-link { border-radius: .65rem; padding: .3rem .8rem; color: #4a4050; font-weight: 600; }
+.ficha-pestanas .nav-pills .nav-link:hover { background: #faf5fa; color: var(--marca-oscuro); }
+.ficha-pestanas .nav-pills .nav-link.active { background: #f6e3f3; color: var(--marca-oscuro); }
+.ficha-pestanas .nav-pills .badge { background: #eceef4 !important; color: #4a4b57; }
+.ficha-pestanas .nav-pills .nav-link.active .badge { background: #fff !important; color: var(--marca-oscuro); }
 .ficha-pestanas .tab-pane > .card > .card-body { padding: 0; }
 
 /* Cabeceras que ordenan la tabla (macro th_orden): parecen cabeceras, no enlaces */
