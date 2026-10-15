@@ -556,6 +556,8 @@ def _cambiar_estado(pedido, destino, detalle="", avisar=True, motivo=None):
     registrar("editar", pedido, f"{origen} → {destino}" + "".join(f" · {x}" for x in partes))
     estado_cliente_antes = pedido.estado_cliente
     pedido.estado = destino
+    if destino == "enviado":
+        pedido.recordatorio_recibido_el = None          # cada envío, su recordatorio de recepción
     if destino == "cancelado":
         # Una proforma pendiente de un pedido cancelado ya no se puede aceptar
         for proforma in pedido.proformas:
@@ -1295,6 +1297,8 @@ def cambiar_datos_envio(id):
             cambios.append(f"{campo}: {txt(antes)} → {txt(despues)}")
             setattr(pedido, campo, despues)
     if cambios:
+        if any(c.startswith("fecha_entrega_estimada") for c in cambios):
+            pedido.recordatorio_recibido_el = None      # otra fecha: otro recordatorio, el día después
         registrar("editar", pedido, "datos de envío · " + " · ".join(cambios))
         avisar_datos_envio(pedido)                # email al cliente, tras el commit
         db.session.commit()

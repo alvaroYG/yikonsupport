@@ -113,3 +113,42 @@ def enviar_invitacion(usuario, enlace, dias, invita):
     from flask_babel import ngettext
     _correo_de_acceso(usuario, "invitacion", enlace, lambda: ngettext("%(num)s día", "%(num)s días", dias),
                       "invitacion", invita=invita)
+
+
+def recordar_recepcion(hoy=None):
+    """Recordatorio automático al cliente: «¿Ha recibido su pedido?». Lo lanza cada día a las 9:00 de España un temporizador
+    (`flask recordar-recepcion`, deploy/recordatorios.sh). Sale el día después de la fecha estimada de
+    entrega si el pedido sigue «Enviado», una sola vez (Pedido.recordatorio_recibido_el), a los usuarios
+    del cliente con «Envío y seguimiento» marcado y sus emails en copia. Si admin lo ha desactivado en
+    Ajustes → Correos al cliente, no sale ni se marca. Devuelve los pedidos avisados.
+    Hay que llamarla dentro de un contexto de petición (para los enlaces): el comando ya lo hace."""
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+
+    from flask import current_app
+
+    from app.auditoria import registrar
+    from app.correo import enviar_al_cliente_tras_guardar
+    from app.extensions import db
+    from app.models import Pedido, ahora
+    if not correos_cliente.aviso_activado("recordatorio_recibido"):
+        return []
+    hoy = hoy or datetime.now(ZoneInfo(current_app.config.get("ZONA_HORARIA", "Europe/Madrid"))).date()
+    pedidos = db.session.scalars(db.select(Pedido).where(
+        Pedido.estado == "enviado", Pedido.fecha_entrega_estimada.isnot(None),
+        Pedido.fecha_entrega_estimada <= hoy - timedelta(days=1),
+        Pedido.recordatorio_recibido_el.is_(None)).order_by(Pedido.id)).all()
+    avisados = []
+    for pedido in pedidos:
+        grupos = avisos_cliente.por_idioma(pedido.cliente, correos_cliente.TIPO_DE_CASO["recordatorio_recibido"])
+        for idioma, emails in grupos.items():
+            with force_locale(idioma):
+                enviar_al_cliente_tras_guardar(emails, "recordatorio_recibido", idioma,
+                                               correos_cliente.valores_de_pedido(pedido),
+                                               {"cliente_id": pedido.cliente_id, "pedido_id": pedido.id})
+        pedido.recordatorio_recibido_el = ahora()
+        registrar("editar", pedido, "recordatorio automático al cliente: ¿ha recibido el pedido?"
+                  + ("" if grupos else " (ningún usuario lo tiene marcado: no se ha enviado)"))
+        avisados.append(pedido)
+    db.session.commit()
+    return avisados

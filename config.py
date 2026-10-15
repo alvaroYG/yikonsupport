@@ -20,6 +20,10 @@ class Config:
 
     ELEMENTOS_POR_PAGINA = 10      # filas por página en todas las listas largas (se puede elegir 25 o 50)
 
+    # Dirección pública de la plataforma: para los enlaces de los correos que salen sin que nadie esté
+    # navegando (el recordatorio diario de recepción: `flask recordar-recepcion`, desde el temporizador diario)
+    URL_PLATAFORMA = os.environ.get("URL_PLATAFORMA", "https://yikonsupport.com")
+
     # Inventario: avisar de los lotes que caducan en los próximos N días
     DIAS_AVISO_CADUCIDAD = 7
 

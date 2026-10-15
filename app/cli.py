@@ -130,6 +130,19 @@ def registrar_comandos(app):
         if con_aviso:
             click.echo("Los marcados con ⚠ no se podrán enviar hasta resolverlo en su ficha (tarjeta «Lotes de este pedido»).")
 
+    @app.cli.command("recordar-recepcion")
+    def recordar_recepcion_cmd():
+        """Recordatorio «¿Ha recibido su pedido?» a los clientes (cada día a las 9:00 de España: deploy/yikonpo-recordatorios.timer).
+
+        Sale el día después de la fecha estimada de entrega si el pedido sigue «Enviado», una vez.
+        En el servidor lo lanza deploy/recordatorios.sh (DESPLIEGUE.md)."""
+        from app.notificaciones import recordar_recepcion
+        # Sin nadie navegando: los enlaces de los correos salen con URL_PLATAFORMA
+        with app.test_request_context(base_url=app.config["URL_PLATAFORMA"]):
+            avisados = recordar_recepcion()
+        click.echo(f"Recordatorios de recepción: {len(avisados)}"
+                   + (" (" + ", ".join(p.referencia_interna or f"#{p.id}" for p in avisados) + ")" if avisados else ""))
+
     @app.cli.command("datos-demo")
     def datos_demo():
         """Rellena la base de datos con datos FICTICIOS para probar (solo desarrollo)."""

@@ -133,6 +133,19 @@ CASOS = {
         lambda: (_("Hola,") + "\n\n" + _("Hemos actualizado los datos de envío de su pedido {referencia}:") + "\n\n"
                  + _datos_de_envio() + "\n\n" + _("Puede consultarlo en:") + "\n{enlace}"),
         DATOS_PEDIDO + DATOS_ENVIO),
+    # Automático (cada día a las 9:00, `flask recordar-recepcion`): 24 h después de la fecha estimada de entrega,
+    # si el pedido sigue «Enviado». Una vez por pedido (Pedido.recordatorio_recibido_el).
+    "recordatorio_recibido": Caso(
+        _l("¿Ha recibido el pedido? (recordatorio)"),
+        _l("Automático: el día después de la fecha estimada de entrega, si el pedido sigue sin marcarse como recibido. Una vez por pedido."),
+        lambda: _("¿Ha recibido su pedido {referencia}?"),
+        lambda: (_("Hola,") + "\n\n"
+                 + _("Según nuestras previsiones, su pedido {referencia} (su referencia: {su_referencia}) debía llegar el {entrega_estimada}.")
+                 + "\n\n" + _("¿Lo ha recibido ya? Si es así, por favor márquelo como «Recibido» en la plataforma "
+                               "(botón «Marcar como recibido» en la ficha del pedido):") + "\n{enlace}\n\n"
+                 + _("Si todavía no ha llegado o ha habido algún problema, escríbanos desde los mensajes del pedido "
+                     "o con «Hay un problema con este pedido».")),
+        DATOS_PEDIDO + DATOS_ENVIO),
     "mensaje_nuevo": Caso(
         _l("Mensaje nuevo de Yikon"), _l("Alguien de Yikon escribe al cliente en el chat (de un pedido o el general)."),
         lambda: _("Nuevo mensaje sobre {sobre}"),
@@ -169,7 +182,7 @@ TIPO_DE_CASO = {
     "proforma_solicitada": "proformas", "proforma_enviada": "proformas", "cambios_solicitados": "proformas",
     "aceptado_proforma": "proformas",
     "aceptado": "estado", "preparacion": "estado", "entregado": "estado", "cancelado": "estado",
-    "enviado": "envio", "datos_envio": "envio",
+    "enviado": "envio", "datos_envio": "envio", "recordatorio_recibido": "envio",
     "mensaje_nuevo": "mensajes",
 }
 CASOS_ACCESO = ("invitacion", "restablecer")

@@ -1,0 +1,11 @@
+# Cada día a las 9:00 de España (Europe/Madrid: también en horario de verano, sin tocar nada).
+# Persistent: si el servidor estaba apagado a esa hora, se lanza al arrancar.
+[Unit]
+Description=Yikon Genomics PO: recordatorio de recepción, cada día a las 9:00 (España)
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 Europe/Madrid
+Persistent=true
+
+[Install]
+WantedBy=timers.target

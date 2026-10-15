@@ -270,6 +270,32 @@ Añade esta línea al final:
 2. **Probar a restaurar** una copia antes de dar acceso a clientes (siguiente apartado). Una
    copia que nunca se ha restaurado no es una copia.
 
+### Recordatorio de recepción (aviso automático diario)
+
+El día después de la fecha estimada de entrega, si un pedido sigue «Enviado», la plataforma manda al
+cliente el correo «¿Ha recibido su pedido?» (una vez por pedido; el texto se cambia y se activa o
+desactiva en Ajustes → Correos al cliente). Sale cada día a las **9:00 de España** (también en horario de
+verano): lo lanza un temporizador de systemd. Pruébalo a mano:
+
+```bash
+sudo -u yikonpo bash /srv/yikonpo/app/deploy/recordatorios.sh
+```
+
+Y prográmalo (una sola vez; luego `actualizar.sh` no lo toca):
+
+```bash
+cd /srv/yikonpo/app
+sudo cp deploy/yikonpo-recordatorios.service deploy/yikonpo-recordatorios.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now yikonpo-recordatorios.timer
+systemctl list-timers yikonpo-recordatorios      # «NEXT»: mañana a las 9:00 (hora de España)
+```
+
+Lo que ha hecho cada día: `sudo journalctl -u yikonpo-recordatorios`. Si el servidor estaba apagado a las
+9:00, se lanza al arrancar.
+
+Los enlaces de esos correos salen con `URL_PLATAFORMA` del `.env` (si no está, `https://yikonsupport.com`).
+
 ### Restaurar una copia
 
 En una base de datos de prueba (no toca la real):

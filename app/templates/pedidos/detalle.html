@@ -44,6 +44,9 @@
       {% if pedido.numero_seguimiento %}· {{ _('Nº de seguimiento') }}: <span class="lote-codigo">{{ pedido.numero_seguimiento }}</span>{% endif %}
       {% if pedido.enlace_seguimiento %}· <a href="{{ pedido.enlace_seguimiento }}" target="_blank" rel="noopener noreferrer">{{ _('Seguir el envío ↗') }}</a>{% endif %}
     </div>
+    {% endif %}
+    {% if pedido.recordatorio_recibido_el and pedido.estado == 'enviado' and current_user.rol != 'cliente' %}
+    <div class="small text-muted mt-1"><i class="fas fa-bell me-1" aria-hidden="true"></i>{{ _('Recordatorio de recepción enviado al cliente el %(fecha)s.', fecha=pedido.recordatorio_recibido_el|fecha_hora('%d/%m/%Y')) }}</div>
     {% endif %}</div>
   {# Acciones del pedido, con su nombre escrito. El paso que le toca a quien mira (empezar la
      preparación, validar, confirmar la recepción…) no está aquí: va en la barra «Lo que toca»

@@ -526,6 +526,9 @@ class Pedido(db.Model):
     # cliente, opcional si lo crea Yikon) y sus observaciones. Los ve todo Yikon (también en Preparar).
     uso = db.Column(db.String(12))
     observaciones = db.Column(db.Text)
+    # Cuándo se mandó el recordatorio «¿Ha recibido el pedido?» (notificaciones.recordar_recepcion):
+    # una vez por envío; se vuelve a poner a None si cambia la fecha estimada o se envía otra vez.
+    recordatorio_recibido_el = db.Column(db.DateTime(timezone=True))
     creado = db.Column(db.DateTime(timezone=True), default=ahora)
     # ¿Va por proforma? (los pedidos que hace el cliente). Si se cancela y se reabre, o hay
     # que cambiarlo después de aceptar la proforma, vuelve a "proforma solicitada".

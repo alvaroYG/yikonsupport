@@ -476,6 +476,15 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Recordatorio «¿Ha recibido su pedido?»** (15/10): correo automático al cliente el día después de la fecha
+  estimada de entrega si el pedido sigue «Enviado», una vez (`Pedido.recordatorio_recibido_el`, migración
+  `f1c9d3e7a258`; vuelve a salir si cambia la fecha estimada o se envía otra vez). Lo reciben los usuarios con
+  «Envío y seguimiento» marcado y sus emails en copia; el texto se cambia y se activa/desactiva en Ajustes →
+  Correos al cliente. Comando `flask recordar-recepcion` (`deploy/recordatorios.sh`), cada día a las 9:00 de
+  España con un temporizador de systemd (`deploy/yikonpo-recordatorios.timer`). Los enlaces
+  usan `URL_PLATAFORMA`. En la ficha, Yikon ve «Recordatorio de recepción enviado…». Sin fecha estimada no
+  sale. Test: `test_recordatorio_recepcion.py`. **Al desplegar**: `actualizar.sh` (migración) e instalar el
+  temporizador una vez (DESPLIEGUE.md, apartado «Recordatorio de recepción»).
 - **Qué correos recibe el cliente** (15/10, hecho por Álvaro con ChatGPT): en Ajustes → Correos al cliente, casillas
   para activar o desactivar cada aviso para todos los clientes (`correos_cliente.aviso_activado`); los de acceso
   siempre salen. OJO: el zip traía versiones viejas de `correo.py`, `revision_correo.py` y `correos_cliente.py`

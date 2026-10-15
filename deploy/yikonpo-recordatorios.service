@@ -1,0 +1,15 @@
+# Recordatorio diario «¿Ha recibido su pedido?» (deploy/recordatorios.sh). Lo arranca el temporizador
+# yikonpo-recordatorios.timer cada día a las 9:00 de España. Instalar (DESPLIEGUE.md, «Recordatorio de recepción»):
+#   sudo cp deploy/yikonpo-recordatorios.service deploy/yikonpo-recordatorios.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now yikonpo-recordatorios.timer
+# Lanzarlo a mano:  sudo systemctl start yikonpo-recordatorios      Registro: sudo journalctl -u yikonpo-recordatorios
+[Unit]
+Description=Yikon Genomics PO: recordatorio de recepción a los clientes
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=yikonpo
+Group=yikonpo
+WorkingDirectory=/srv/yikonpo/app
+ExecStart=/usr/bin/bash /srv/yikonpo/app/deploy/recordatorios.sh

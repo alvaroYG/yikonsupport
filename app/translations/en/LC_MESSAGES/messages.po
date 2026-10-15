@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-15 08:34+0000\n"
+"POT-Creation-Date: 2026-10-15 08:47+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -140,8 +140,8 @@ msgstr ""
 #: app/apartados.py:71 app/buscador.py:191 app/clientes/exportar.py:70
 #: app/facturas/routes.py:78 app/facturas/routes.py:96 app/navegacion.py:76
 #: app/navegacion.py:77 app/templates/clientes/detalle.html:84
-#: app/templates/facturas/lista.html:5 app/templates/pedidos/detalle.html:382
-#: app/templates/pedidos/detalle.html:389
+#: app/templates/facturas/lista.html:5 app/templates/pedidos/detalle.html:385
+#: app/templates/pedidos/detalle.html:392
 msgid "Facturas"
 msgstr "Invoices"
 
@@ -304,7 +304,7 @@ msgstr "Order"
 #: app/templates/inventario/rastreo.html:91
 #: app/templates/inventario/reservas.html:19
 #: app/templates/main/actividad.html:10 app/templates/mensajes/lista.html:21
-#: app/templates/pedidos/detalle.html:88 app/templates/pedidos/lista.html:30
+#: app/templates/pedidos/detalle.html:91 app/templates/pedidos/lista.html:30
 #: app/templates/pedidos/lista.html:67 app/templates/soporte/detalle.html:100
 #: app/templates/soporte/lista.html:58 app/templates/soporte/lista.html:73
 msgid "Cliente"
@@ -869,7 +869,8 @@ msgid "Cuánto vale el enlace («7 días», «2 horas»…: Ajustes → Segurida
 msgstr "How long the link is valid (“7 days”, “2 hours”…: Settings → Security)"
 
 #: app/correos_cliente.py:75 app/correos_cliente.py:133
-#: app/correos_cliente.py:139 app/templates/correos/cambio_estado_cliente.txt:1
+#: app/correos_cliente.py:142 app/correos_cliente.py:152
+#: app/templates/correos/cambio_estado_cliente.txt:1
 #: app/templates/correos/datos_envio.txt:1
 #: app/templates/correos/mensaje_nuevo.txt:1 app/templates/correos/ticket.txt:1
 msgid "Hola,"
@@ -1070,11 +1071,53 @@ msgstr "Your order {referencia}: shipping details updated"
 msgid "Hemos actualizado los datos de envío de su pedido {referencia}:"
 msgstr "We have updated the shipping details of your order {referencia}:"
 
-#: app/correos_cliente.py:137
+#: app/correos_cliente.py:139
+msgid "¿Ha recibido el pedido? (recordatorio)"
+msgstr "Have you received the order? (reminder)"
+
+#: app/correos_cliente.py:140
+msgid ""
+"Automático: el día después de la fecha estimada de entrega, si el pedido "
+"sigue sin marcarse como recibido. Una vez por pedido."
+msgstr ""
+"Automatic: the day after the estimated delivery date, if the order has "
+"not been marked as received yet. Once per order."
+
+#: app/correos_cliente.py:141
+#, python-brace-format
+msgid "¿Ha recibido su pedido {referencia}?"
+msgstr "Have you received your order {referencia}?"
+
+#: app/correos_cliente.py:143
+#, python-brace-format
+msgid ""
+"Según nuestras previsiones, su pedido {referencia} (su referencia: "
+"{su_referencia}) debía llegar el {entrega_estimada}."
+msgstr ""
+"According to our estimates, your order {referencia} (your reference: "
+"{su_referencia}) was due to arrive on {entrega_estimada}."
+
+#: app/correos_cliente.py:144
+msgid ""
+"¿Lo ha recibido ya? Si es así, por favor márquelo como «Recibido» en la "
+"plataforma (botón «Marcar como recibido» en la ficha del pedido):"
+msgstr ""
+"Have you received it yet? If so, please mark it as «Received» on the "
+"platform («Mark as received» button on the order page):"
+
+#: app/correos_cliente.py:146
+msgid ""
+"Si todavía no ha llegado o ha habido algún problema, escríbanos desde los"
+" mensajes del pedido o con «Hay un problema con este pedido»."
+msgstr ""
+"If it has not arrived yet or there has been a problem, write to us in the"
+" order messages or use «There is a problem with this order»."
+
+#: app/correos_cliente.py:150
 msgid "Mensaje nuevo de Yikon"
 msgstr "New message from Yikon"
 
-#: app/correos_cliente.py:137
+#: app/correos_cliente.py:150
 msgid ""
 "Alguien de Yikon escribe al cliente en el chat (de un pedido o el "
 "general)."
@@ -1082,26 +1125,26 @@ msgstr ""
 "Someone at Yikon writes to the client in the chat (of an order or the "
 "general one)."
 
-#: app/correos_cliente.py:138
+#: app/correos_cliente.py:151
 #, python-brace-format
 msgid "Nuevo mensaje sobre {sobre}"
 msgstr "New message about {sobre}"
 
-#: app/correos_cliente.py:139
+#: app/correos_cliente.py:152
 #, python-brace-format
 msgid "{quien} ha escrito un mensaje sobre {sobre}:"
 msgstr "{quien} has written a message about {sobre}:"
 
-#: app/correos_cliente.py:140 app/templates/correos/mensaje_nuevo.txt:7
+#: app/correos_cliente.py:153 app/templates/correos/mensaje_nuevo.txt:7
 #: app/templates/correos/ticket.txt:14
 msgid "Archivos adjuntos (descárguelos desde la plataforma):"
 msgstr "Attached files (download them from the platform):"
 
-#: app/correos_cliente.py:141 app/templates/correos/mensaje_nuevo.txt:10
+#: app/correos_cliente.py:154 app/templates/correos/mensaje_nuevo.txt:10
 msgid "Para responder, entre en la plataforma:"
 msgstr "To reply, log in to the platform:"
 
-#: app/correos_cliente.py:142 app/templates/correos/mensaje_nuevo.txt:13
+#: app/correos_cliente.py:155 app/templates/correos/mensaje_nuevo.txt:13
 msgid ""
 "Si escriben más mensajes en esta conversación antes de que la abra, no le"
 " enviaremos otro aviso."
@@ -1109,33 +1152,33 @@ msgstr ""
 "If more messages are written in this conversation before you open it, we "
 "won't send you another notice."
 
-#: app/admin/correos_estado.py:34 app/correos_cliente.py:147
+#: app/admin/correos_estado.py:34 app/correos_cliente.py:160
 msgid "Invitación"
 msgstr "Invitation"
 
-#: app/correos_cliente.py:147
+#: app/correos_cliente.py:160
 msgid "Admin da de alta a un usuario (o le reenvía la invitación)."
 msgstr "Admin creates a user (or resends the invitation)."
 
-#: app/correos_cliente.py:148
+#: app/correos_cliente.py:161
 msgid "Tu acceso a Yikon Genomics PO"
 msgstr "Your access to Yikon Genomics PO"
 
-#: app/correos_cliente.py:149 app/correos_cliente.py:158
+#: app/correos_cliente.py:162 app/correos_cliente.py:171
 #: app/templates/correos/invitacion.txt:1
 #: app/templates/correos/restablecer_password.txt:1
 #, python-format
 msgid "Hola %(nombre)s,"
 msgstr "Hello %(nombre)s,"
 
-#: app/correos_cliente.py:150 app/templates/correos/invitacion.txt:3
+#: app/correos_cliente.py:163 app/templates/correos/invitacion.txt:3
 #, python-format
 msgid ""
 "%(invita)s te ha dado de alta en la plataforma de pedidos de Yikon "
 "Genomics."
 msgstr "%(invita)s has given you access to the Yikon Genomics ordering platform."
 
-#: app/correos_cliente.py:151
+#: app/correos_cliente.py:164
 #, python-brace-format
 msgid ""
 "Para activar tu cuenta y elegir tu contraseña, abre este enlace (caduca "
@@ -1144,24 +1187,24 @@ msgstr ""
 "To activate your account and choose your password, open this link (it "
 "expires in {caducidad} and can only be used once):"
 
-#: app/correos_cliente.py:153 app/templates/correos/invitacion.txt:9
+#: app/correos_cliente.py:166 app/templates/correos/invitacion.txt:9
 #, python-format
 msgid "Tu usuario para entrar es tu email: %(email)s"
 msgstr "Your username is your email: %(email)s"
 
-#: app/correos_cliente.py:156
+#: app/correos_cliente.py:169
 msgid "Cambiar la contraseña"
 msgstr "Change the password"
 
-#: app/correos_cliente.py:156
+#: app/correos_cliente.py:169
 msgid "Alguien pide «¿Has olvidado tu contraseña?» en la página de entrar."
 msgstr "Someone uses “Forgot your password?” on the login page."
 
-#: app/correos_cliente.py:157
+#: app/correos_cliente.py:170
 msgid "Restablecer tu contraseña · Yikon Genomics PO"
 msgstr "Reset your password · Yikon Genomics PO"
 
-#: app/correos_cliente.py:159 app/templates/correos/restablecer_password.txt:3
+#: app/correos_cliente.py:172 app/templates/correos/restablecer_password.txt:3
 msgid ""
 "Alguien (seguramente tú) ha pedido restablecer la contraseña de tu cuenta"
 " en Yikon Genomics PO."
@@ -1169,7 +1212,7 @@ msgstr ""
 "Someone (probably you) asked to reset the password of your Yikon Genomics"
 " PO account."
 
-#: app/correos_cliente.py:160
+#: app/correos_cliente.py:173
 #, python-brace-format
 msgid ""
 "Para elegir una contraseña nueva, abre este enlace (caduca en {caducidad}"
@@ -1178,11 +1221,11 @@ msgstr ""
 "To choose a new password, open this link (it expires in {caducidad} and "
 "can only be used once):"
 
-#: app/correos_cliente.py:162 app/templates/correos/restablecer_password.txt:9
+#: app/correos_cliente.py:175 app/templates/correos/restablecer_password.txt:9
 msgid "Si no has sido tú, ignora este correo: tu contraseña no cambiará."
 msgstr "If it wasn't you, ignore this email: your password will not change."
 
-#: app/correos_cliente.py:189
+#: app/correos_cliente.py:202
 #: app/templates/correos/cambio_estado_cliente.txt:30
 #: app/templates/correos/datos_envio.txt:11
 #: app/templates/correos/mensaje_nuevo.txt:16
@@ -1190,15 +1233,15 @@ msgstr "If it wasn't you, ignore this email: your password will not change."
 msgid "Este es un aviso automático, no responda a este correo."
 msgstr "This is an automated message, please do not reply."
 
-#: app/correos_cliente.py:217
+#: app/correos_cliente.py:230
 msgid "El asunto no puede ir vacío."
 msgstr "The subject cannot be empty."
 
-#: app/correos_cliente.py:219
+#: app/correos_cliente.py:232
 msgid "El texto no puede ir vacío."
 msgstr "The text cannot be empty."
 
-#: app/correos_cliente.py:222
+#: app/correos_cliente.py:235
 #, python-brace-format, python-format
 msgid ""
 "«{%(dato)s}» no es un dato de este correo: quítalo o elige uno de la "
@@ -1207,16 +1250,16 @@ msgstr ""
 "\"{%(dato)s}\" is not a field of this email: remove it or choose one from"
 " the list."
 
-#: app/correos_cliente.py:223
+#: app/correos_cliente.py:236
 #, python-brace-format, python-format
 msgid "La firma no lleva datos entre llaves: «{%(dato)s}»."
 msgstr "The signature cannot contain fields in braces: \"{%(dato)s}\"."
 
-#: app/correos_cliente.py:225
+#: app/correos_cliente.py:238
 msgid "El asunto tiene que ir en una sola línea."
 msgstr "The subject must be a single line."
 
-#: app/correos_cliente.py:227
+#: app/correos_cliente.py:240
 #, python-brace-format
 msgid ""
 "Este correo tiene que llevar {enlace_acceso}: sin él no se puede elegir "
@@ -1225,31 +1268,31 @@ msgstr ""
 "This email must include {enlace_acceso}: without it the password can't be"
 " chosen."
 
-#: app/correos_cliente.py:420
+#: app/correos_cliente.py:433
 msgid "Clínica de ejemplo"
 msgstr "Example clinic"
 
-#: app/correos_cliente.py:421
+#: app/correos_cliente.py:434
 msgid "Tubos PCR 0,2 ml (caja 1000)"
 msgstr "PCR tubes 0.2 ml (box of 1000)"
 
-#: app/correos_cliente.py:424 app/mensajes/servicio.py:277
+#: app/correos_cliente.py:437 app/mensajes/servicio.py:277
 #, python-format
 msgid "el pedido %(ref)s"
 msgstr "order %(ref)s"
 
-#: app/correos_cliente.py:425
+#: app/correos_cliente.py:438
 msgid "Os lo enviamos mañana a primera hora."
 msgstr "We'll send it first thing tomorrow."
 
-#: app/correos_cliente.py:440 app/notificaciones.py:107
+#: app/correos_cliente.py:453 app/notificaciones.py:107
 #, python-format
 msgid "%(num)s hora"
 msgid_plural "%(num)s horas"
 msgstr[0] "%(num)s hour"
 msgstr[1] "%(num)s hours"
 
-#: app/correos_cliente.py:442 app/notificaciones.py:114
+#: app/correos_cliente.py:455 app/notificaciones.py:114
 #, python-format
 msgid "%(num)s día"
 msgid_plural "%(num)s días"
@@ -1351,196 +1394,196 @@ msgstr "Ready to ship"
 msgid "Proforma recibida"
 msgstr "Proforma received"
 
-#: app/models.py:741
+#: app/models.py:744
 msgid "Pendiente de respuesta"
 msgstr "Awaiting response"
 
-#: app/models.py:742
+#: app/models.py:745
 msgid "Aceptada"
 msgstr "Accepted"
 
-#: app/models.py:743
+#: app/models.py:746
 msgid "El cliente pidió cambios"
 msgstr "Client requested changes"
 
-#: app/models.py:744
+#: app/models.py:747
 msgid "Retirada por Yikon"
 msgstr "Withdrawn by Yikon"
 
-#: app/models.py:772
+#: app/models.py:775
 msgid "Llegó dañado"
 msgstr "Arrived damaged"
 
-#: app/models.py:773
+#: app/models.py:776
 msgid "Falta algo"
 msgstr "Something is missing"
 
-#: app/models.py:774
+#: app/models.py:777
 msgid "Temperatura"
 msgstr "Temperature"
 
-#: app/models.py:775 app/models.py:1456
+#: app/models.py:778 app/models.py:1459
 msgid "Otro"
 msgstr "Other"
 
-#: app/models.py:898
+#: app/models.py:901
 msgid "A · Kits sin precio"
 msgstr "A · Kits without prices"
 
-#: app/models.py:899
+#: app/models.py:902
 msgid "B · Kits con precio por línea"
 msgstr "B · Kits with line prices"
 
-#: app/models.py:900
+#: app/models.py:903
 msgid "C · Lista con precio unitario"
 msgstr "C · List with unit prices"
 
-#: app/models.py:903
+#: app/models.py:906
 msgid "España (IVA)"
 msgstr "Spain (VAT)"
 
-#: app/models.py:904
+#: app/models.py:907
 msgid "UE · sin IVA"
 msgstr "EU · no VAT"
 
-#: app/models.py:905
+#: app/models.py:908
 msgid "Exportación · sin IVA"
 msgstr "Export · no VAT"
 
-#: app/models.py:909
+#: app/models.py:912
 msgid "Pendiente"
 msgstr "Pending"
 
-#: app/models.py:910
+#: app/models.py:913
 msgid "Pagada"
 msgstr "Paid"
 
-#: app/models.py:911
+#: app/models.py:914
 msgid "Anulada"
 msgstr "Void"
 
-#: app/models.py:1015
+#: app/models.py:1018
 msgid "Entrada de mercancía"
 msgstr "Goods received"
 
-#: app/models.py:1016
+#: app/models.py:1019
 msgid "Salida por envío de pedido"
 msgstr "Order shipment"
 
-#: app/models.py:1017
+#: app/models.py:1020
 msgid "Anulación de envío"
 msgstr "Shipment reversal"
 
-#: app/models.py:1018
+#: app/models.py:1021
 msgid "Ajuste manual"
 msgstr "Manual adjustment"
 
-#: app/models.py:1019
+#: app/models.py:1022
 msgid "Apertura de kit"
 msgstr "Kit opening"
 
-#: app/models.py:1382
+#: app/models.py:1385
 msgid "Logos y marca"
 msgstr "Logos and brand"
 
-#: app/models.py:1383
+#: app/models.py:1386
 msgid "Plantillas"
 msgstr "Templates"
 
-#: app/models.py:1384
+#: app/models.py:1387
 msgid "Protocolos"
 msgstr "Protocols"
 
-#: app/models.py:1385
+#: app/models.py:1388
 msgid "Fichas técnicas"
 msgstr "Technical sheets"
 
-#: app/models.py:1386
+#: app/models.py:1389
 msgid "Formación"
 msgstr "Training"
 
-#: app/models.py:1387
+#: app/models.py:1390
 msgid "Otros"
 msgstr "Other"
 
-#: app/models.py:1449
+#: app/models.py:1452
 msgid "Acceso / inicio de sesión"
 msgstr "Access / login"
 
-#: app/models.py:1450
+#: app/models.py:1453
 msgid "Carga de datos / muestras"
 msgstr "Data / sample upload"
 
-#: app/models.py:1451
+#: app/models.py:1454
 msgid "Análisis CNV / aneuploidías"
 msgstr "CNV / aneuploidy analysis"
 
-#: app/models.py:1452
+#: app/models.py:1455
 msgid "SNP / haplotipado"
 msgstr "SNP / haplotyping"
 
-#: app/models.py:1453
+#: app/models.py:1456
 msgid "Informes y resultados"
 msgstr "Reports and results"
 
-#: app/models.py:1454
+#: app/models.py:1457
 msgid "Lentitud o errores de la web"
 msgstr "Slowness or website errors"
 
-#: app/models.py:1455
+#: app/models.py:1458
 msgid "Consulta / cómo se hace"
 msgstr "Question / how-to"
 
-#: app/models.py:1459
+#: app/models.py:1462
 msgid "Baja"
 msgstr "Low"
 
-#: app/models.py:1460
+#: app/models.py:1463
 msgid "Normal"
 msgstr "Normal"
 
-#: app/models.py:1461
+#: app/models.py:1464
 msgid "Alta"
 msgstr "High"
 
-#: app/models.py:1462
+#: app/models.py:1465
 msgid "Urgente"
 msgstr "Urgent"
 
-#: app/models.py:1466
+#: app/models.py:1469
 msgid "Una duda o mejora; no me bloquea."
 msgstr "A question or improvement; it doesn't block me."
 
-#: app/models.py:1467
+#: app/models.py:1470
 msgid "Algo no funciona, pero puedo seguir trabajando."
 msgstr "Something doesn't work, but I can keep working."
 
-#: app/models.py:1468
+#: app/models.py:1471
 msgid "No puedo terminar un análisis o un informe."
 msgstr "I can't finish an analysis or a report."
 
-#: app/models.py:1469
+#: app/models.py:1472
 msgid "No puedo trabajar con ChromGo / resultados urgentes de paciente."
 msgstr "I can't work with ChromGo / urgent patient results."
 
-#: app/models.py:1472 app/templates/soporte/detalle.html:103
+#: app/models.py:1475 app/templates/soporte/detalle.html:103
 msgid "Abierto"
 msgstr "Open"
 
-#: app/models.py:1473
+#: app/models.py:1476
 msgid "En curso"
 msgstr "In progress"
 
-#: app/models.py:1474 app/pedidos/pendientes.py:64
+#: app/models.py:1477 app/pedidos/pendientes.py:64
 #: app/pedidos/pendientes.py:214 app/templates/soporte/lista.html:27
 msgid "Esperando al cliente"
 msgstr "Waiting for client"
 
-#: app/models.py:1475 app/templates/soporte/detalle.html:105
+#: app/models.py:1478 app/templates/soporte/detalle.html:105
 msgid "Resuelto"
 msgstr "Resolved"
 
-#: app/models.py:1476
+#: app/models.py:1479
 msgid "Cerrado"
 msgstr "Closed"
 
@@ -1845,7 +1888,7 @@ msgstr "Invitations and passwords"
 msgid "Falló"
 msgstr "Failed"
 
-#: app/admin/correos_estado.py:33 app/templates/pedidos/detalle.html:94
+#: app/admin/correos_estado.py:33 app/templates/pedidos/detalle.html:97
 msgid "Interno"
 msgstr "Internal"
 
@@ -2190,27 +2233,27 @@ msgid "Entrega estimada"
 msgstr "Estimated delivery"
 
 #: app/clientes/exportar.py:69 app/pedidos/routes.py:199
-#: app/templates/pedidos/detalle.html:315
+#: app/templates/pedidos/detalle.html:318
 msgid "Base imponible"
 msgstr "Net amount"
 
 #: app/clientes/exportar.py:69 app/facturas/datos.py:121
 #: app/pedidos/routes.py:199 app/productos/forms.py:23
 #: app/productos/forms.py:73 app/templates/facturas/_form_facturacion.html:9
-#: app/templates/pedidos/detalle.html:252
-#: app/templates/pedidos/detalle.html:316 app/templates/productos/kits.html:20
+#: app/templates/pedidos/detalle.html:255
+#: app/templates/pedidos/detalle.html:319 app/templates/productos/kits.html:20
 #: app/templates/productos/lista.html:16
 msgid "IVA"
 msgstr "VAT"
 
 #: app/clientes/exportar.py:69 app/facturas/datos.py:121 app/pedidos/pdf.py:76
 #: app/pedidos/routes.py:200 app/templates/clientes/detalle.html:66
-#: app/templates/pedidos/detalle.html:317 app/templates/pedidos/lista.html:70
+#: app/templates/pedidos/detalle.html:320 app/templates/pedidos/lista.html:70
 msgid "Total"
 msgstr "Total"
 
 #: app/clientes/exportar.py:70 app/pedidos/pendientes.py:60
-#: app/templates/pedidos/detalle.html:206
+#: app/templates/pedidos/detalle.html:209
 msgid "Incidencias"
 msgstr "Issues"
 
@@ -2480,11 +2523,11 @@ msgstr "Reference"
 #: app/facturas/datos.py:133 app/inventario/forms.py:13
 #: app/inventario/routes.py:258 app/templates/inventario/caducidades.html:11
 #: app/templates/inventario/movimientos.html:18
-#: app/templates/pedidos/_lotes.html:48 app/templates/pedidos/detalle.html:742
+#: app/templates/pedidos/_lotes.html:48 app/templates/pedidos/detalle.html:745
 msgid "Artículo"
 msgstr "Item"
 
-#: app/facturas/datos.py:133 app/templates/pedidos/detalle.html:251
+#: app/facturas/datos.py:133 app/templates/pedidos/detalle.html:254
 msgid "Cant."
 msgstr "Qty"
 
@@ -2492,8 +2535,8 @@ msgstr "Qty"
 msgid "Precio unitario"
 msgstr "Unit price"
 
-#: app/facturas/datos.py:134 app/templates/pedidos/detalle.html:252
-#: app/templates/pedidos/detalle.html:303 app/templates/productos/lista.html:15
+#: app/facturas/datos.py:134 app/templates/pedidos/detalle.html:255
+#: app/templates/pedidos/detalle.html:306 app/templates/productos/lista.html:15
 msgid "Precio"
 msgstr "Price"
 
@@ -2636,7 +2679,7 @@ msgstr "To invoice"
 
 #: app/facturas/routes.py:214 app/templates/facturas/datos.html:11
 #: app/templates/facturas/por_facturar.html:15
-#: app/templates/pedidos/detalle.html:443
+#: app/templates/pedidos/detalle.html:446
 msgid "Preparar factura"
 msgstr "Prepare invoice"
 
@@ -2750,8 +2793,8 @@ msgstr "Required for goods received."
 #: app/templates/pedidos/_campos_pedido.html:25
 #: app/templates/pedidos/_campos_pedido_cliente.html:11
 #: app/templates/pedidos/_proforma_tabla.html:6
-#: app/templates/pedidos/detalle.html:282
-#: app/templates/pedidos/detalle.html:298
+#: app/templates/pedidos/detalle.html:285
+#: app/templates/pedidos/detalle.html:301
 msgid "Cantidad"
 msgstr "Quantity"
 
@@ -3082,7 +3125,7 @@ msgstr ""
 "Check it in Correct."
 
 #: app/main/inicio_cliente.py:27 app/templates/pedidos/_proforma.html:32
-#: app/templates/pedidos/detalle.html:463
+#: app/templates/pedidos/detalle.html:466
 msgid "Proforma"
 msgstr "Proforma"
 
@@ -3463,7 +3506,7 @@ msgid "Si ha cambiado su orden de compra, adjunte la nueva. %(formatos)s"
 msgstr "If your purchase order has changed, attach the new one. %(formatos)s"
 
 #: app/pedidos/forms.py:248 app/soporte/forms.py:59
-#: app/templates/pedidos/detalle.html:322
+#: app/templates/pedidos/detalle.html:325
 msgid "Guardar cambios"
 msgstr "Save changes"
 
@@ -3512,7 +3555,7 @@ msgid "Añadir"
 msgstr "Add"
 
 #: app/pedidos/forms.py:311 app/templates/pedidos/_campos_pedido.html:23
-#: app/templates/pedidos/detalle.html:263
+#: app/templates/pedidos/detalle.html:266
 msgid "Nº de kits"
 msgstr "No. of kits"
 
@@ -3536,8 +3579,8 @@ msgstr "Tracking link"
 msgid "Opcional: el enlace que da el transportista para seguir el envío."
 msgstr "Optional: the link provided by the carrier to track the shipment."
 
-#: app/pedidos/forms.py:348 app/templates/pedidos/detalle.html:61
-#: app/templates/pedidos/detalle.html:702
+#: app/pedidos/forms.py:348 app/templates/pedidos/detalle.html:64
+#: app/templates/pedidos/detalle.html:705
 msgid "Cambiar estado"
 msgstr "Change status"
 
@@ -3760,8 +3803,8 @@ msgstr "no review"
 msgid "Pendientes de tu validación"
 msgstr "Awaiting your validation"
 
-#: app/pedidos/pendientes.py:204 app/templates/pedidos/detalle.html:150
-#: app/templates/pedidos/detalle.html:472
+#: app/pedidos/pendientes.py:204 app/templates/pedidos/detalle.html:153
+#: app/templates/pedidos/detalle.html:475
 #: app/templates/pedidos/preparar.html:141
 #: app/templates/pedidos/preparar_lista.html:30
 #, python-format
@@ -3926,27 +3969,27 @@ msgid ""
 "pedido»."
 msgstr "Cannot ship: %(problemas)s. Check the “Lots for this order” card."
 
-#: app/pedidos/routes.py:603 app/templates/mensajes/lista.html:50
+#: app/pedidos/routes.py:605 app/templates/mensajes/lista.html:50
 #: app/templates/pedidos/detalle.html:22
 #, python-format
 msgid "Pedido %(ref)s"
 msgstr "Order %(ref)s"
 
-#: app/pedidos/routes.py:741
+#: app/pedidos/routes.py:743
 msgid "Las unidades de cada lote deben ser un número entero."
 msgstr "Units for each lot must be a whole number."
 
-#: app/pedidos/routes.py:747
+#: app/pedidos/routes.py:749
 #, python-format
 msgid "No se han guardado los lotes: %(errores)s"
 msgstr "The lots were not saved: %(errores)s"
 
-#: app/pedidos/routes.py:756
+#: app/pedidos/routes.py:758
 #, python-format
 msgid "Lotes guardados. Queda pendiente: %(problemas)s."
 msgstr "Lots saved. Still pending: %(problemas)s."
 
-#: app/pedidos/routes.py:758
+#: app/pedidos/routes.py:760
 msgid ""
 "Lotes guardados. Como la proforma salió con caducidad «a confirmar», "
 "comunica al cliente la fecha definitiva."
@@ -3954,15 +3997,15 @@ msgstr ""
 "Lots saved. As the proforma went out with the expiry date “to be "
 "confirmed”, tell the customer the final date."
 
-#: app/pedidos/routes.py:761
+#: app/pedidos/routes.py:763
 msgid "Lotes guardados: quedan reservados para este pedido."
 msgstr "Lots saved: they are now reserved for this order."
 
-#: app/pedidos/routes.py:764
+#: app/pedidos/routes.py:766
 msgid "Los lotes ya estaban así: no había nada que cambiar."
 msgstr "The lots were already like that: nothing to change."
 
-#: app/pedidos/routes.py:851
+#: app/pedidos/routes.py:853
 #, python-format
 msgid ""
 "Revisa estos valores (precio o cantidad no válidos): %(lista)s. No se ha "
@@ -3971,15 +4014,15 @@ msgstr ""
 "Check these values (invalid price or quantity): %(lista)s. Nothing has "
 "been saved."
 
-#: app/pedidos/routes.py:858
+#: app/pedidos/routes.py:860
 msgid "Cambios guardados."
 msgstr "Changes saved."
 
-#: app/pedidos/routes.py:961
+#: app/pedidos/routes.py:963
 msgid "No se puede preparar un pedido sin líneas."
 msgstr "An order without lines can't be prepared."
 
-#: app/pedidos/routes.py:966
+#: app/pedidos/routes.py:968
 msgid ""
 "Pedido en preparación. Cuando esté listo, haz las fotos y envíalo a "
 "validación."
@@ -3987,20 +4030,20 @@ msgstr ""
 "Order in preparation. When it's ready, take the photos and send it for "
 "validation."
 
-#: app/pedidos/routes.py:988
+#: app/pedidos/routes.py:990
 #, python-format
 msgid "✓ Pedido %(ref)s recibido."
 msgstr "✓ Order %(ref)s received."
 
-#: app/pedidos/routes.py:992
+#: app/pedidos/routes.py:994
 msgid "Pedido marcado como recibido."
 msgstr "Order marked as received."
 
-#: app/pedidos/routes.py:992
+#: app/pedidos/routes.py:994
 msgid "¡Gracias!"
 msgstr "Thank you!"
 
-#: app/pedidos/routes.py:1013
+#: app/pedidos/routes.py:1015
 msgid ""
 "Confirma la salida de stock en la ventana que aparece al cambiar el "
 "estado."
@@ -4008,56 +4051,56 @@ msgstr ""
 "Confirm the stock deduction in the window that appears when you change "
 "the status."
 
-#: app/pedidos/routes.py:1017
+#: app/pedidos/routes.py:1019
 msgid "Para enviar el pedido indica el transportista y el número de seguimiento."
 msgstr "To ship the order, enter the carrier and the tracking number."
 
-#: app/pedidos/routes.py:1021 app/pedidos/routes.py:1286
+#: app/pedidos/routes.py:1023 app/pedidos/routes.py:1288
 msgid "La fecha estimada de entrega no puede ser anterior a la fecha del pedido."
 msgstr "The estimated delivery date can't be earlier than the order date."
 
-#: app/pedidos/routes.py:1032
+#: app/pedidos/routes.py:1034
 #, python-format
 msgid "Estado cambiado a «%(estado)s»."
 msgstr "Status changed to \"%(estado)s\"."
 
-#: app/pedidos/routes.py:1033
+#: app/pedidos/routes.py:1035
 msgid "(Fuera del flujo normal: queda registrado en auditoría.)"
 msgstr "(Outside the normal workflow: recorded in the audit log.)"
 
-#: app/pedidos/routes.py:1069 app/templates/main/inicio.html:7
+#: app/pedidos/routes.py:1071 app/templates/main/inicio.html:7
 #: app/templates/pedidos/preparar_lista.html:10
 msgid "Preparar pedidos"
 msgstr "Prepare orders"
 
-#: app/pedidos/routes.py:1083
+#: app/pedidos/routes.py:1085
 #, python-format
 msgid "Preparar %(ref)s"
 msgstr "Prepare %(ref)s"
 
-#: app/pedidos/routes.py:1098
+#: app/pedidos/routes.py:1100
 msgid "Elige al menos una foto."
 msgstr "Choose at least one photo."
 
-#: app/pedidos/routes.py:1110
+#: app/pedidos/routes.py:1112
 #, python-format
 msgid "%(n)s foto(s) subida(s)."
 msgstr "%(n)s photo(s) uploaded."
 
-#: app/pedidos/routes.py:1148
+#: app/pedidos/routes.py:1150
 msgid "Sube al menos una foto antes de enviarlo a validación."
 msgstr "Upload at least one photo before sending it for validation."
 
-#: app/pedidos/routes.py:1155
+#: app/pedidos/routes.py:1157
 #, python-format
 msgid "Enviado a validación. %(rol)s revisará las fotos."
 msgstr "Sent for validation. %(rol)s will review the photos."
 
-#: app/pedidos/routes.py:1186
+#: app/pedidos/routes.py:1188
 msgid "Pedido validado: listo para enviar."
 msgstr "Order validated: ready to ship."
 
-#: app/pedidos/routes.py:1188
+#: app/pedidos/routes.py:1190
 msgid ""
 "Pedido devuelto a preparación. Almacén recibirá el aviso con tu "
 "comentario."
@@ -4065,28 +4108,28 @@ msgstr ""
 "Order sent back to preparation. Warehouse will be notified with your "
 "comment."
 
-#: app/pedidos/routes.py:1226
+#: app/pedidos/routes.py:1228
 #, python-format
 msgid "Documento «%(nombre)s» adjuntado."
 msgstr "Document \"%(nombre)s\" attached."
 
-#: app/pedidos/routes.py:1260
+#: app/pedidos/routes.py:1262
 msgid "Documento quitado."
 msgstr "Document removed."
 
-#: app/pedidos/routes.py:1301
+#: app/pedidos/routes.py:1305
 msgid "Datos de envío actualizados. Revisa el correo pendiente antes de enviarlo."
 msgstr "Shipping details updated. Review the pending email before sending it."
 
-#: app/pedidos/routes.py:1339
+#: app/pedidos/routes.py:1343
 msgid "Solo se puede avisar de un problema cuando el pedido ya se ha enviado."
 msgstr "You can only report a problem once the order has been shipped."
 
-#: app/pedidos/routes.py:1343
+#: app/pedidos/routes.py:1347
 msgid "Elija qué ha pasado y cuéntenos el problema."
 msgstr "Choose what happened and tell us about the problem."
 
-#: app/pedidos/routes.py:1352
+#: app/pedidos/routes.py:1356
 msgid ""
 "Gracias: hemos recibido su aviso. Le contestaremos en los mensajes de "
 "este pedido."
@@ -4094,11 +4137,11 @@ msgstr ""
 "Thank you: we have received your report. We will reply in this order's "
 "messages."
 
-#: app/pedidos/routes.py:1373
+#: app/pedidos/routes.py:1377
 msgid "Escribe una nota: qué se ha hecho (le llega al cliente)."
 msgstr "Write a note: what has been done (the client receives it)."
 
-#: app/pedidos/routes.py:1377
+#: app/pedidos/routes.py:1381
 msgid "Incidencia resuelta. El cliente recibe tu nota en los mensajes del pedido."
 msgstr "Issue resolved. The client receives your note in the order messages."
 
@@ -4229,7 +4272,7 @@ msgid "pedidos"
 msgstr "orders"
 
 #: app/productos/routes.py:144 app/templates/inventario/lista.html:183
-#: app/templates/pedidos/detalle.html:264
+#: app/templates/pedidos/detalle.html:267
 msgid "kits"
 msgstr "kits"
 
@@ -4351,7 +4394,7 @@ msgstr "What would you like to change?"
 msgid "✓ Aceptar y hacer el pedido"
 msgstr "✓ Accept and place the order"
 
-#: app/proformas/forms.py:48 app/templates/pedidos/detalle.html:422
+#: app/proformas/forms.py:48 app/templates/pedidos/detalle.html:425
 msgid "Pedir cambios"
 msgstr "Request changes"
 
@@ -4397,7 +4440,7 @@ msgstr "Expected expiry"
 #: app/proformas/pdf.py:136 app/templates/clientes/detalle.html:103
 #: app/templates/pedidos/_campos_pedido.html:34
 #: app/templates/pedidos/_proforma_tabla.html:11
-#: app/templates/pedidos/detalle.html:292
+#: app/templates/pedidos/detalle.html:295
 msgid "Productos sueltos"
 msgstr "Individual products"
 
@@ -4718,8 +4761,8 @@ msgstr[1] "⏳ Expires in %(num)s days"
 msgid "⏳ Caduca hoy"
 msgstr "⏳ Expires today"
 
-#: app/templates/_macros.html:106 app/templates/pedidos/detalle.html:371
-#: app/templates/pedidos/detalle.html:747
+#: app/templates/_macros.html:106 app/templates/pedidos/detalle.html:374
+#: app/templates/pedidos/detalle.html:750
 #: app/templates/pedidos/preparar_lista.html:31
 #, python-format
 msgid "cad. %(fecha)s"
@@ -4822,7 +4865,7 @@ msgstr "kit"
 #: app/templates/inventario/lista.html:17
 #: app/templates/inventario/lista.html:26
 #: app/templates/inventario/lista.html:129 app/templates/layout.html:110
-#: app/templates/layout.html:130 app/templates/pedidos/detalle.html:372
+#: app/templates/layout.html:130 app/templates/pedidos/detalle.html:375
 #, python-format
 msgid "%(n)s uds."
 msgstr "%(n)s units"
@@ -5648,7 +5691,7 @@ msgstr "View"
 msgid "No hay correos con estos filtros."
 msgstr "No emails match these filters."
 
-#: app/templates/admin/estado.html:6 app/templates/pedidos/detalle.html:576
+#: app/templates/admin/estado.html:6 app/templates/pedidos/detalle.html:579
 msgid "Sin datos"
 msgstr "No data"
 
@@ -5801,9 +5844,9 @@ msgstr "No page has failed because of an error on our side."
 #: app/templates/inventario/lista.html:194 app/templates/mensajes/lista.html:90
 #: app/templates/pedidos/_modal_pedido.html:21
 #: app/templates/pedidos/_modal_pedido_cliente.html:16
-#: app/templates/pedidos/detalle.html:686
-#: app/templates/pedidos/detalle.html:722
-#: app/templates/pedidos/detalle.html:764 app/templates/pedidos/form.html:12
+#: app/templates/pedidos/detalle.html:689
+#: app/templates/pedidos/detalle.html:725
+#: app/templates/pedidos/detalle.html:767 app/templates/pedidos/form.html:12
 #: app/templates/pedidos/form_cliente.html:12
 #: app/templates/productos/form.html:17
 #: app/templates/productos/kit_form.html:38 app/templates/soporte/nuevo.html:38
@@ -5947,7 +5990,7 @@ msgid "Ver la plataforma como %(nombre)s (solo lectura)"
 msgstr "View the platform as %(nombre)s (read-only)"
 
 #: app/templates/admin/usuarios.html:56 app/templates/clientes/detalle.html:11
-#: app/templates/facturas/lista.html:37 app/templates/pedidos/detalle.html:407
+#: app/templates/facturas/lista.html:37 app/templates/pedidos/detalle.html:410
 #: app/templates/productos/kits.html:32 app/templates/productos/lista.html:22
 msgid "Editar"
 msgstr "Edit"
@@ -6277,8 +6320,8 @@ msgstr "Copied email"
 #: app/templates/clientes/detalle.html:274
 #: app/templates/documentos/lista.html:46
 #: app/templates/pedidos/_campos_pedido.html:24
-#: app/templates/pedidos/detalle.html:488
-#: app/templates/pedidos/detalle.html:555
+#: app/templates/pedidos/detalle.html:491
+#: app/templates/pedidos/detalle.html:558
 #: app/templates/pedidos/preparar.html:153
 #: app/templates/productos/kit_form.html:26
 msgid "Quitar"
@@ -6623,13 +6666,13 @@ msgstr "Upload them with the \"Upload document\" button."
 #: app/templates/mensajes/lista.html:73
 #: app/templates/pedidos/_modal_pedido.html:15
 #: app/templates/pedidos/_modal_pedido_cliente.html:10
-#: app/templates/pedidos/detalle.html:107
-#: app/templates/pedidos/detalle.html:118
-#: app/templates/pedidos/detalle.html:619
-#: app/templates/pedidos/detalle.html:643
-#: app/templates/pedidos/detalle.html:667
-#: app/templates/pedidos/detalle.html:703
-#: app/templates/pedidos/detalle.html:736
+#: app/templates/pedidos/detalle.html:110
+#: app/templates/pedidos/detalle.html:121
+#: app/templates/pedidos/detalle.html:622
+#: app/templates/pedidos/detalle.html:646
+#: app/templates/pedidos/detalle.html:670
+#: app/templates/pedidos/detalle.html:706
+#: app/templates/pedidos/detalle.html:739
 msgid "Cerrar"
 msgstr "Close"
 
@@ -6816,7 +6859,7 @@ msgstr "Filter"
 
 #: app/templates/facturas/lista.html:28 app/templates/facturas/mias.html:15
 #: app/templates/pedidos/_proforma.html:72
-#: app/templates/pedidos/detalle.html:398
+#: app/templates/pedidos/detalle.html:401
 msgid "Descargar PDF"
 msgstr "Download PDF"
 
@@ -6828,7 +6871,7 @@ msgstr "The client can't download it yet: upload it from Edit"
 msgid "sin PDF"
 msgstr "no PDF"
 
-#: app/templates/facturas/lista.html:33 app/templates/pedidos/detalle.html:429
+#: app/templates/facturas/lista.html:33 app/templates/pedidos/detalle.html:432
 msgid "Enviar por email"
 msgstr "Send by email"
 
@@ -6845,7 +6888,7 @@ msgstr "No invoices."
 msgid "Facturas emitidas a %(empresa)s. Descarga el PDF oficial de cada una."
 msgstr "Invoices issued to %(empresa)s. Download the official PDF of each one."
 
-#: app/templates/facturas/mias.html:16 app/templates/pedidos/detalle.html:399
+#: app/templates/facturas/mias.html:16 app/templates/pedidos/detalle.html:402
 msgid "PDF pendiente"
 msgstr "PDF pending"
 
@@ -6898,8 +6941,8 @@ msgid "Corregir inventario"
 msgstr "Correct inventory"
 
 #: app/templates/inventario/corregir.html:14
-#: app/templates/pedidos/_lotes.html:56 app/templates/pedidos/detalle.html:368
-#: app/templates/pedidos/detalle.html:744
+#: app/templates/pedidos/_lotes.html:56 app/templates/pedidos/detalle.html:371
+#: app/templates/pedidos/detalle.html:747
 msgid "kit cerrado"
 msgstr "sealed kit"
 
@@ -6913,7 +6956,7 @@ msgstr "Product details"
 
 #: app/templates/inventario/corregir.html:20
 #: app/templates/inventario/lista.html:61
-#: app/templates/pedidos/detalle.html:591
+#: app/templates/pedidos/detalle.html:594
 msgid "Historial"
 msgstr "History"
 
@@ -7073,7 +7116,7 @@ msgstr "Lots (first to expire first)"
 
 #: app/templates/inventario/lista.html:111
 #: app/templates/inventario/lista.html:145
-#: app/templates/pedidos/detalle.html:742
+#: app/templates/pedidos/detalle.html:745
 msgid "Disponible"
 msgstr "Available"
 
@@ -7457,7 +7500,7 @@ msgid "Documentos y facturas"
 msgstr "Documents and invoices"
 
 #: app/templates/main/_inicio_cliente.html:59
-#: app/templates/pedidos/detalle.html:559
+#: app/templates/pedidos/detalle.html:562
 msgid "Todavía no hay documentos."
 msgstr "No documents yet."
 
@@ -7969,19 +8012,19 @@ msgid "Buscar cliente"
 msgstr "Search client"
 
 #: app/templates/pedidos/_campos_pedido.html:10
-#: app/templates/pedidos/detalle.html:339
-#: app/templates/pedidos/detalle.html:349
+#: app/templates/pedidos/detalle.html:342
+#: app/templates/pedidos/detalle.html:352
 #: app/templates/productos/kit_form.html:24
 msgid "Sin coincidencias"
 msgstr "No matches"
 
 #: app/templates/pedidos/_campos_pedido.html:19
-#: app/templates/pedidos/detalle.html:339
+#: app/templates/pedidos/detalle.html:342
 msgid "Buscar kit por nombre o referencia"
 msgstr "Search kit by name or reference"
 
 #: app/templates/pedidos/_campos_pedido.html:20
-#: app/templates/pedidos/detalle.html:349
+#: app/templates/pedidos/detalle.html:352
 #: app/templates/productos/kit_form.html:24
 msgid "Buscar producto por nombre o referencia"
 msgstr "Search product by name or reference"
@@ -7996,7 +8039,7 @@ msgstr "— Choose a kit —"
 
 #: app/templates/pedidos/_campos_pedido.html:23
 #: app/templates/pedidos/_campos_pedido_cliente.html:12
-#: app/templates/pedidos/detalle.html:275
+#: app/templates/pedidos/detalle.html:278
 msgid "Quitar este kit"
 msgstr "Remove this kit"
 
@@ -8005,7 +8048,7 @@ msgid "Incluir este producto"
 msgstr "Include this product"
 
 #: app/templates/pedidos/_campos_pedido.html:25
-#: app/templates/pedidos/detalle.html:270
+#: app/templates/pedidos/detalle.html:273
 msgid "por kit"
 msgstr "per kit"
 
@@ -8154,7 +8197,7 @@ msgid "Ver las fotos"
 msgstr "See the photos"
 
 #: app/templates/pedidos/_lo_que_toca.html:82
-#: app/templates/pedidos/detalle.html:504
+#: app/templates/pedidos/detalle.html:507
 #: app/templates/pedidos/preparar.html:193
 msgid "Enviar a validación →"
 msgstr "Send for validation →"
@@ -8168,12 +8211,12 @@ msgid "¿Confirma que ha recibido el pedido?"
 msgstr "Do you confirm you have received the order?"
 
 #: app/templates/pedidos/_lo_que_toca.html:88
-#: app/templates/pedidos/detalle.html:65
+#: app/templates/pedidos/detalle.html:68
 msgid "¿Marcar como recibido en nombre del cliente?"
 msgstr "Mark as received on behalf of the client?"
 
 #: app/templates/pedidos/_lo_que_toca.html:90
-#: app/templates/pedidos/detalle.html:67
+#: app/templates/pedidos/detalle.html:70
 msgid "Marcar como recibido"
 msgstr "Mark as received"
 
@@ -8186,7 +8229,7 @@ msgid "Ir a la proforma"
 msgstr "Go to the proforma"
 
 #: app/templates/pedidos/_lo_que_toca.html:92
-#: app/templates/pedidos/detalle.html:757
+#: app/templates/pedidos/detalle.html:760
 msgid "Ir a los lotes"
 msgstr "Go to the lots"
 
@@ -8429,7 +8472,7 @@ msgid "Enviada el %(fecha)s · válida hasta el %(hasta)s"
 msgstr "Sent on %(fecha)s · valid until %(hasta)s"
 
 #: app/templates/pedidos/_proforma.html:76
-#: app/templates/pedidos/detalle.html:774
+#: app/templates/pedidos/detalle.html:777
 #: app/templates/pedidos/preparar.html:123
 msgid "Notas:"
 msgstr "Notes:"
@@ -8515,71 +8558,76 @@ msgstr "Write to us"
 msgid "Seguir el envío ↗"
 msgstr "Track shipment ↗"
 
-#: app/templates/pedidos/detalle.html:57
+#: app/templates/pedidos/detalle.html:49
+#, python-format
+msgid "Recordatorio de recepción enviado al cliente el %(fecha)s."
+msgstr "Delivery reminder sent to the client on %(fecha)s."
+
+#: app/templates/pedidos/detalle.html:60
 msgid "Hacer otro pedido con lo mismo"
 msgstr "Place another order with the same items"
 
-#: app/templates/pedidos/detalle.html:57
+#: app/templates/pedidos/detalle.html:60
 msgid "Repetir"
 msgstr "Repeat"
 
-#: app/templates/pedidos/detalle.html:72 app/templates/pedidos/detalle.html:618
+#: app/templates/pedidos/detalle.html:75 app/templates/pedidos/detalle.html:621
 #: app/templates/pedidos/modificar.html:5
 msgid "Modificar pedido"
 msgstr "Change order"
 
-#: app/templates/pedidos/detalle.html:76
+#: app/templates/pedidos/detalle.html:79
 msgid "Cancelar pedido"
 msgstr "Cancel order"
 
-#: app/templates/pedidos/detalle.html:81 app/templates/pedidos/detalle.html:666
+#: app/templates/pedidos/detalle.html:84 app/templates/pedidos/detalle.html:669
 msgid "Hay un problema con este pedido"
 msgstr "There is a problem with this order"
 
-#: app/templates/pedidos/detalle.html:87 app/templates/pedidos/detalle.html:88
-#: app/templates/pedidos/detalle.html:105
-#: app/templates/pedidos/detalle.html:106
+#: app/templates/pedidos/detalle.html:90 app/templates/pedidos/detalle.html:91
+#: app/templates/pedidos/detalle.html:108
+#: app/templates/pedidos/detalle.html:109
 msgid "Mensajes sobre este pedido"
 msgstr "Messages about this order"
 
-#: app/templates/pedidos/detalle.html:87
+#: app/templates/pedidos/detalle.html:90
 msgid "Mensajes con el cliente"
 msgstr "Messages with the customer"
 
-#: app/templates/pedidos/detalle.html:89 app/templates/pedidos/detalle.html:95
+#: app/templates/pedidos/detalle.html:92 app/templates/pedidos/detalle.html:98
 msgid "sin leer"
 msgstr "unread"
 
-#: app/templates/pedidos/detalle.html:93
+#: app/templates/pedidos/detalle.html:96
 msgid "Chat interno: solo Yikon"
 msgstr "Internal chat: Yikon only"
 
-#: app/templates/pedidos/detalle.html:106
+#: app/templates/pedidos/detalle.html:109
 #, python-format
 msgid "Mensajes con %(cliente)s"
 msgstr "Messages with %(cliente)s"
 
-#: app/templates/pedidos/detalle.html:116
-#: app/templates/pedidos/detalle.html:117
+#: app/templates/pedidos/detalle.html:119
+#: app/templates/pedidos/detalle.html:120
 msgid "Chat interno"
 msgstr "Internal chat"
 
-#: app/templates/pedidos/detalle.html:119
+#: app/templates/pedidos/detalle.html:122
 msgid "Solo Yikon · el cliente no ve esto"
 msgstr "Yikon only · the client does not see this"
 
-#: app/templates/pedidos/detalle.html:133
+#: app/templates/pedidos/detalle.html:136
 #: app/templates/pedidos/preparar.html:33
 #, python-format
 msgid "⚠ Devuelto por %(rol)s."
 msgstr "⚠ Returned by %(rol)s."
 
-#: app/templates/pedidos/detalle.html:134
+#: app/templates/pedidos/detalle.html:137
 #, python-format
 msgid "%(usuario)s rechazó la validación el %(fecha)s:"
 msgstr "%(usuario)s rejected the validation on %(fecha)s:"
 
-#: app/templates/pedidos/detalle.html:138
+#: app/templates/pedidos/detalle.html:141
 msgid ""
 "Corrige el pedido, cambia las fotos si hace falta y vuelve a enviarlo a "
 "validación."
@@ -8587,188 +8635,188 @@ msgstr ""
 "Fix the order, replace the photos if needed and send it for validation "
 "again."
 
-#: app/templates/pedidos/detalle.html:149
+#: app/templates/pedidos/detalle.html:152
 #, python-format
 msgid "Problema abierto: %(motivo)s"
 msgstr "Open problem: %(motivo)s"
 
-#: app/templates/pedidos/detalle.html:150
+#: app/templates/pedidos/detalle.html:153
 #, python-format
 msgid "%(quien)s, el %(fecha)s"
 msgstr "%(quien)s, on %(fecha)s"
 
-#: app/templates/pedidos/detalle.html:154
+#: app/templates/pedidos/detalle.html:157
 msgid "Contestar en el chat"
 msgstr "Reply in the chat"
 
-#: app/templates/pedidos/detalle.html:155
+#: app/templates/pedidos/detalle.html:158
 msgid "Ver y resolver"
 msgstr "View and resolve"
 
-#: app/templates/pedidos/detalle.html:178
+#: app/templates/pedidos/detalle.html:181
 msgid "Partes del pedido"
 msgstr "Parts of the order"
 
-#: app/templates/pedidos/detalle.html:181
+#: app/templates/pedidos/detalle.html:184
 msgid "problema abierto"
 msgstr "open issue"
 
-#: app/templates/pedidos/detalle.html:182
+#: app/templates/pedidos/detalle.html:185
 msgid "faltan lotes"
 msgstr "batches missing"
 
-#: app/templates/pedidos/detalle.html:183
+#: app/templates/pedidos/detalle.html:186
 msgid "cambios pedidos"
 msgstr "changes requested"
 
-#: app/templates/pedidos/detalle.html:183
-#: app/templates/pedidos/detalle.html:188
+#: app/templates/pedidos/detalle.html:186
+#: app/templates/pedidos/detalle.html:191
 msgid "por enviar"
 msgstr "to send"
 
-#: app/templates/pedidos/detalle.html:184
+#: app/templates/pedidos/detalle.html:187
 msgid "por responder"
 msgstr "awaiting your reply"
 
-#: app/templates/pedidos/detalle.html:185
+#: app/templates/pedidos/detalle.html:188
 msgid "por validar"
 msgstr "to validate"
 
-#: app/templates/pedidos/detalle.html:186
+#: app/templates/pedidos/detalle.html:189
 msgid "devuelto"
 msgstr "returned"
 
-#: app/templates/pedidos/detalle.html:186
+#: app/templates/pedidos/detalle.html:189
 msgid "por enviar a validar"
 msgstr "to send for validation"
 
-#: app/templates/pedidos/detalle.html:186
+#: app/templates/pedidos/detalle.html:189
 msgid "por hacer"
 msgstr "to do"
 
-#: app/templates/pedidos/detalle.html:187
+#: app/templates/pedidos/detalle.html:190
 msgid "por revisar"
 msgstr "to review"
 
-#: app/templates/pedidos/detalle.html:189
+#: app/templates/pedidos/detalle.html:192
 msgid "por registrar"
 msgstr "to register"
 
-#: app/templates/pedidos/detalle.html:191
+#: app/templates/pedidos/detalle.html:194
 msgid "Contenido y lotes"
 msgstr "Contents and batches"
 
-#: app/templates/pedidos/detalle.html:205
+#: app/templates/pedidos/detalle.html:208
 #, python-format
 msgid "%(num)s abierta"
 msgid_plural "%(num)s abiertas"
 msgstr[0] "%(num)s open"
 msgstr[1] "%(num)s open"
 
-#: app/templates/pedidos/detalle.html:205
+#: app/templates/pedidos/detalle.html:208
 msgid "Todas resueltas"
 msgstr "All resolved"
 
-#: app/templates/pedidos/detalle.html:212
+#: app/templates/pedidos/detalle.html:215
 msgid "Abierta"
 msgstr "Open"
 
-#: app/templates/pedidos/detalle.html:213
-#: app/templates/pedidos/detalle.html:232
+#: app/templates/pedidos/detalle.html:216
+#: app/templates/pedidos/detalle.html:235
 msgid "Resuelta"
 msgstr "Resolved"
 
-#: app/templates/pedidos/detalle.html:223
+#: app/templates/pedidos/detalle.html:226
 #, python-format
 msgid "Resuelta el %(fecha)s"
 msgstr "Resolved on %(fecha)s"
 
-#: app/templates/pedidos/detalle.html:228
+#: app/templates/pedidos/detalle.html:231
 msgid "Nota para el cliente (qué se ha hecho)"
 msgstr "Note for the client (what has been done)"
 
-#: app/templates/pedidos/detalle.html:230
+#: app/templates/pedidos/detalle.html:233
 msgid "Le enviamos hoy un kit de reposición."
 msgstr "We are sending you a replacement kit today."
 
-#: app/templates/pedidos/detalle.html:233
+#: app/templates/pedidos/detalle.html:236
 msgid "La nota le llega al cliente por el chat del pedido."
 msgstr "The client receives the note in the order chat."
 
-#: app/templates/pedidos/detalle.html:237
+#: app/templates/pedidos/detalle.html:240
 msgid "Le contestaremos en los mensajes de este pedido."
 msgstr "We will reply in this order's messages."
 
-#: app/templates/pedidos/detalle.html:246
-#: app/templates/pedidos/detalle.html:265
+#: app/templates/pedidos/detalle.html:249
+#: app/templates/pedidos/detalle.html:268
 #, python-format
 msgid "%(num)s kit"
 msgid_plural "%(num)s kits"
 msgstr[0] "%(num)s kit"
 msgstr[1] "%(num)s kits"
 
-#: app/templates/pedidos/detalle.html:246
+#: app/templates/pedidos/detalle.html:249
 #, python-format
 msgid "%(num)s producto suelto"
 msgid_plural "%(num)s productos sueltos"
 msgstr[0] "%(num)s loose product"
 msgstr[1] "%(num)s loose products"
 
-#: app/templates/pedidos/detalle.html:246
+#: app/templates/pedidos/detalle.html:249
 msgid "Vacío"
 msgstr "Empty"
 
-#: app/templates/pedidos/detalle.html:247
+#: app/templates/pedidos/detalle.html:250
 msgid "Contenido del pedido"
 msgstr "Order contents"
 
-#: app/templates/pedidos/detalle.html:251
+#: app/templates/pedidos/detalle.html:254
 msgid "Kit / producto"
 msgstr "Kit / product"
 
-#: app/templates/pedidos/detalle.html:252
+#: app/templates/pedidos/detalle.html:255
 msgid "Subtotal"
 msgstr "Subtotal"
 
-#: app/templates/pedidos/detalle.html:260 app/templates/pedidos/lista.html:83
+#: app/templates/pedidos/detalle.html:263 app/templates/pedidos/lista.html:83
 msgid "Lleva productos o cantidades distintos del kit estándar"
 msgstr "Has different products or quantities from the standard kit"
 
-#: app/templates/pedidos/detalle.html:260
+#: app/templates/pedidos/detalle.html:263
 msgid "✎ modificado"
 msgstr "✎ modified"
 
-#: app/templates/pedidos/detalle.html:269
+#: app/templates/pedidos/detalle.html:272
 msgid "Precio de un kit"
 msgstr "Price per kit"
 
-#: app/templates/pedidos/detalle.html:287
-#: app/templates/pedidos/detalle.html:309
+#: app/templates/pedidos/detalle.html:290
+#: app/templates/pedidos/detalle.html:312
 msgid "Quitar línea"
 msgstr "Remove line"
 
-#: app/templates/pedidos/detalle.html:305
+#: app/templates/pedidos/detalle.html:308
 #, python-format
 msgid "dto. %(n)s %%"
 msgstr "disc. %(n)s %%"
 
-#: app/templates/pedidos/detalle.html:311
+#: app/templates/pedidos/detalle.html:314
 msgid "El pedido no tiene líneas."
 msgstr "The order has no lines."
 
-#: app/templates/pedidos/detalle.html:321
+#: app/templates/pedidos/detalle.html:324
 msgid "Escribe el precio final: sustituye al precio automático."
 msgstr "Enter the final price: it replaces the automatic price."
 
-#: app/templates/pedidos/detalle.html:351
+#: app/templates/pedidos/detalle.html:354
 msgid "catálogo"
 msgstr "catalogue"
 
-#: app/templates/pedidos/detalle.html:365
+#: app/templates/pedidos/detalle.html:368
 msgid "Lotes enviados"
 msgstr "Shipped batches"
 
-#: app/templates/pedidos/detalle.html:366
+#: app/templates/pedidos/detalle.html:369
 msgid ""
 "Sube el COA de cada uno de estos lotes en «Documentos del pedido», para "
 "que el cliente lo tenga."
@@ -8776,144 +8824,144 @@ msgstr ""
 "Upload the COA of each of these batches under \"Order documents\", so the"
 " client has it."
 
-#: app/templates/pedidos/detalle.html:370
+#: app/templates/pedidos/detalle.html:373
 msgid "Ver a qué otros pedidos fue este lote"
 msgstr "See which other orders this lot went to"
 
-#: app/templates/pedidos/detalle.html:387
+#: app/templates/pedidos/detalle.html:390
 msgid "Sin facturas"
 msgstr "No invoices"
 
-#: app/templates/pedidos/detalle.html:395
+#: app/templates/pedidos/detalle.html:398
 #, python-format
 msgid "vence el %(fecha)s"
 msgstr "due on %(fecha)s"
 
-#: app/templates/pedidos/detalle.html:404
+#: app/templates/pedidos/detalle.html:407
 msgid "📎 Subir PDF corregido"
 msgstr "📎 Upload corrected PDF"
 
-#: app/templates/pedidos/detalle.html:404
+#: app/templates/pedidos/detalle.html:407
 msgid "Sustituir"
 msgstr "Replace"
 
-#: app/templates/pedidos/detalle.html:404
+#: app/templates/pedidos/detalle.html:407
 msgid "📎 Subir PDF"
 msgstr "📎 Upload PDF"
 
-#: app/templates/pedidos/detalle.html:412
+#: app/templates/pedidos/detalle.html:415
 #, python-format
 msgid "%(nombre)s pide:"
 msgstr "%(nombre)s asks:"
 
-#: app/templates/pedidos/detalle.html:413
+#: app/templates/pedidos/detalle.html:416
 msgid "Sube el PDF corregido y vuelve a revisión."
 msgstr "Upload the corrected PDF and it goes back to review."
 
-#: app/templates/pedidos/detalle.html:418
+#: app/templates/pedidos/detalle.html:421
 msgid "Si hay que cambiar algo"
 msgstr "If something needs changing"
 
-#: app/templates/pedidos/detalle.html:419
+#: app/templates/pedidos/detalle.html:422
 msgid "Qué hay que cambiar (obligatorio para devolverla)"
 msgstr "What needs changing (required to return it)"
 
-#: app/templates/pedidos/detalle.html:421
+#: app/templates/pedidos/detalle.html:424
 msgid "Aprobar"
 msgstr "Approve"
 
-#: app/templates/pedidos/detalle.html:424
+#: app/templates/pedidos/detalle.html:427
 #, python-format
 msgid "Esperando la revisión de %(rol)s."
 msgstr "Waiting for review by %(rol)s."
 
-#: app/templates/pedidos/detalle.html:430
+#: app/templates/pedidos/detalle.html:433
 msgid "Púlsalo al mandarla: entonces el cliente también la ve aquí."
 msgstr "Click it when you send it: the client will then also see it here."
 
-#: app/templates/pedidos/detalle.html:432
+#: app/templates/pedidos/detalle.html:435
 #, python-format
 msgid "Revisión: %(estado)s por %(nombre)s el %(fecha)s"
 msgstr "Review: %(estado)s by %(nombre)s on %(fecha)s"
 
-#: app/templates/pedidos/detalle.html:432
+#: app/templates/pedidos/detalle.html:435
 msgid "aprobada"
 msgstr "approved"
 
-#: app/templates/pedidos/detalle.html:432
+#: app/templates/pedidos/detalle.html:435
 msgid "pidió cambios"
 msgstr "changes requested"
 
-#: app/templates/pedidos/detalle.html:432
+#: app/templates/pedidos/detalle.html:435
 #, python-format
 msgid "enviada el %(fecha)s"
 msgstr "sent on %(fecha)s"
 
-#: app/templates/pedidos/detalle.html:433
+#: app/templates/pedidos/detalle.html:436
 #, python-format
 msgid "Enviada al cliente el %(fecha)s"
 msgstr "Sent to the client on %(fecha)s"
 
-#: app/templates/pedidos/detalle.html:436
+#: app/templates/pedidos/detalle.html:439
 msgid "Sin facturas registradas."
 msgstr "No invoices registered."
 
-#: app/templates/pedidos/detalle.html:442
+#: app/templates/pedidos/detalle.html:445
 msgid "La factura se hace en la plantilla de Excel."
 msgstr "The invoice is made in the Excel template."
 
-#: app/templates/pedidos/detalle.html:449
+#: app/templates/pedidos/detalle.html:452
 msgid "Es la referencia del pedido."
 msgstr "It is the order reference."
 
-#: app/templates/pedidos/detalle.html:453
+#: app/templates/pedidos/detalle.html:456
 #, python-format
 msgid "Que la revise %(rol)s antes de enviarla"
 msgstr "Have %(rol)s review it before sending"
 
-#: app/templates/pedidos/detalle.html:454
+#: app/templates/pedidos/detalle.html:457
 msgid "este cliente tiene la revisión activada"
 msgstr "this client has review turned on"
 
-#: app/templates/pedidos/detalle.html:467
+#: app/templates/pedidos/detalle.html:470
 msgid "Fotos"
 msgstr "Photos"
 
-#: app/templates/pedidos/detalle.html:472
+#: app/templates/pedidos/detalle.html:475
 msgid "Sin fotos"
 msgstr "No photos"
 
-#: app/templates/pedidos/detalle.html:472
+#: app/templates/pedidos/detalle.html:475
 msgid "esperando validación"
 msgstr "awaiting validation"
 
-#: app/templates/pedidos/detalle.html:472
+#: app/templates/pedidos/detalle.html:475
 #, python-format
 msgid "validado por %(nombre)s"
 msgstr "validated by %(nombre)s"
 
-#: app/templates/pedidos/detalle.html:472
+#: app/templates/pedidos/detalle.html:475
 #, python-format
 msgid "devuelto por %(nombre)s"
 msgstr "returned by %(nombre)s"
 
-#: app/templates/pedidos/detalle.html:474
+#: app/templates/pedidos/detalle.html:477
 msgid "Fotos de preparación"
 msgstr "Preparation photos"
 
-#: app/templates/pedidos/detalle.html:476
+#: app/templates/pedidos/detalle.html:479
 msgid "Vista móvil"
 msgstr "Mobile view"
 
-#: app/templates/pedidos/detalle.html:492
+#: app/templates/pedidos/detalle.html:495
 msgid "Todavía no hay fotos."
 msgstr "No photos yet."
 
-#: app/templates/pedidos/detalle.html:512
+#: app/templates/pedidos/detalle.html:515
 msgid "Revisa las fotos. ¿El pedido está bien preparado y se puede enviar?"
 msgstr "Check the photos. Is the order correctly prepared and ready to ship?"
 
-#: app/templates/pedidos/detalle.html:514
+#: app/templates/pedidos/detalle.html:517
 #, python-format
 msgid ""
 "ℹ Normalmente valida %(rol)s. Úsalo solo si no puede hacerlo: quedará "
@@ -8922,33 +8970,33 @@ msgstr ""
 "ℹ Normally %(rol)s validates. Use this only if they can't: it will be "
 "recorded that you validated it."
 
-#: app/templates/pedidos/detalle.html:523
+#: app/templates/pedidos/detalle.html:526
 #, python-format
 msgid "Esperando la validación de %(rol)s."
 msgstr "Waiting for validation by %(rol)s."
 
-#: app/templates/pedidos/detalle.html:527
+#: app/templates/pedidos/detalle.html:530
 #, python-format
 msgid "Historial de validaciones (%(n)s)"
 msgstr "Validation history (%(n)s)"
 
-#: app/templates/pedidos/detalle.html:530
+#: app/templates/pedidos/detalle.html:533
 msgid "✓ Validado"
 msgstr "✓ Validated"
 
-#: app/templates/pedidos/detalle.html:530
+#: app/templates/pedidos/detalle.html:533
 msgid "✕ Rechazado"
 msgstr "✕ Rejected"
 
-#: app/templates/pedidos/detalle.html:545
+#: app/templates/pedidos/detalle.html:548
 msgid "Sin documentos"
 msgstr "No documents"
 
-#: app/templates/pedidos/detalle.html:546
+#: app/templates/pedidos/detalle.html:549
 msgid "Documentos"
 msgstr "Documents"
 
-#: app/templates/pedidos/detalle.html:567
+#: app/templates/pedidos/detalle.html:570
 msgid ""
 "Aquí van también los COA de los lotes enviados. El cliente ve todos los "
 "documentos de su pedido."
@@ -8956,23 +9004,23 @@ msgstr ""
 "The COAs of the shipped batches also go here. The client sees all the "
 "documents of their order."
 
-#: app/templates/pedidos/detalle.html:568
+#: app/templates/pedidos/detalle.html:571
 msgid "Descargar nuestro modelo de pedido de compra (Word)"
 msgstr "Download our purchase order template (Word)"
 
-#: app/templates/pedidos/detalle.html:577
+#: app/templates/pedidos/detalle.html:580
 msgid "Datos de envío"
 msgstr "Shipping details"
 
-#: app/templates/pedidos/detalle.html:582
+#: app/templates/pedidos/detalle.html:585
 msgid "Si cambias algo, el cliente recibe un email con los datos nuevos."
 msgstr "If you change anything, the client receives an email with the new details."
 
-#: app/templates/pedidos/detalle.html:597
+#: app/templates/pedidos/detalle.html:600
 msgid "⚠ fuera del flujo normal"
 msgstr "⚠ outside the normal workflow"
 
-#: app/templates/pedidos/detalle.html:623
+#: app/templates/pedidos/detalle.html:626
 #: app/templates/pedidos/modificar.html:8
 msgid ""
 "Al guardar se retira la proforma que le enviamos y le prepararemos una "
@@ -8981,29 +9029,29 @@ msgstr ""
 "When you save, the proforma we sent you is withdrawn and we will prepare "
 "a new one with the changes."
 
-#: app/templates/pedidos/detalle.html:628
+#: app/templates/pedidos/detalle.html:631
 #: app/templates/pedidos/modificar.html:15
 msgid "Volver sin cambiar nada"
 msgstr "Go back without changing anything"
 
-#: app/templates/pedidos/detalle.html:642
+#: app/templates/pedidos/detalle.html:645
 #, python-format
 msgid "¿Cancelar el pedido %(ref)s?"
 msgstr "Cancel order %(ref)s?"
 
-#: app/templates/pedidos/detalle.html:645
+#: app/templates/pedidos/detalle.html:648
 msgid "La proforma que le enviamos quedará anulada."
 msgstr "The proforma we sent you will be voided."
 
-#: app/templates/pedidos/detalle.html:646
+#: app/templates/pedidos/detalle.html:649
 msgid "Motivo (opcional)"
 msgstr "Reason (optional)"
 
-#: app/templates/pedidos/detalle.html:648
+#: app/templates/pedidos/detalle.html:651
 msgid "Nos ayuda a mejorar, pero no es obligatorio."
 msgstr "It helps us improve, but it is not required."
 
-#: app/templates/pedidos/detalle.html:649
+#: app/templates/pedidos/detalle.html:652
 msgid ""
 "Avisaremos a su contacto en Yikon. Si cambia de idea, puede hacer un "
 "pedido nuevo cuando quiera."
@@ -9011,36 +9059,36 @@ msgstr ""
 "We will let your Yikon contact know. If you change your mind, you can "
 "place a new order at any time."
 
-#: app/templates/pedidos/detalle.html:652
+#: app/templates/pedidos/detalle.html:655
 msgid "No, mantener el pedido"
 msgstr "No, keep the order"
 
-#: app/templates/pedidos/detalle.html:653
+#: app/templates/pedidos/detalle.html:656
 msgid "Sí, cancelar el pedido"
 msgstr "Yes, cancel the order"
 
-#: app/templates/pedidos/detalle.html:669
+#: app/templates/pedidos/detalle.html:672
 msgid "¿Qué ha pasado?"
 msgstr "What happened?"
 
-#: app/templates/pedidos/detalle.html:677
+#: app/templates/pedidos/detalle.html:680
 msgid "Cuéntenos el problema"
 msgstr "Tell us about the problem"
 
-#: app/templates/pedidos/detalle.html:679
+#: app/templates/pedidos/detalle.html:682
 msgid "Qué producto, cuántas unidades, cómo llegó…"
 msgstr "Which product, how many units, what condition it arrived in…"
 
-#: app/templates/pedidos/detalle.html:680
+#: app/templates/pedidos/detalle.html:683
 msgid "Fotos (opcional)"
 msgstr "Photos (optional)"
 
-#: app/templates/pedidos/detalle.html:682
+#: app/templates/pedidos/detalle.html:685
 #, python-format
 msgid "JPG o PNG, hasta %(n)s fotos."
 msgstr "JPG or PNG, up to %(n)s photos."
 
-#: app/templates/pedidos/detalle.html:683
+#: app/templates/pedidos/detalle.html:686
 msgid ""
 "Lo verá su contacto en Yikon y le contestaremos en los mensajes de este "
 "pedido."
@@ -9048,19 +9096,19 @@ msgstr ""
 "Your contact at Yikon will see it and we will reply in this order's "
 "messages."
 
-#: app/templates/pedidos/detalle.html:687
+#: app/templates/pedidos/detalle.html:690
 msgid "Enviar aviso"
 msgstr "Send report"
 
-#: app/templates/pedidos/detalle.html:706
+#: app/templates/pedidos/detalle.html:709
 msgid "Estado actual:"
 msgstr "Current status:"
 
-#: app/templates/pedidos/detalle.html:708
+#: app/templates/pedidos/detalle.html:711
 msgid "Nuevo estado"
 msgstr "New status"
 
-#: app/templates/pedidos/detalle.html:712
+#: app/templates/pedidos/detalle.html:715
 msgid ""
 "Como admin puedes elegir cualquier estado. Si te saltas el flujo normal "
 "(p. ej. enviar sin validar), quedará marcado en la auditoría. El stock se"
@@ -9070,33 +9118,33 @@ msgstr ""
 " shipping without validation), it will be flagged in the audit log. Stock"
 " is deducted as usual."
 
-#: app/templates/pedidos/detalle.html:735
+#: app/templates/pedidos/detalle.html:738
 msgid "⚠ Confirmar salida de stock"
 msgstr "⚠ Confirm stock deduction"
 
-#: app/templates/pedidos/detalle.html:740
+#: app/templates/pedidos/detalle.html:743
 #, python-format
 msgid "Al enviar %(ref)s se restarán del inventario de la oficina:"
 msgstr "Shipping %(ref)s will deduct the following from the office inventory:"
 
-#: app/templates/pedidos/detalle.html:742
+#: app/templates/pedidos/detalle.html:745
 msgid "Se restan"
 msgstr "Deducted"
 
-#: app/templates/pedidos/detalle.html:742
+#: app/templates/pedidos/detalle.html:745
 msgid "Quedarán"
 msgstr "Remaining"
 
-#: app/templates/pedidos/detalle.html:748
+#: app/templates/pedidos/detalle.html:751
 #, python-format
 msgid "faltan %(n)s por asignar a un lote"
 msgstr "%(n)s still to be assigned to a lot"
 
-#: app/templates/pedidos/detalle.html:755
+#: app/templates/pedidos/detalle.html:758
 msgid "Hay unidades sin lote asignado"
 msgstr "Some units have no lot assigned"
 
-#: app/templates/pedidos/detalle.html:756
+#: app/templates/pedidos/detalle.html:759
 #, python-format
 msgid ""
 "%(sin_lote)s: el envío no se podrá hacer hasta asignarlas en la tarjeta "
@@ -9105,7 +9153,7 @@ msgstr ""
 "%(sin_lote)s: the order cannot be shipped until they are assigned in the "
 "“Lots for this order” card."
 
-#: app/templates/pedidos/detalle.html:759
+#: app/templates/pedidos/detalle.html:762
 msgid ""
 "Salen los lotes reservados para este pedido. Si en la caja va otro lote, "
 "cancela y cámbialo antes en «Lotes de este pedido»."
@@ -9113,7 +9161,7 @@ msgstr ""
 "The lots reserved for this order are shipped. If the box contains another"
 " lot, cancel and change it first in “Lots for this order”."
 
-#: app/templates/pedidos/detalle.html:759
+#: app/templates/pedidos/detalle.html:762
 msgid ""
 "Salen los lotes reservados para este pedido: son los que el cliente "
 "aprobó en la proforma."
@@ -9121,7 +9169,7 @@ msgstr ""
 "The lots reserved for this order are shipped: they are the ones the "
 "customer approved in the proforma."
 
-#: app/templates/pedidos/detalle.html:760
+#: app/templates/pedidos/detalle.html:763
 msgid ""
 "Si luego se anula el envío, las unidades vuelven al stock y quedan "
 "reservadas otra vez para este pedido."
@@ -9129,7 +9177,7 @@ msgstr ""
 "If the shipment is later undone, the units go back to stock and are "
 "reserved again for this order."
 
-#: app/templates/pedidos/detalle.html:765
+#: app/templates/pedidos/detalle.html:768
 msgid "Sí, enviar y restar del stock"
 msgstr "Yes, ship and deduct from stock"
 
