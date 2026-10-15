@@ -620,6 +620,18 @@ pruebas automáticas con navegador.
   libre en cualquier idioma (OpenStreetMap conoce los nombres en todos). Migración `c7f2a9d4e318`: pasa lo escrito
   a mano a su código (en es, en, pt, fr, de, it, nl, ca, pl, el); lo que no reconoce se queda y el formulario lo
   marca «revísalo». Test: `test_mapa_clientes.py`.
+- **Factura completa en Excel** (15/10, «Preparar factura» → «Descargar factura en Excel»; antes era un Excel
+  básico de datos). Como la plantilla de Yikon (`Example_Invoice.xlsx` de Álvaro): logo e «INVOICE»; Seller
+  (Datos de Yikon), Billing address (datos de facturación del cliente) y Delivery address (sus datos de envío);
+  Invoice Date, Invoice Number (= referencia interna del pedido) y Your PO; productos con las columnas de su
+  formato (A/B/C) y el **HS Code** de cada producto (campo nuevo en la ficha del producto, por defecto
+  3822190090); totales según su IVA y su envío (fórmulas); USE (RUO/IVD); transferencia con la imagen de la
+  plantilla, banco, IBAN y SWIFT; plazo de entrega, Incoterm y transportista; «Confirmed & Accepted By» y el
+  **sello de Yikon** (`static/img/sello-yikon.png`, sacado de la foto que mandó Álvaro). **EORI**: si el país del
+  cliente es de la UE (`paises.UE`), el de Yikon en Seller y el del cliente en su dirección (campo nuevo en su
+  ficha). Banco, IBAN, SWIFT, Incoterm, plazo de entrega y EORI de Yikon: Ajustes → Datos de Yikon (vienen los de
+  la plantilla; el EORI, vacío). Migración `d4b8e6a1f725`. Tests: `test_por_facturar.py`. OJO: el sello dice
+  «Plaça Francesc Macià 7, 12 · 08029»; la dirección de Ajustes es otra.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

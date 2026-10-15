@@ -7,8 +7,8 @@ facturas, con usuarios por roles. En producción en **https://yikonsupport.com**
 Flask (application factory, blueprints) + SQLAlchemy 2 + Alembic, Flask-Login, Flask-WTF,
 Flask-Babel (es/en), Bootstrap 5.3. SQLite en desarrollo, PostgreSQL en producción. Tests con pytest.
 
-> ⚠ La plataforma **no genera facturas**. Facturación las hace a mano en contabilidad; la
-> plataforma solo le da los datos («Preparar factura», en Excel) y **registra** el PDF oficial.
+> ⚠ Facturas: «Preparar factura» da la **factura en Excel** (como la plantilla de Yikon, con el sello);
+> Facturación la revisa, la pasa a PDF y la **registra** en la plataforma. No sale sola a ningún sitio.
 > Nº de factura = referencia interna del pedido.
 
 Para trabajar en ella con Claude: **COMO_TRABAJAMOS.md** (reglas) y **PENDIENTES.md** (qué hay hecho y qué falta).

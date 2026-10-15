@@ -64,7 +64,7 @@ def _excel(client, p, consulta=""):
     from io import BytesIO
     from openpyxl import load_workbook
     r = client.get(f"/facturas/pedido/{p.id}/datos.xlsx{consulta}")
-    assert r.status_code == 200 and r.headers["Content-Disposition"].endswith(f'datos_{p.referencia_interna}.xlsx"')
+    assert r.status_code == 200 and r.headers["Content-Disposition"].endswith(f'factura_{p.referencia_interna}.xlsx"')
     ws = load_workbook(BytesIO(r.data)).active
     crudo = {c.coordinate: c.value for fila in ws.iter_rows() for c in fila if c.value is not None}
 
@@ -86,11 +86,13 @@ def _totales(celdas):
     for ref, v in celdas.items():
         if isinstance(v, str) and v.endswith(":"):
             col = "".join(ch for ch in ref if ch.isalpha()); fila = ref[len(col):]
-            res[v[:-1]] = celdas.get(f"{get_column_letter(column_index_from_string(col) + 1)}{fila}")
+            importe = celdas.get(f"{get_column_letter(column_index_from_string(col) + 1)}{fila}")
+            if importe is not None:                  # (los textos de la transferencia también acaban en «:»)
+                res[v[:-1]] = importe
     return res
 
 
-def test_excel_basico_formato_a_por_defecto(app, client):
+def test_factura_en_excel_formato_a_por_defecto(app, client):
     p = _enviado(client, cantidad=2)
     p1 = db.session.scalar(db.select(Producto).filter_by(referencia="P1"))
     lote = Lote(producto=p1, codigo="YK2501-C3", caducidad=date(2027, 11, 30))
@@ -102,14 +104,17 @@ def test_excel_basico_formato_a_por_defecto(app, client):
     celdas, ws = _excel(client, p)
     textos = [v for v in celdas.values() if isinstance(v, str)]
     assert "YK2501-C3" not in textos                                         # ...pero no va en el Excel
-    # Seller / Billing / Delivery (la de entrega = la de facturación) y nada de factura
-    assert {"Seller.", "Billing Address.", "Delivery address"} <= set(textos)
+    # La factura completa: Seller / Billing / Delivery (sin datos de envío, la de facturación), nº y fecha
+    assert {"Seller.", "Billing Address.", "Delivery address", "INVOICE"} <= set(textos)
     assert textos.count("Clínica A") == 2 and textos.count("VAT: B11111111") == 2
-    assert not any(t in " ".join(textos) for t in ("INVOICE", "Invoice Number", "HS Code", "SWIFT", p.referencia_interna))
-    # Formato A: PRODUCT (A:C combinada), Unit, Catalog No., Item, Qty.; sin precios por línea
+    assert f"Invoice Number: {p.referencia_interna}" in textos
+    todo = " ".join(textos)
+    assert "SWIFT CODE: CAIXESBBXXX" in todo and "Shipped by: DHL" in todo and "EORI" not in todo   # (España: sin EORI)
+    assert len(ws._images) == 3                                              # logo, transferencia y sello
+    # Formato A: PRODUCT (A:C combinada), Unit, Catalog No., Item, Qty., HS Code; sin precios por línea
     fila = next(c.row for c in ws["A"] if c.value == "PRODUCT")
-    assert [ws.cell(fila, k).value for k in (1, 4, 5, 6, 7)] == ["PRODUCT", "Unit", "Catalog No.", "Item", "Qty."]
-    assert [ws.cell(fila + 1, k).value for k in (1, 4, 5, 6, 7)] == ["Kit uno", 2, "P1", "Kit 1", 2]
+    assert [ws.cell(fila, k).value for k in (1, 4, 5, 6, 7, 8)] == ["PRODUCT", "Unit", "Catalog No.", "Item", "Qty.", "HS Code"]
+    assert [ws.cell(fila + 1, k).value for k in (1, 4, 5, 6, 7, 8)] == ["Kit uno", 2, "P1", "Kit 1", 2, 3822190090]
     # Sin configurar: IVA España
     assert _totales(celdas) == {"Total price": 200, "% IVA": 21, "Total tax": 42, "Total amount": 242}
 
@@ -149,7 +154,7 @@ def test_formato_b_ue_con_envio_pactado(app, client):
     assert datos_para_facturar(p)["avisos"] == []                                  # 2 × 100 = el precio del kit
     celdas, ws = _excel(client, p)
     fila = next(c.row for c in ws["A"] if c.value == "PRODUCT")
-    assert ws.cell(fila, 8).value == "Price" and ws.cell(fila + 1, 8).value == 200     # precio de la línea
+    assert ws.cell(fila, 9).value == "Price" and ws.cell(fila + 1, 9).value == 200     # precio de la línea
     # UE: sin IVA, con el envío pactado
     assert _totales(celdas) == {"Total price": 200, "Shipment": 150, "Total amount": 350}
     # Otro envío solo para esta factura: cambia la página y el Excel, no el cliente
@@ -176,10 +181,11 @@ def test_formato_c_lista_con_precio_unitario_y_descuento(app, client):
     login(client, "fac")
     celdas, ws = _excel(client, p)
     fila = next(c.row for c in ws["A"] if c.value == "Item")
-    # Item, Catalog No., Unit Price, Qty., Price (de la línea, sin descuento: va en los totales)
-    assert [ws.cell(fila, k).value for k in range(1, 6)] == ["Item", "Catalog No.", "Unit Price", "Qty.", "Total Price"]
-    assert [[ws.cell(fila + n, k).value for k in range(1, 6)] for n in (1, 2)] == [
-        ["Kit 1", "P1", 100, 1, 100], ["Kit 1", "P1", 100, 3, 300]]
+    # Item (A:C), Catalog No., HS Code, Unit Price, Qty., Price (de la línea, sin descuento: va en los totales)
+    cols = (1, 4, 5, 6, 7, 8)
+    assert [ws.cell(fila, k).value for k in cols] == ["Item", "Catalog No.", "HS Code", "Unit Price", "Qty.", "Total Price"]
+    assert [[ws.cell(fila + n, k).value for k in cols] for n in (1, 2)] == [
+        ["Kit 1", "P1", 3822190090, 100, 1, 100], ["Kit 1", "P1", 3822190090, 100, 3, 300]]
     assert _totales(celdas) == {"Total before discount": 400, "Discount [%]": 37.5,
                                 "Subtotal less discount": 250, "Total amount": 250}       # exportación: sin IVA
 
@@ -290,3 +296,40 @@ def _grupo(app, email, clave):
     with app.test_request_context():
         login_user(usuario)
         return next((g for g in pendientes_de(usuario, con_vacios=True) if g["clave"] == clave), None)
+
+
+def test_factura_de_un_cliente_de_la_ue_lleva_los_eori(app, client):
+    """15/10/2026 · Cliente de la UE: el EORI de Yikon en Seller y el suyo en su dirección. Fuera de la
+    UE, ninguno. La dirección de entrega, la de sus datos de envío; el uso y su nº de pedido."""
+    from app import datos_empresa
+    p = _enviado(client, cantidad=1)
+    c = p.cliente
+    c.pais, c.eori, c.ciudad, c.direccion = "DE", "DE123456789", "Berlin", "Hauptstr. 1"
+    c.envio_igual, c.envio_direccion, c.envio_ciudad, c.envio_pais = False, "Lab Str. 9", "Hamburg", "DE"
+    p.referencia, p.uso = "PO-77", "ivd"
+    datos_empresa.guardar({**datos_empresa.datos(), "eori": "ESB44777787", "incoterm": "DAP"})
+    db.session.commit()
+    login(client, "fac")
+    celdas, ws = _excel(client, p)
+    textos = [v for v in celdas.values() if isinstance(v, str)]
+    todo = " | ".join(textos)
+    assert "EORI: ESB44777787" in textos and "EORI: DE123456789" in textos
+    assert "GERMANY" in textos and "Lab Str. 9" in textos and "Hamburg" in " ".join(textos)
+    assert "Your PO: PO-77" in textos and "USE: FOR IN VITRO DIAGNOSTIC USE (IVD)" in textos
+    assert "6. Incoterm: DAP" in todo and "REFERENCE CONTRACT NUMBER: PO-77" in todo
+    # Fuera de la UE: sin EORI
+    c.pais = "MX"
+    db.session.commit()
+    textos = [v for v in _excel(client, p)[0].values() if isinstance(v, str)]
+    assert not any(t.startswith("EORI") for t in textos)
+
+
+def test_el_hs_code_es_de_cada_producto(app, client):
+    p = _enviado(client, cantidad=1)
+    login(client, "admin")
+    p1 = db.session.scalar(db.select(Producto).filter_by(referencia="P1"))
+    assert p1.codigo_hs == "3822190090"                            # el de la plantilla, por defecto
+    assert 'name="codigo_hs"' in client.get(f"/productos/{p1.id}/editar").get_data(as_text=True)
+    p1.codigo_hs = "3002900000"
+    db.session.commit()
+    assert datos_para_facturar(p)["filas"][0]["hs"] == "3002900000"

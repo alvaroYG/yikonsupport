@@ -16,7 +16,7 @@ bp = Blueprint("productos", __name__)
 
 # "categoria" es el nombre del campo en la base de datos; en pantalla se llama "Marca".
 # Tiene que coincidir con los nombres de los campos del formulario y del modelo.
-CAMPOS = ["referencia", "nombre", "categoria", "precio", "iva_pct", "controlar_stock", "stock_minimo", "activo"]
+CAMPOS = ["referencia", "nombre", "categoria", "codigo_hs", "precio", "iva_pct", "controlar_stock", "stock_minimo", "activo"]
 
 
 @bp.route("/")

@@ -23,8 +23,18 @@ CAMPOS = {
     "pais": _l("País"),
     "email": _l("Email de contacto"),
     "web": _l("Web"),
+    # Para la factura en Excel («Preparar factura»: app/facturas/datos.py)
+    "eori": _l("EORI (sale en las facturas a clientes de la UE)"),
+    "banco": _l("Banco (transferencias)"),
+    "iban": _l("IBAN"),
+    "swift": _l("SWIFT / BIC"),
+    "incoterm": _l("Incoterm"),
+    "entrega": _l("Plazo de entrega (en la factura)"),
 }
 LARGO = {"direccion": 300}       # (el resto, 150)
+# Los de la factura vienen como en la plantilla de factura de Yikon (se cambian aquí)
+FABRICA_FACTURA = {"eori": "", "banco": "CaixaBank, S.A.", "iban": "ES47 2100 1152 7002 0032 6054",
+                   "swift": "CAIXESBBXXX", "incoterm": "CPT", "entrega": "TWO WEEKS AFTER FULL PAYMENT."}
 
 
 def _de_fabrica():
@@ -36,7 +46,8 @@ def _de_fabrica():
         cif = vendedor.pop().split(":", 1)[-1].strip()
     return {"nombre": cfg.get("EMPRESA_NOMBRE") or "Yikon Genomics España",
             "razon_social": vendedor[0] if vendedor else "", "cif": cif, "telefono": "",
-            "direccion": "\n".join(vendedor[1:]), "cp_ciudad": "", "pais": "", "email": "", "web": ""}
+            "direccion": "\n".join(vendedor[1:]), "cp_ciudad": "", "pais": "", "email": "", "web": "",
+            **FABRICA_FACTURA}
 
 
 def datos() -> dict:

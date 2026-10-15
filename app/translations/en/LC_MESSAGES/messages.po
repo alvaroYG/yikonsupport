@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-15 13:12+0000\n"
+"POT-Creation-Date: 2026-10-15 13:42+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -43,13 +43,13 @@ msgid "Aceptado, sin empezar"
 msgstr "Accepted, not started"
 
 #: app/ajustes.py:20 app/correos_cliente.py:116 app/main/inicio_cliente.py:28
-#: app/main/inicio_yikon.py:59 app/models.py:483 app/models.py:500
+#: app/main/inicio_yikon.py:59 app/models.py:490 app/models.py:507
 #: app/pedidos/pendientes.py:60 app/pedidos/pendientes.py:167
 #: app/templates/pedidos/_proforma.html:27
 msgid "En preparación"
 msgstr "In preparation"
 
-#: app/ajustes.py:21 app/models.py:484
+#: app/ajustes.py:21 app/models.py:491
 msgid "Pendiente de validación"
 msgstr "Pending validation"
 
@@ -299,7 +299,7 @@ msgstr "Order"
 #: app/pedidos/forms.py:262 app/pedidos/pdf.py:72 app/pedidos/routes.py:195
 #: app/permisos.py:29 app/soporte/forms.py:19
 #: app/templates/admin/usuario_form.html:36
-#: app/templates/facturas/datos.html:28 app/templates/facturas/lista.html:21
+#: app/templates/facturas/datos.html:29 app/templates/facturas/lista.html:21
 #: app/templates/facturas/por_facturar.html:10
 #: app/templates/inventario/rastreo.html:47
 #: app/templates/inventario/rastreo.html:91
@@ -311,7 +311,7 @@ msgstr "Order"
 msgid "Cliente"
 msgstr "Client"
 
-#: app/auditoria.py:76 app/templates/facturas/datos.html:35
+#: app/auditoria.py:76 app/templates/facturas/datos.html:39
 msgid "Factura"
 msgstr "Invoice"
 
@@ -321,7 +321,7 @@ msgstr "Invoice"
 msgid "Usuario"
 msgstr "User"
 
-#: app/auditoria.py:77 app/facturas/datos.py:132 app/productos/forms.py:61
+#: app/auditoria.py:77 app/facturas/datos.py:137 app/productos/forms.py:63
 #: app/proformas/pdf.py:129 app/templates/clientes/detalle.html:151
 #: app/templates/clientes/detalle.html:171
 #: app/templates/inventario/lista.html:143
@@ -380,7 +380,7 @@ msgid "Cambiar"
 msgstr "Change"
 
 #: app/auditoria.py:81 app/templates/inventario/corregir.html:84
-#: app/templates/productos/form.html:23
+#: app/templates/productos/form.html:24
 #: app/templates/productos/kit_form.html:44
 msgid "Borrar"
 msgstr "Delete"
@@ -783,7 +783,7 @@ msgstr "Batches"
 #: app/buscador.py:154 app/buscador.py:162 app/clientes/exportar.py:67
 #: app/inventario/forms.py:36 app/navegacion.py:65 app/navegacion.py:67
 #: app/pedidos/pdf.py:72 app/pedidos/routes.py:195 app/productos/routes.py:37
-#: app/productos/routes.py:115 app/templates/facturas/datos.html:45
+#: app/productos/routes.py:115 app/templates/facturas/datos.html:50
 #: app/templates/inventario/lista.html:87 app/templates/pedidos/lista.html:38
 #: app/templates/pedidos/lista.html:68 app/templates/productos/catalogo.html:6
 #: app/templates/productos/catalogo.html:18 app/templates/productos/kits.html:7
@@ -856,7 +856,7 @@ msgstr "Estimated delivery date"
 
 #: app/clientes/exportar.py:68 app/correos_cliente.py:44
 #: app/pedidos/forms.py:336 app/pedidos/routes.py:197
-#: app/templates/facturas/datos.html:40
+#: app/templates/facturas/datos.html:44
 msgid "Transportista"
 msgstr "Carrier"
 
@@ -987,7 +987,7 @@ msgstr ""
 "We've prepared the proforma for your order. You can download and accept "
 "it (or request changes) on the platform."
 
-#: app/correos_cliente.py:106 app/models.py:479 app/models.py:498
+#: app/correos_cliente.py:106 app/models.py:486 app/models.py:505
 msgid "Cambios solicitados"
 msgstr "Changes requested"
 
@@ -1041,7 +1041,7 @@ msgid "Estamos preparando su pedido."
 msgstr "We're preparing your order."
 
 #: app/admin/correos_estado.py:20 app/correos_cliente.py:119
-#: app/main/inicio_cliente.py:28 app/models.py:487 app/models.py:501
+#: app/main/inicio_cliente.py:28 app/models.py:494 app/models.py:508
 #: app/templates/admin/correo.html:13 app/templates/admin/correos.html:5
 msgid "Enviado"
 msgstr "Shipped"
@@ -1064,8 +1064,8 @@ msgstr ""
 "When you receive it, mark it as \"Received\" on the platform (button on "
 "the order page)."
 
-#: app/correos_cliente.py:125 app/main/inicio_cliente.py:29 app/models.py:488
-#: app/models.py:502
+#: app/correos_cliente.py:125 app/main/inicio_cliente.py:29 app/models.py:495
+#: app/models.py:509
 msgid "Recibido"
 msgstr "Received"
 
@@ -1078,7 +1078,7 @@ msgstr "The order is recorded as received."
 msgid "Su pedido consta como recibido. Gracias por su confianza."
 msgstr "Your order is recorded as received. Thank you for your trust."
 
-#: app/correos_cliente.py:128 app/models.py:489 app/models.py:503
+#: app/correos_cliente.py:128 app/models.py:496 app/models.py:510
 msgid "Cancelado"
 msgstr "Cancelled"
 
@@ -1358,8 +1358,8 @@ msgid "Teléfono"
 msgstr "Phone"
 
 #: app/clientes/forms.py:28 app/datos_empresa.py:21
-#: app/templates/clientes/_datos_empresa.html:11
-#: app/templates/clientes/_datos_empresa.html:18
+#: app/templates/clientes/_datos_empresa.html:12
+#: app/templates/clientes/_datos_empresa.html:19
 #: app/templates/clientes/detalle.html:41
 msgid "Dirección"
 msgstr "Address"
@@ -1368,7 +1368,7 @@ msgstr "Address"
 msgid "Código postal y ciudad"
 msgstr "Postcode and city"
 
-#: app/clientes/forms.py:32 app/clientes/forms.py:45 app/datos_empresa.py:23
+#: app/clientes/forms.py:34 app/clientes/forms.py:47 app/datos_empresa.py:23
 msgid "País"
 msgstr "Country"
 
@@ -1379,6 +1379,30 @@ msgstr "Contact email"
 #: app/datos_empresa.py:25
 msgid "Web"
 msgstr "Website"
+
+#: app/datos_empresa.py:27
+msgid "EORI (sale en las facturas a clientes de la UE)"
+msgstr "EORI (shown on invoices to EU clients)"
+
+#: app/datos_empresa.py:28
+msgid "Banco (transferencias)"
+msgstr "Bank (transfers)"
+
+#: app/datos_empresa.py:29
+msgid "IBAN"
+msgstr "IBAN"
+
+#: app/datos_empresa.py:30
+msgid "SWIFT / BIC"
+msgstr "SWIFT / BIC"
+
+#: app/datos_empresa.py:31
+msgid "Incoterm"
+msgstr "Incoterm"
+
+#: app/datos_empresa.py:32
+msgid "Plazo de entrega (en la factura)"
+msgstr "Delivery terms (on the invoice)"
 
 #: app/extensions.py:24
 msgid "Inicia sesión para acceder a esta página."
@@ -1404,228 +1428,228 @@ msgstr "Problem with the order: %(motivo)s"
 msgid "Hemos resuelto el problema que nos indicó (%(motivo)s)."
 msgstr "We have resolved the problem you reported (%(motivo)s)."
 
-#: app/models.py:469
+#: app/models.py:476
 msgid "RUO (solo investigación)"
 msgstr "RUO (research use only)"
 
-#: app/models.py:470
+#: app/models.py:477
 msgid "IVD (diagnóstico in vitro)"
 msgstr "IVD (in vitro diagnostic)"
 
-#: app/models.py:471
+#: app/models.py:478
 msgid "Indiferente"
 msgstr "No preference"
 
-#: app/models.py:477 app/models.py:496 app/pedidos/historial.py:60
+#: app/models.py:484 app/models.py:503 app/pedidos/historial.py:60
 msgid "Proforma solicitada"
 msgstr "Proforma requested"
 
-#: app/models.py:478
+#: app/models.py:485
 msgid "Proforma enviada"
 msgstr "Proforma sent"
 
-#: app/main/inicio_cliente.py:27 app/models.py:482 app/models.py:499
+#: app/main/inicio_cliente.py:27 app/models.py:489 app/models.py:506
 msgid "Aceptado"
 msgstr "Accepted"
 
-#: app/models.py:485
+#: app/models.py:492
 msgid "Listo para enviar"
 msgstr "Ready to ship"
 
-#: app/models.py:497
+#: app/models.py:504
 msgid "Proforma recibida"
 msgstr "Proforma received"
 
-#: app/models.py:809
+#: app/models.py:816
 msgid "Pendiente de respuesta"
 msgstr "Awaiting response"
 
-#: app/models.py:810
+#: app/models.py:817
 msgid "Aceptada"
 msgstr "Accepted"
 
-#: app/models.py:811
+#: app/models.py:818
 msgid "El cliente pidió cambios"
 msgstr "Client requested changes"
 
-#: app/models.py:812
+#: app/models.py:819
 msgid "Retirada por Yikon"
 msgstr "Withdrawn by Yikon"
 
-#: app/models.py:840
+#: app/models.py:847
 msgid "Llegó dañado"
 msgstr "Arrived damaged"
 
-#: app/models.py:841
+#: app/models.py:848
 msgid "Falta algo"
 msgstr "Something is missing"
 
-#: app/models.py:842
+#: app/models.py:849
 msgid "Temperatura"
 msgstr "Temperature"
 
-#: app/models.py:843 app/models.py:1524
+#: app/models.py:850 app/models.py:1531
 msgid "Otro"
 msgstr "Other"
 
-#: app/models.py:966
+#: app/models.py:973
 msgid "A · Kits sin precio"
 msgstr "A · Kits without prices"
 
-#: app/models.py:967
+#: app/models.py:974
 msgid "B · Kits con precio por línea"
 msgstr "B · Kits with line prices"
 
-#: app/models.py:968
+#: app/models.py:975
 msgid "C · Lista con precio unitario"
 msgstr "C · List with unit prices"
 
-#: app/models.py:971
+#: app/models.py:978
 msgid "España (IVA)"
 msgstr "Spain (VAT)"
 
-#: app/models.py:972
+#: app/models.py:979
 msgid "UE · sin IVA"
 msgstr "EU · no VAT"
 
-#: app/models.py:973
+#: app/models.py:980
 msgid "Exportación · sin IVA"
 msgstr "Export · no VAT"
 
-#: app/models.py:977
+#: app/models.py:984
 msgid "Pendiente"
 msgstr "Pending"
 
-#: app/models.py:978
+#: app/models.py:985
 msgid "Pagada"
 msgstr "Paid"
 
-#: app/models.py:979
+#: app/models.py:986
 msgid "Anulada"
 msgstr "Void"
 
-#: app/models.py:1083
+#: app/models.py:1090
 msgid "Entrada de mercancía"
 msgstr "Goods received"
 
-#: app/models.py:1084
+#: app/models.py:1091
 msgid "Salida por envío de pedido"
 msgstr "Order shipment"
 
-#: app/models.py:1085
+#: app/models.py:1092
 msgid "Anulación de envío"
 msgstr "Shipment reversal"
 
-#: app/models.py:1086
+#: app/models.py:1093
 msgid "Ajuste manual"
 msgstr "Manual adjustment"
 
-#: app/models.py:1087
+#: app/models.py:1094
 msgid "Apertura de kit"
 msgstr "Kit opening"
 
-#: app/models.py:1450
+#: app/models.py:1457
 msgid "Logos y marca"
 msgstr "Logos and brand"
 
-#: app/models.py:1451
+#: app/models.py:1458
 msgid "Plantillas"
 msgstr "Templates"
 
-#: app/models.py:1452
+#: app/models.py:1459
 msgid "Protocolos"
 msgstr "Protocols"
 
-#: app/models.py:1453
+#: app/models.py:1460
 msgid "Fichas técnicas"
 msgstr "Technical sheets"
 
-#: app/models.py:1454
+#: app/models.py:1461
 msgid "Formación"
 msgstr "Training"
 
-#: app/models.py:1455
+#: app/models.py:1462
 msgid "Otros"
 msgstr "Other"
 
-#: app/models.py:1517
+#: app/models.py:1524
 msgid "Acceso / inicio de sesión"
 msgstr "Access / login"
 
-#: app/models.py:1518
+#: app/models.py:1525
 msgid "Carga de datos / muestras"
 msgstr "Data / sample upload"
 
-#: app/models.py:1519
+#: app/models.py:1526
 msgid "Análisis CNV / aneuploidías"
 msgstr "CNV / aneuploidy analysis"
 
-#: app/models.py:1520
+#: app/models.py:1527
 msgid "SNP / haplotipado"
 msgstr "SNP / haplotyping"
 
-#: app/models.py:1521
+#: app/models.py:1528
 msgid "Informes y resultados"
 msgstr "Reports and results"
 
-#: app/models.py:1522
+#: app/models.py:1529
 msgid "Lentitud o errores de la web"
 msgstr "Slowness or website errors"
 
-#: app/models.py:1523
+#: app/models.py:1530
 msgid "Consulta / cómo se hace"
 msgstr "Question / how-to"
 
-#: app/models.py:1527
+#: app/models.py:1534
 msgid "Baja"
 msgstr "Low"
 
-#: app/models.py:1528
+#: app/models.py:1535
 msgid "Normal"
 msgstr "Normal"
 
-#: app/models.py:1529
+#: app/models.py:1536
 msgid "Alta"
 msgstr "High"
 
-#: app/models.py:1530
+#: app/models.py:1537
 msgid "Urgente"
 msgstr "Urgent"
 
-#: app/models.py:1534
+#: app/models.py:1541
 msgid "Una duda o mejora; no me bloquea."
 msgstr "A question or improvement; it doesn't block me."
 
-#: app/models.py:1535
+#: app/models.py:1542
 msgid "Algo no funciona, pero puedo seguir trabajando."
 msgstr "Something doesn't work, but I can keep working."
 
-#: app/models.py:1536
+#: app/models.py:1543
 msgid "No puedo terminar un análisis o un informe."
 msgstr "I can't finish an analysis or a report."
 
-#: app/models.py:1537
+#: app/models.py:1544
 msgid "No puedo trabajar con ChromGo / resultados urgentes de paciente."
 msgstr "I can't work with ChromGo / urgent patient results."
 
-#: app/models.py:1540 app/templates/soporte/detalle.html:103
+#: app/models.py:1547 app/templates/soporte/detalle.html:103
 msgid "Abierto"
 msgstr "Open"
 
-#: app/models.py:1541
+#: app/models.py:1548
 msgid "En curso"
 msgstr "In progress"
 
-#: app/models.py:1542 app/pedidos/pendientes.py:64
+#: app/models.py:1549 app/pedidos/pendientes.py:64
 #: app/pedidos/pendientes.py:214 app/templates/soporte/lista.html:27
 msgid "Esperando al cliente"
 msgstr "Waiting for client"
 
-#: app/models.py:1543 app/templates/soporte/detalle.html:105
+#: app/models.py:1550 app/templates/soporte/detalle.html:105
 msgid "Resuelto"
 msgstr "Resolved"
 
-#: app/models.py:1544
+#: app/models.py:1551
 msgid "Cerrado"
 msgstr "Closed"
 
@@ -1725,7 +1749,7 @@ msgstr "Administrator"
 
 #: app/permisos.py:23 app/templates/admin/usuario_form.html:32
 #: app/templates/clientes/detalle.html:57
-#: app/templates/clientes/detalle.html:90
+#: app/templates/clientes/detalle.html:90 app/templates/facturas/datos.html:31
 msgid "Facturación"
 msgstr "Invoicing"
 
@@ -1964,8 +1988,8 @@ msgstr "Email prepared. Review it before confirming the resend."
 msgid "Estado de la plataforma"
 msgstr "Platform status"
 
-#: app/admin/forms.py:13 app/clientes/forms.py:133 app/productos/forms.py:18
-#: app/productos/forms.py:67 app/templates/admin/usuarios.html:37
+#: app/admin/forms.py:13 app/clientes/forms.py:138 app/productos/forms.py:18
+#: app/productos/forms.py:69 app/templates/admin/usuarios.html:37
 #: app/templates/clientes/detalle.html:262 app/templates/clientes/lista.html:44
 #: app/templates/productos/catalogo.html:29
 #: app/templates/productos/kits.html:18 app/templates/productos/lista.html:14
@@ -1973,7 +1997,7 @@ msgid "Nombre"
 msgstr "Name"
 
 #: app/admin/forms.py:14 app/auth/forms.py:8 app/clientes/forms.py:25
-#: app/clientes/forms.py:134 app/inventario/routes.py:261
+#: app/clientes/forms.py:139 app/inventario/routes.py:261
 #: app/templates/admin/usuarios.html:37 app/templates/clientes/detalle.html:39
 #: app/templates/clientes/detalle.html:262
 #: app/templates/clientes/mi_empresa.html:11
@@ -2006,22 +2030,22 @@ msgstr ""
 "Client role only: besides their orders, they can open and see their "
 "company's ChromGo tickets. (ChromGo Client and Support always have it.)"
 
-#: app/admin/forms.py:21 app/clientes/forms.py:57 app/clientes/forms.py:138
-#: app/productos/forms.py:28 app/productos/forms.py:80
+#: app/admin/forms.py:21 app/clientes/forms.py:59 app/clientes/forms.py:143
+#: app/productos/forms.py:30 app/productos/forms.py:82
 #: app/templates/admin/usuarios.html:41 app/templates/clientes/detalle.html:265
 #: app/templates/clientes/mapa.html:66
 msgid "Activo"
 msgstr "Active"
 
-#: app/admin/forms.py:22 app/clientes/forms.py:135
+#: app/admin/forms.py:22 app/clientes/forms.py:140
 msgid "Idioma"
 msgstr "Language"
 
-#: app/admin/forms.py:22 app/clientes/forms.py:135
+#: app/admin/forms.py:22 app/clientes/forms.py:140
 msgid "Automático (el de su navegador)"
 msgstr "Automatic (their browser language)"
 
-#: app/admin/forms.py:24 app/clientes/forms.py:137
+#: app/admin/forms.py:24 app/clientes/forms.py:142
 msgid "Idioma de la web y de los emails que recibe."
 msgstr "Language of the website and of the emails they receive."
 
@@ -2041,10 +2065,10 @@ msgstr ""
 "Optional if you send the invitation. When editing, leave it blank to keep"
 " the current one."
 
-#: app/admin/forms.py:31 app/clientes/forms.py:58 app/clientes/forms.py:140
+#: app/admin/forms.py:31 app/clientes/forms.py:60 app/clientes/forms.py:145
 #: app/documentos/forms.py:28 app/facturas/forms.py:28
 #: app/inventario/forms.py:98 app/inventario/forms.py:126
-#: app/productos/forms.py:31 app/productos/forms.py:81
+#: app/productos/forms.py:33 app/productos/forms.py:83
 #: app/templates/admin/ajustes.html:23 app/templates/admin/ajustes.html:55
 #: app/templates/admin/ajustes.html:77
 #: app/templates/admin/ajustes_apartados.html:58
@@ -2074,7 +2098,7 @@ msgstr "— None —"
 msgid "Un usuario cliente debe pertenecer a una empresa."
 msgstr "A client user must belong to a company."
 
-#: app/admin/forms.py:58 app/clientes/forms.py:150
+#: app/admin/forms.py:58 app/clientes/forms.py:155
 msgid "Ya existe un usuario con ese email."
 msgstr "A user with that email already exists."
 
@@ -2270,7 +2294,7 @@ msgstr "Internal ref."
 #: app/clientes/exportar.py:66 app/pedidos/pdf.py:72 app/pedidos/routes.py:194
 #: app/proformas/pdf.py:83 app/templates/admin/auditoria.html:49
 #: app/templates/admin/correos.html:38 app/templates/clientes/detalle.html:67
-#: app/templates/facturas/datos.html:38
+#: app/templates/facturas/datos.html:42
 #: app/templates/inventario/corregir.html:62
 #: app/templates/inventario/movimientos.html:17
 #: app/templates/pedidos/lista.html:66
@@ -2292,16 +2316,16 @@ msgstr "Estimated delivery"
 msgid "Base imponible"
 msgstr "Net amount"
 
-#: app/clientes/exportar.py:69 app/facturas/datos.py:121
-#: app/pedidos/routes.py:199 app/productos/forms.py:23
-#: app/productos/forms.py:73 app/templates/facturas/_form_facturacion.html:9
+#: app/clientes/exportar.py:69 app/facturas/datos.py:126
+#: app/pedidos/routes.py:199 app/productos/forms.py:25
+#: app/productos/forms.py:75 app/templates/facturas/_form_facturacion.html:9
 #: app/templates/pedidos/detalle.html:255
 #: app/templates/pedidos/detalle.html:319 app/templates/productos/kits.html:20
 #: app/templates/productos/lista.html:16
 msgid "IVA"
 msgstr "VAT"
 
-#: app/clientes/exportar.py:69 app/facturas/datos.py:121 app/pedidos/pdf.py:76
+#: app/clientes/exportar.py:69 app/facturas/datos.py:126 app/pedidos/pdf.py:76
 #: app/pedidos/routes.py:200 app/templates/clientes/detalle.html:67
 #: app/templates/pedidos/detalle.html:320 app/templates/pedidos/lista.html:70
 msgid "Total"
@@ -2339,112 +2363,120 @@ msgstr ""
 msgid "Persona de contacto"
 msgstr "Contact person"
 
-#: app/clientes/forms.py:29 app/clientes/forms.py:43
+#: app/clientes/forms.py:29 app/clientes/forms.py:45
 #: app/templates/clientes/lista.html:45
 msgid "Ciudad"
 msgstr "City"
 
-#: app/clientes/forms.py:30 app/clientes/forms.py:42
+#: app/clientes/forms.py:30 app/clientes/forms.py:44
 msgid "Código postal"
 msgstr "Postcode"
 
-#: app/clientes/forms.py:31 app/clientes/forms.py:44
+#: app/clientes/forms.py:31 app/templates/clientes/_datos_empresa.html:11
+msgid "EORI"
+msgstr "EORI"
+
+#: app/clientes/forms.py:32
+msgid "Solo clientes de la UE: sale en su factura."
+msgstr "EU clients only: shown on their invoice."
+
+#: app/clientes/forms.py:33 app/clientes/forms.py:46
 msgid "Provincia"
 msgstr "Province / state"
 
-#: app/clientes/forms.py:34
+#: app/clientes/forms.py:36
 msgid "Se envía a la dirección de facturación"
 msgstr "Ship to the billing address"
 
-#: app/clientes/forms.py:35
+#: app/clientes/forms.py:37
 msgid "Destinatario / centro"
 msgstr "Recipient / site"
 
-#: app/clientes/forms.py:36
+#: app/clientes/forms.py:38
 msgid "Vacío: la razón social."
 msgstr "Empty: the company name."
 
-#: app/clientes/forms.py:37
+#: app/clientes/forms.py:39
 msgid "Persona que recibe"
 msgstr "Person receiving"
 
-#: app/clientes/forms.py:38
+#: app/clientes/forms.py:40
 msgid "Vacío: la persona de contacto."
 msgstr "Empty: the contact person."
 
-#: app/clientes/forms.py:39
+#: app/clientes/forms.py:41
 msgid "Teléfono de entrega"
 msgstr "Delivery phone"
 
-#: app/clientes/forms.py:40
+#: app/clientes/forms.py:42
 msgid "Vacío: el teléfono de la empresa."
 msgstr "Empty: the company's phone."
 
-#: app/clientes/forms.py:41
+#: app/clientes/forms.py:43
 msgid "Dirección de envío"
 msgstr "Shipping address"
 
-#: app/clientes/forms.py:46 app/pedidos/albaran.py:214
-#: app/templates/clientes/_datos_empresa.html:20
+#: app/clientes/forms.py:48 app/pedidos/albaran.py:214
+#: app/templates/clientes/_datos_empresa.html:21
 msgid "Instrucciones de entrega"
 msgstr "Delivery instructions"
 
-#: app/clientes/forms.py:47
+#: app/clientes/forms.py:49
 msgid "Horario, planta, muelle… Sale en el albarán."
 msgstr "Opening hours, floor, loading dock… Printed on the delivery note."
 
-#: app/clientes/forms.py:53
+#: app/clientes/forms.py:55
 #, python-format
 msgid "%(rol)s: personas asignadas"
 msgstr "%(rol)s: assigned people"
 
-#: app/clientes/forms.py:54
+#: app/clientes/forms.py:56
 msgid "Ctrl + clic para seleccionar varios."
 msgstr "Ctrl + click to select several."
 
-#: app/clientes/forms.py:56 app/facturas/forms.py:24 app/proformas/pdf.py:157
+#: app/clientes/forms.py:58 app/facturas/forms.py:24 app/proformas/pdf.py:157
 #: app/templates/clientes/detalle.html:47
 msgid "Notas"
 msgstr "Notes"
 
-#: app/clientes/forms.py:71
+#: app/clientes/forms.py:73
 msgid "— Sin indicar —"
 msgstr "— Not specified —"
 
-#: app/clientes/forms.py:77
+#: app/clientes/forms.py:79
 #, python-format
 msgid "%(pais)s (revísalo: elige el país de la lista)"
 msgstr "%(pais)s (check it: pick the country from the list)"
 
-#: app/clientes/forms.py:86
+#: app/clientes/forms.py:88
 msgid "De 2 a 10 letras o números, sin espacios ni tildes."
 msgstr "2 to 10 letters or digits, no spaces or accents."
 
-#: app/clientes/forms.py:91
+#: app/clientes/forms.py:93
 #, python-format
 msgid "Ese prefijo ya lo usa %(nombre)s. Escribe otro."
 msgstr "That prefix is already used by %(nombre)s. Choose another one."
 
-#: app/clientes/forms.py:92
+#: app/clientes/forms.py:94
 msgid "Ese prefijo ya lo usa otro cliente. Escribe otro."
 msgstr "That prefix is already used by another client. Type another one."
 
-#: app/clientes/forms.py:103
+#: app/clientes/forms.py:105
 msgid "Ese prefijo ya se usó en pedidos de otra empresa. Escribe otro."
 msgstr ""
 "That prefix was already used in another company's orders. Choose another "
 "one."
 
-#: app/clientes/forms.py:121
+#: app/clientes/forms.py:126
 #, python-format
 msgid "Ese CIF ya está registrado (%(nombre)s)."
 msgstr "That tax ID is already registered (%(nombre)s)."
 
-#: app/clientes/forms.py:122
+#: app/clientes/forms.py:127
 msgid "Ese CIF ya está registrado en otro cliente."
 msgstr "That tax ID is already registered for another client."
 
-#: app/clientes/forms.py:139
+#: app/clientes/forms.py:144
 msgid "Desactivado no puede entrar (sus pedidos y mensajes se quedan)."
 msgstr "If deactivated, they cannot log in (their orders and messages stay)."
 
@@ -2579,7 +2611,7 @@ msgid "Cómo lo buscará la gente, p. ej. «Logo Yikon horizontal (color)»."
 msgstr "How people will search for it, e.g. \"Yikon horizontal logo (colour)\"."
 
 #: app/documentos/forms.py:17 app/documentos/forms.py:27
-#: app/pedidos/albaran.py:184 app/productos/forms.py:68 app/soporte/forms.py:28
+#: app/pedidos/albaran.py:184 app/productos/forms.py:70 app/soporte/forms.py:28
 msgid "Descripción"
 msgstr "Description"
 
@@ -2639,32 +2671,32 @@ msgstr "Version %(n)s uploaded. The previous one stays in the history."
 msgid "Documento borrado."
 msgstr "Document deleted."
 
-#: app/facturas/datos.py:120
+#: app/facturas/datos.py:125
 msgid "Precio total"
 msgstr "Total price"
 
-#: app/facturas/datos.py:120
+#: app/facturas/datos.py:125
 msgid "Descuento"
 msgstr "Discount"
 
-#: app/facturas/datos.py:120
+#: app/facturas/datos.py:125
 msgid "Subtotal con descuento"
 msgstr "Subtotal after discount"
 
-#: app/facturas/datos.py:121
+#: app/facturas/datos.py:126
 msgid "Envío"
 msgstr "Shipping"
 
-#: app/facturas/datos.py:121
+#: app/facturas/datos.py:126
 msgid "Importe del IVA"
 msgstr "VAT amount"
 
-#: app/facturas/datos.py:132
+#: app/facturas/datos.py:137
 msgid "Unid."
 msgstr "Units"
 
-#: app/facturas/datos.py:132 app/pedidos/albaran.py:184
-#: app/productos/forms.py:17 app/productos/forms.py:66 app/proformas/pdf.py:129
+#: app/facturas/datos.py:137 app/pedidos/albaran.py:184
+#: app/productos/forms.py:17 app/productos/forms.py:68 app/proformas/pdf.py:129
 #: app/templates/inventario/lista.html:109
 #: app/templates/inventario/lista.html:120
 #: app/templates/inventario/lista.html:143
@@ -2674,7 +2706,7 @@ msgstr "Units"
 msgid "Referencia"
 msgstr "Reference"
 
-#: app/facturas/datos.py:133 app/inventario/forms.py:13
+#: app/facturas/datos.py:138 app/inventario/forms.py:13
 #: app/inventario/routes.py:258 app/pedidos/albaran.py:203
 #: app/templates/inventario/caducidades.html:11
 #: app/templates/inventario/movimientos.html:18
@@ -2682,18 +2714,22 @@ msgstr "Reference"
 msgid "Artículo"
 msgstr "Item"
 
-#: app/facturas/datos.py:133 app/templates/pedidos/detalle.html:254
+#: app/facturas/datos.py:138 app/templates/pedidos/detalle.html:254
 msgid "Cant."
 msgstr "Qty"
 
-#: app/facturas/datos.py:133
+#: app/facturas/datos.py:138
 msgid "Precio unitario"
 msgstr "Unit price"
 
-#: app/facturas/datos.py:134 app/templates/pedidos/detalle.html:255
+#: app/facturas/datos.py:139 app/templates/pedidos/detalle.html:255
 #: app/templates/pedidos/detalle.html:306 app/templates/productos/lista.html:15
 msgid "Precio"
 msgstr "Price"
+
+#: app/facturas/datos.py:139
+msgid "HS Code"
+msgstr "HS Code"
 
 #: app/facturas/forms.py:15
 msgid "Nº de factura (del sistema contable)"
@@ -2747,7 +2783,7 @@ msgstr "That order belongs to another client."
 msgid "Indica la fecha de pago."
 msgstr "Enter the payment date."
 
-#: app/facturas/forms.py:90 app/templates/facturas/datos.html:37
+#: app/facturas/forms.py:90 app/templates/facturas/datos.html:41
 #: app/templates/facturas/lista.html:12
 msgid "Nº de factura"
 msgstr "Invoice no."
@@ -2769,7 +2805,7 @@ msgid "PDF"
 msgstr "PDF"
 
 #: app/facturas/forms.py:96 app/facturas/routes.py:122
-#: app/templates/facturas/datos.html:14
+#: app/templates/facturas/datos.html:15
 #: app/templates/facturas/por_facturar.html:16
 msgid "Registrar factura"
 msgstr "Register invoice"
@@ -2832,7 +2868,7 @@ msgstr "My invoices"
 msgid "Por facturar"
 msgstr "To invoice"
 
-#: app/facturas/routes.py:214 app/templates/facturas/datos.html:11
+#: app/facturas/routes.py:214 app/templates/facturas/datos.html:12
 #: app/templates/facturas/por_facturar.html:15
 #: app/templates/pedidos/detalle.html:446
 msgid "Preparar factura"
@@ -3589,7 +3625,7 @@ msgstr "Your PO number"
 msgid "Fecha del pedido"
 msgstr "Order date"
 
-#: app/pedidos/albaran.py:161
+#: app/pedidos/albaran.py:161 app/templates/facturas/datos.html:45
 msgid "Uso"
 msgstr "Use"
 
@@ -4405,63 +4441,71 @@ msgstr "0 % / exempt"
 msgid "Marca"
 msgstr "Brand"
 
+#: app/productos/forms.py:20
+msgid "HS Code (código arancelario)"
+msgstr "HS Code (customs tariff code)"
+
 #: app/productos/forms.py:21
+msgid "Sale en la factura en Excel."
+msgstr "Shown on the Excel invoice."
+
+#: app/productos/forms.py:23
 msgid "Precio sin IVA (€)"
 msgstr "Price excl. VAT (€)"
 
-#: app/productos/forms.py:24
+#: app/productos/forms.py:26
 msgid "Controlar stock en inventario"
 msgstr "Track stock in inventory"
 
-#: app/productos/forms.py:25
+#: app/productos/forms.py:27
 msgid "Desmárcalo para servicios u otros productos que no son mercancía."
 msgstr "Untick it for services or other items that are not physical goods."
 
-#: app/productos/forms.py:26
+#: app/productos/forms.py:28
 msgid "Stock mínimo"
 msgstr "Minimum stock"
 
-#: app/productos/forms.py:27
+#: app/productos/forms.py:29
 msgid "Por debajo de esto, el inventario avisa de stock bajo."
 msgstr "Below this level, the inventory flags low stock."
 
-#: app/productos/forms.py:29
+#: app/productos/forms.py:31
 msgid "Ficha de seguridad (SDS)"
 msgstr "Safety data sheet (SDS)"
 
-#: app/productos/forms.py:30
+#: app/productos/forms.py:32
 msgid ""
 "PDF (máx. 15 MB). Los clientes la descargan desde su apartado de "
 "Productos."
 msgstr "PDF (max. 15 MB). Clients download it from their Products section."
 
-#: app/productos/forms.py:56
+#: app/productos/forms.py:58
 msgid "Ya existe un producto con esa referencia."
 msgstr "A product with that reference already exists."
 
-#: app/productos/forms.py:62 app/templates/productos/kit_form.html:25
+#: app/productos/forms.py:64 app/templates/productos/kit_form.html:25
 msgid "Unidades por kit"
 msgstr "Units per kit"
 
-#: app/productos/forms.py:69
+#: app/productos/forms.py:71
 msgid "Opcional. La ve también el cliente al elegir el kit."
 msgstr "Optional. The client also sees it when choosing the kit."
 
-#: app/productos/forms.py:70
+#: app/productos/forms.py:72
 msgid "Precio estándar de un kit, sin IVA (€)"
 msgstr "Standard price per kit, excl. VAT (€)"
 
-#: app/productos/forms.py:72
+#: app/productos/forms.py:74
 msgid "A cada cliente se le puede poner un precio especial desde su ficha."
 msgstr "Each client can be given a special price from their client page."
 
-#: app/productos/forms.py:75
+#: app/productos/forms.py:77
 msgid "Kit cerrado (llega del fabricante con su propio lote y caducidad)"
 msgstr ""
 "Sealed kit (arrives from the manufacturer with its own batch and expiry "
 "date)"
 
-#: app/productos/forms.py:76
+#: app/productos/forms.py:78
 msgid ""
 "Lo normal. El stock y los lotes son del kit y al enviarlo sale entero. "
 "Desmárcalo solo si el kit se monta en la oficina con productos sueltos."
@@ -4469,23 +4513,23 @@ msgstr ""
 "The usual case. Stock and batches belong to the kit and it ships whole. "
 "Untick it only if the kit is assembled in the office from loose products."
 
-#: app/productos/forms.py:78
+#: app/productos/forms.py:80
 msgid "Stock mínimo del kit"
 msgstr "Kit minimum stock"
 
-#: app/productos/forms.py:79
+#: app/productos/forms.py:81
 msgid "Solo kits cerrados: por debajo, el inventario avisa de stock bajo."
 msgstr "Sealed kits only: below this, the inventory warns of low stock."
 
-#: app/productos/forms.py:86 app/templates/pedidos/_campos_pedido.html:22
+#: app/productos/forms.py:88 app/templates/pedidos/_campos_pedido.html:22
 msgid "— Elige un producto —"
 msgstr "— Choose a product —"
 
-#: app/productos/forms.py:101
+#: app/productos/forms.py:103
 msgid "Ya existe un kit con esa referencia."
 msgstr "A kit with that reference already exists."
 
-#: app/productos/forms.py:105
+#: app/productos/forms.py:107
 msgid "Añade al menos un producto al kit."
 msgstr "Add at least one product to the kit."
 
@@ -5743,14 +5787,15 @@ msgstr "Back to the platform's logo"
 
 #: app/templates/admin/ajustes_empresa.html:8
 msgid ""
-"Se escriben una vez aquí y salen en el Excel de «Preparar factura» "
-"(bloque Seller), en la cabecera del modelo de proforma y en la firma de "
-"los correos al cliente (si nadie la ha cambiado a mano en Correos al "
-"cliente)."
+"Se escriben una vez aquí y salen en la factura en Excel de «Preparar "
+"factura» (vendedor, banco, Incoterm…), en la cabecera del modelo de "
+"proforma y en la firma de los correos al cliente (si nadie la ha cambiado"
+" a mano en Correos al cliente)."
 msgstr ""
-"Written once here, they appear in the \"Prepare invoice\" Excel (Seller "
-"block), in the proforma template header and in the signature of client "
-"emails (unless someone changed it by hand in Client emails)."
+"Written once here, they appear on the Excel invoice from “Prepare "
+"invoice” (seller, bank, Incoterm…), in the header of the proforma "
+"template and in the signature of client emails (unless someone changed it"
+" by hand in Client emails)."
 
 #: app/templates/admin/ajustes_empresa.html:17
 msgid "Una línea por renglón, como quieras que salga en el Excel."
@@ -6104,7 +6149,7 @@ msgstr[1] "%(num)s errors"
 msgid "Ninguna página ha fallado por un error nuestro."
 msgstr "No page has failed because of an error on our side."
 
-#: app/templates/admin/usuario_form.html:14 app/templates/clientes/form.html:54
+#: app/templates/admin/usuario_form.html:14 app/templates/clientes/form.html:55
 #: app/templates/clientes/usuario_form.html:17
 #: app/templates/documentos/lista.html:103 app/templates/facturas/form.html:21
 #: app/templates/inventario/lista.html:173
@@ -6115,7 +6160,7 @@ msgstr "No page has failed because of an error on our side."
 #: app/templates/pedidos/detalle.html:745
 #: app/templates/pedidos/detalle.html:787 app/templates/pedidos/form.html:12
 #: app/templates/pedidos/form_cliente.html:12
-#: app/templates/productos/form.html:17
+#: app/templates/productos/form.html:18
 #: app/templates/productos/kit_form.html:38 app/templates/soporte/nuevo.html:38
 msgid "Cancelar"
 msgstr "Cancel"
@@ -6296,24 +6341,24 @@ msgstr "Choose a new password"
 msgid "Datos de facturación"
 msgstr "Billing details"
 
-#: app/templates/clientes/_datos_empresa.html:15
-#: app/templates/clientes/form.html:35 app/templates/pedidos/detalle.html:600
+#: app/templates/clientes/_datos_empresa.html:16
+#: app/templates/clientes/form.html:36 app/templates/pedidos/detalle.html:600
 msgid "Datos de envío"
 msgstr "Shipping details"
 
-#: app/templates/clientes/_datos_empresa.html:17
+#: app/templates/clientes/_datos_empresa.html:18
 msgid "Destinatario"
 msgstr "Recipient"
 
-#: app/templates/clientes/_datos_empresa.html:18
+#: app/templates/clientes/_datos_empresa.html:19
 msgid "La de facturación"
 msgstr "Same as billing"
 
-#: app/templates/clientes/_datos_empresa.html:19
+#: app/templates/clientes/_datos_empresa.html:20
 msgid "Recibe"
 msgstr "Received by"
 
-#: app/templates/clientes/_datos_empresa.html:23
+#: app/templates/clientes/_datos_empresa.html:24
 msgid "Falta la dirección de envío: sin ella no se puede hacer el albarán."
 msgstr ""
 "The shipping address is missing: without it the delivery note cannot be "
@@ -6455,12 +6500,12 @@ msgstr ""
 "They are printed on the delivery note that goes inside the parcel. Their "
 "users see them in “My company” but cannot change them."
 
-#: app/templates/clientes/detalle.html:93 app/templates/facturas/datos.html:20
+#: app/templates/clientes/detalle.html:93 app/templates/facturas/datos.html:21
 #, python-format
 msgid "Envío pactado %(importe)s"
 msgstr "Agreed shipping %(importe)s"
 
-#: app/templates/clientes/detalle.html:93 app/templates/facturas/datos.html:20
+#: app/templates/clientes/detalle.html:93 app/templates/facturas/datos.html:21
 msgid "Sin envío pactado"
 msgstr "No agreed shipping"
 
@@ -6698,15 +6743,15 @@ msgstr ""
 "The emails contain links to the platform: people without a user won't be "
 "able to open them."
 
-#: app/templates/clientes/form.html:26
+#: app/templates/clientes/form.html:27
 msgid "En el mapa de clientes"
 msgstr "On the client map"
 
-#: app/templates/clientes/form.html:28
+#: app/templates/clientes/form.html:29
 msgid "Mapa para situar el cliente"
 msgstr "Map to place the client"
 
-#: app/templates/clientes/form.html:30
+#: app/templates/clientes/form.html:31
 msgid ""
 "Se sitúa solo con la ciudad y el país al guardar. Si no queda bien, haz "
 "clic en el mapa donde está (rueda para acercarte)."
@@ -6714,11 +6759,11 @@ msgstr ""
 "It is placed automatically from the city and country when saving. If it's"
 " not right, click on the map where it is (scroll to zoom in)."
 
-#: app/templates/clientes/form.html:31
+#: app/templates/clientes/form.html:32
 msgid "Quitar del mapa"
 msgstr "Remove from the map"
 
-#: app/templates/clientes/form.html:36
+#: app/templates/clientes/form.html:37
 msgid "salen en el albarán"
 msgstr "printed on the delivery note"
 
@@ -7237,24 +7282,24 @@ msgstr ""
 "Saved on the client and used for all their invoices. Shipping is agreed "
 "by sales; the client only sees it on the invoice."
 
-#: app/templates/facturas/datos.html:7
+#: app/templates/facturas/datos.html:8
 msgid "varios"
 msgstr "mixed"
 
-#: app/templates/facturas/datos.html:13
-msgid "Descargar datos en Excel"
-msgstr "Download data in Excel"
+#: app/templates/facturas/datos.html:14
+msgid "Descargar factura en Excel"
+msgstr "Download invoice in Excel"
 
-#: app/templates/facturas/datos.html:18
+#: app/templates/facturas/datos.html:19
 msgid "Formato"
 msgstr "Format"
 
-#: app/templates/facturas/datos.html:21
+#: app/templates/facturas/datos.html:22
 #, python-format
 msgid "Cambiar para %(cliente)s"
 msgstr "Change for %(cliente)s"
 
-#: app/templates/facturas/datos.html:22
+#: app/templates/facturas/datos.html:23
 #, python-format
 msgid ""
 "⚠ %(cliente)s no tiene configurada la facturación: sale con el formato A,"
@@ -7263,51 +7308,59 @@ msgstr ""
 "⚠ %(cliente)s has no invoicing settings: using format A, Spanish VAT and "
 "no shipping. Set them up once and they are saved."
 
-#: app/templates/facturas/datos.html:30
-msgid ""
-"En el Excel va como dirección de facturación y de entrega: si la de "
-"entrega es otra, cámbiala allí."
-msgstr ""
-"In the Excel file it is used as billing and delivery address: if the "
-"delivery address is different, change it there."
+#: app/templates/facturas/datos.html:32
+msgid "Entrega"
+msgstr "Delivery"
 
-#: app/templates/facturas/datos.html:31
+#: app/templates/facturas/datos.html:34
+msgid ""
+"Salen de su ficha (pestaña «Direcciones»). El EORI, solo si su país es de"
+" la UE."
+msgstr ""
+"From their page (“Addresses” tab). The EORI, only if their country is in "
+"the EU."
+
+#: app/templates/facturas/datos.html:35
 msgid "Faltan datos en la ficha del cliente."
 msgstr "The client record is missing some details."
 
-#: app/templates/facturas/datos.html:32
+#: app/templates/facturas/datos.html:36
 msgid "Completar"
 msgstr "Complete"
 
-#: app/templates/facturas/datos.html:39
+#: app/templates/facturas/datos.html:43
 msgid "Referencia del cliente"
 msgstr "Client's reference"
 
-#: app/templates/facturas/datos.html:41
-msgid "Estos datos no van en el Excel: ponlos en la plantilla."
-msgstr "These details are not in the Excel file: add them in the template."
-
 #: app/templates/facturas/datos.html:46
+msgid ""
+"El nº de factura es la referencia del pedido. El banco, el Incoterm y el "
+"plazo de entrega salen de Ajustes → Datos de Yikon."
+msgstr ""
+"The invoice number is the order reference. Bank, Incoterm and delivery "
+"terms come from Settings → Yikon details."
+
+#: app/templates/facturas/datos.html:51
 msgid "Así salen en el Excel (los lotes, no)"
 msgstr "As they appear in the Excel file (lots are not included)"
 
-#: app/templates/facturas/datos.html:49
+#: app/templates/facturas/datos.html:54
 msgid "Lote · caducidad"
 msgstr "Lot · expiry"
 
-#: app/templates/facturas/datos.html:56
+#: app/templates/facturas/datos.html:61
 msgid "suelto"
 msgstr "loose"
 
-#: app/templates/facturas/datos.html:61
+#: app/templates/facturas/datos.html:67
 msgid "sin caducidad"
 msgstr "no expiry"
 
-#: app/templates/facturas/datos.html:62
+#: app/templates/facturas/datos.html:68
 msgid "El pedido no tiene productos."
 msgstr "The order has no products."
 
-#: app/templates/facturas/datos.html:64
+#: app/templates/facturas/datos.html:70
 #, python-format
 msgid ""
 "⚠ %(kit)s: sus productos a precio de catálogo suman %(suma)s, pero el kit"
@@ -7316,27 +7369,27 @@ msgstr ""
 "⚠ %(kit)s: its products at catalogue prices add up to %(suma)s, but the "
 "kit costs %(precio)s in the order. Check it in the Excel file."
 
-#: app/templates/facturas/datos.html:68
+#: app/templates/facturas/datos.html:74
 msgid "Totales"
 msgstr "Totals"
 
-#: app/templates/facturas/datos.html:72
+#: app/templates/facturas/datos.html:78
 msgid "Con IVA (España). El envío también lleva IVA."
 msgstr "With VAT (Spain). Shipping also carries VAT."
 
-#: app/templates/facturas/datos.html:75
+#: app/templates/facturas/datos.html:81
 msgid "Envío en esta factura (€)"
 msgstr "Shipping on this invoice (€)"
 
-#: app/templates/facturas/datos.html:77
+#: app/templates/facturas/datos.html:83
 msgid "Aplicar"
 msgstr "Apply"
 
-#: app/templates/facturas/datos.html:78
+#: app/templates/facturas/datos.html:84
 msgid "● Envío cambiado solo aquí"
 msgstr "● Shipping changed here only"
 
-#: app/templates/facturas/datos.html:79
+#: app/templates/facturas/datos.html:85
 msgid "Volver al pactado"
 msgstr "Back to agreed"
 
@@ -9958,24 +10011,24 @@ msgstr "No products match your search."
 msgid "Precios sin IVA. En los kits, el precio de su tarifa."
 msgstr "Prices excl. VAT. For kits, the price of your rate."
 
-#: app/templates/productos/form.html:13
+#: app/templates/productos/form.html:14
 msgid "SDS actual:"
 msgstr "Current SDS:"
 
-#: app/templates/productos/form.html:15
+#: app/templates/productos/form.html:16
 #, python-format
 msgid "subida el %(fecha)s"
 msgstr "uploaded on %(fecha)s"
 
-#: app/templates/productos/form.html:15
+#: app/templates/productos/form.html:16
 msgid "Si subes otra, sustituye a esta."
 msgstr "Uploading another one replaces it."
 
-#: app/templates/productos/form.html:21
+#: app/templates/productos/form.html:22
 msgid "¿Borrar este producto? No se puede deshacer."
 msgstr "Delete this product? This can't be undone."
 
-#: app/templates/productos/form.html:24
+#: app/templates/productos/form.html:25
 #: app/templates/productos/kit_form.html:45
 msgid "Solo si no se ha usado nunca. Si ya está en pedidos, desactívalo."
 msgstr ""
@@ -10835,4 +10888,36 @@ msgstr "whether it always happens or only sometimes, and since when."
 #~ "Created by Customer support (their own)"
 #~ " and Invoicing; admin only oversees: "
 #~ "nothing to approve."
+
+#~ msgid ""
+#~ "Se escriben una vez aquí y salen"
+#~ " en el Excel de «Preparar factura»"
+#~ " (bloque Seller), en la cabecera del"
+#~ " modelo de proforma y en la "
+#~ "firma de los correos al cliente "
+#~ "(si nadie la ha cambiado a mano"
+#~ " en Correos al cliente)."
+#~ msgstr ""
+#~ "Written once here, they appear in "
+#~ "the \"Prepare invoice\" Excel (Seller "
+#~ "block), in the proforma template header"
+#~ " and in the signature of client "
+#~ "emails (unless someone changed it by "
+#~ "hand in Client emails)."
+
+#~ msgid "Descargar datos en Excel"
+#~ msgstr "Download data in Excel"
+
+#~ msgid ""
+#~ "En el Excel va como dirección de"
+#~ " facturación y de entrega: si la "
+#~ "de entrega es otra, cámbiala allí."
+#~ msgstr ""
+#~ "In the Excel file it is used "
+#~ "as billing and delivery address: if "
+#~ "the delivery address is different, "
+#~ "change it there."
+
+#~ msgid "Estos datos no van en el Excel: ponlos en la plantilla."
+#~ msgstr "These details are not in the Excel file: add them in the template."
 

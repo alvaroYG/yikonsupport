@@ -30,7 +30,7 @@ Recoge cómo le gusta trabajar a Álvaro y las reglas que se han ido decidiendo.
    - Lee el código que vas a tocar antes de editarlo (no lo reconstruyas de memoria).
    - Tests nuevos para lo nuevo, con aserciones **que comprueben algo de verdad** (no le gustan las
      aserciones vacías). Ajusta los tests existentes solo si el comportamiento cambió a propósito.
-   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 680 tests y pasan todos:
+   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 682 tests y pasan todos:
      no se entrega nada con alguno en rojo.
    - Traducciones al inglés (ver más abajo): `tests/test_idioma.py` falla si queda algo sin traducir.
    - Migraciones: una por paso, encadenada a la última, probada **subiendo, bajando y volviendo a subir**.
@@ -61,9 +61,10 @@ Recoge cómo le gusta trabajar a Álvaro y las reglas que se han ido decidiendo.
 
 ## Reglas de la plataforma que no se tocan
 
-- **La plataforma NO genera facturas** (tema delicado). Facturación las hace a mano; la plataforma
-  solo da un Excel básico de datos («Preparar factura») y registra el PDF. Nº de factura = referencia
-  interna del pedido.
+- **Facturas** (cambiado el 15/10/2026 por decisión de Álvaro): «Preparar factura» descarga la factura
+  COMPLETA en Excel (como la plantilla de Yikon, con el sello). Facturación la revisa, la pasa a PDF y la
+  registra como siempre; la plataforma no la emite ni la envía sola. Nº de factura = referencia interna del
+  pedido.
 - **Roles** (desde el 14/10/2026): admin, **facturacion** («Facturación»: proformas, facturas, clientes,
   precios y catálogo; inventario en consulta), **logistica** (se muestra como **«Almacén»**: los pedidos
   desde que el cliente acepta, fotos, envío, lotes e inventario; sin precios, proformas, facturas ni
@@ -126,8 +127,8 @@ que te trae un informe; se amplía con los pasos de lo nuevo.
 
 - Hecho hasta el **paso 92** y, después, revisión de correos, precios de productos por cliente, paginación
   de 10 en 10 y catálogo propio por cliente (detalle al final de `PENDIENTES.md`).
-- Última migración: `c7f2a9d4e318` (país del cliente como código ISO).
+- Última migración: `d4b8e6a1f725` (HS Code del producto y EORI del cliente).
 - **En producción** desde el 13/10/2026 en https://yikonsupport.com (Hetzner). Cómo entrar al servidor
   (`ssh alvaro@2.31.22.223`), correo (Brevo), copias y cómo actualizar: «Nuestro servidor» en `DESPLIEGUE.md`.
-- Tests: 680, todos pasan (los de la revisión de correos se adaptaron con `confirmar_correos()` de
+- Tests: 682, todos pasan (los de la revisión de correos se adaptaron con `confirmar_correos()` de
   `tests/conftest.py`, que hace lo que el botón «Enviar» de la ventana de revisión).

@@ -17,6 +17,8 @@ class ProductoForm(FlaskForm):
     referencia = StringField(_l("Referencia"), validators=[DataRequired(), Length(max=50)])
     nombre = StringField(_l("Nombre"), validators=[DataRequired(), Length(max=200)])
     categoria = StringField(_l("Marca"), validators=[Optional(), Length(max=80)])
+    codigo_hs = StringField(_l("HS Code (código arancelario)"), validators=[Optional(), Length(max=20)],
+                            default="3822190090", description=_l("Sale en la factura en Excel."))
     # InputRequired y no DataRequired: DataRequired trata el 0 como "vacío" (y 0 € es válido)
     precio = DecimalField(_l("Precio sin IVA (€)"), places=2,
                           validators=[InputRequired(), NumberRange(min=0, max=99999999.99)])

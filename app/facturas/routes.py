@@ -235,15 +235,15 @@ def _pedido_y_envio(pedido_id):
 @bp.route("/pedido/<int:pedido_id>/datos.xlsx")
 @requiere_permiso("facturas.editar")
 def datos_excel(pedido_id):
-    """El Excel básico con los datos de la factura (no es la factura: Aina la hace en su plantilla)."""
+    """La factura en Excel (app/facturas/datos.py): la revisa Aina, la pasa a PDF y la registra."""
     from flask import current_app
 
     from app.excel import MIMETYPE_XLSX
     from app.facturas.datos import datos_para_facturar, excel_para_facturar
     pedido, envio = _pedido_y_envio(pedido_id)
     datos = datos_para_facturar(pedido, envio=envio)
-    contenido = excel_para_facturar(datos, datos_empresa.lineas_vendedor())
-    nombre = "datos_" + "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in datos["numero"]) + ".xlsx"
+    contenido = excel_para_facturar(datos, datos_empresa.datos())
+    nombre = "factura_" + "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in datos["numero"]) + ".xlsx"
     return Response(contenido, mimetype=MIMETYPE_XLSX,
                     headers={"Content-Disposition": f'attachment; filename="{nombre}"'})
 

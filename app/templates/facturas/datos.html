@@ -2,7 +2,8 @@
 {% from "_macros.html" import estado_pedido %}
 {% block contenido %}
 {# "Preparar factura" (app/facturas/datos.py): vista previa de los datos de la factura, en el idioma
-   de la web, y el botón que descarga el Excel básico (en inglés) para que Aina haga la factura a mano. #}
+   de la web, y el botón que descarga la factura en Excel (en inglés, con el sello): Aina la revisa,
+   la pasa a PDF y la registra. #}
 {% set t = datos.totales %}
 {% macro importe(clave, valor) %}{% if clave in ('descuento', 'iva_pct') %}{{ (valor|string|replace('.', ',') ~ ' %') if valor is not none else _('varios') }}{% else %}{{ valor|euros }}{% endif %}{% endmacro %}
 {% set url_excel = url_for('facturas.datos_excel', pedido_id=pedido.id, **({'envio': request.args.envio} if 'envio' in request.args else {})) %}
@@ -10,7 +11,7 @@
 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
   <h1 class="h3 mb-0">{{ _('Preparar factura') }} · {{ datos.numero }}</h1>
   <div class="d-flex gap-2 align-items-center">{{ estado_pedido(pedido) }}
-    <a href="{{ url_excel }}" class="btn btn-primary"><i class="fas fa-file-excel me-1" aria-hidden="true"></i>{{ _('Descargar datos en Excel') }}</a>
+    <a href="{{ url_excel }}" class="btn btn-primary"><i class="fas fa-file-excel me-1" aria-hidden="true"></i>{{ _('Descargar factura en Excel') }}</a>
     <a href="{{ url_for('pedidos.detalle', id=pedido.id) }}#facturas" class="btn btn-outline-primary">{{ _('Registrar factura') }}</a></div></div>
 
 {# Con qué formato, IVA y envío sale; se cambia aquí mismo y se guarda en el cliente #}
@@ -26,8 +27,11 @@
 <div class="row g-3 datos-factura">
   <div class="col-lg-6"><div class="card h-100"><div class="card-body">
     <h2 class="h6 text-marca">{{ _('Cliente') }}</h2>
-    <p class="small mb-1" style="white-space:pre-line">{{ datos.direccion|join('\n') }}</p>
-    <p class="small text-muted mb-0">{{ _('En el Excel va como dirección de facturación y de entrega: si la de entrega es otra, cámbiala allí.') }}</p>
+    <div class="row small">
+      <div class="col-sm-6"><div class="text-muted">{{ _('Facturación') }}</div><p class="mb-1" style="white-space:pre-line">{{ datos.direccion|join('\n') }}</p></div>
+      <div class="col-sm-6"><div class="text-muted">{{ _('Entrega') }}</div><p class="mb-1" style="white-space:pre-line">{{ datos.entrega|join('\n') }}</p></div>
+    </div>
+    <p class="small text-muted mb-0">{{ _('Salen de su ficha (pestaña «Direcciones»). El EORI, solo si su país es de la UE.') }}</p>
     {% if datos.falta_direccion %}<p class="small text-muted mb-0 mt-1">{{ _('Faltan datos en la ficha del cliente.') }}
       {% if current_user.puede('clientes.datos') %}<a href="{{ url_for('clientes.editar', id=pedido.cliente.id) }}">{{ _('Completar') }}</a>{% endif %}</p>{% endif %}
   </div></div></div>
@@ -37,8 +41,9 @@
       <dt class="col-5 fw-normal text-muted">{{ _('Nº de factura') }}</dt><dd class="col-7 mb-1 fw-semibold">{{ datos.numero }}</dd>
       <dt class="col-5 fw-normal text-muted">{{ _('Fecha') }}</dt><dd class="col-7 mb-1">{{ datos.fecha|fecha }}</dd>
       <dt class="col-5 fw-normal text-muted">{{ _('Referencia del cliente') }}</dt><dd class="col-7 mb-1">{{ pedido.referencia or '—' }}</dd>
-      <dt class="col-5 fw-normal text-muted">{{ _('Transportista') }}</dt><dd class="col-7 mb-1">{{ pedido.transportista or '—' }}</dd></dl>
-    <p class="small text-muted mb-0">{{ _('Estos datos no van en el Excel: ponlos en la plantilla.') }}</p>
+      <dt class="col-5 fw-normal text-muted">{{ _('Transportista') }}</dt><dd class="col-7 mb-1">{{ pedido.transportista or '—' }}</dd>
+      <dt class="col-5 fw-normal text-muted">{{ _('Uso') }}</dt><dd class="col-7 mb-1">{{ pedido.uso_nombre or '—' }}</dd></dl>
+    <p class="small text-muted mb-0">{{ _('El nº de factura es la referencia del pedido. El banco, el Incoterm y el plazo de entrega salen de Ajustes → Datos de Yikon.') }}</p>
   </div></div></div>
 
   <div class="col-xl-8"><div class="card"><div class="card-body">
@@ -50,12 +55,13 @@
       <tbody>{% for f in datos.filas %}
         <tr>
           {% if datos.formato == 'C' %}
-          <td>{{ f.item }}</td><td class="text-nowrap">{{ f.referencia }}</td><td class="num">{{ f.unitario|euros }}</td>
+          <td>{{ f.item }}</td><td class="text-nowrap">{{ f.referencia }}</td><td>{{ f.hs or '—' }}</td><td class="num">{{ f.unitario|euros }}</td>
           <td class="num">{{ f.cantidad }}</td><td class="num">{{ f.precio|euros }}</td>
           {% else %}
           {% if f.primera %}<td rowspan="{{ f.grupo }}" class="fw-semibold">{{ f.producto }}{% if f.suelto %} <span class="text-muted fw-normal small">({{ _('suelto') }})</span>{% endif %}</td>
           <td rowspan="{{ f.grupo }}" class="num">{{ f.unidad }}</td>{% endif %}
           <td class="text-nowrap">{{ f.referencia }}</td><td>{{ f.item }}</td><td class="num">{{ f.cantidad }}</td>
+          <td>{{ f.hs or '—' }}</td>
           {% if datos.formato == 'B' %}<td class="num">{{ f.precio|euros }}</td>{% endif %}
           {% endif %}
           <td class="small">{% for lote, n in f.lotes %}{{ lote.codigo }}{% if f.lotes|length > 1 %} × {{ n }}{% endif %} · {{ lote.caducidad|fecha if lote.caducidad else _('sin caducidad') }}{% if not loop.last %}<br>{% endif %}{% else %}<span class="text-muted">—</span>{% endfor %}</td></tr>

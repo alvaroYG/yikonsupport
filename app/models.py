@@ -175,6 +175,8 @@ class Cliente(db.Model):
     envio_provincia = db.Column(db.String(100))
     envio_pais = db.Column(db.String(80))
     envio_instrucciones = db.Column(db.Text)       # horario, planta, muelle…
+    # EORI (aduanas): sale en la factura, en su dirección, si su país es de la UE (app/paises.UE)
+    eori = db.Column(db.String(20))
     # Dónde sale en el mapa de clientes (Clientes → Mapa): se busca sola con la ciudad y el país de
     # facturación al guardar (app/geocodificar.py) o se pone a mano haciendo clic en el mapa.
     latitud = db.Column(db.Float)
@@ -290,6 +292,9 @@ def prefijo_desde_nombre(nombre: str) -> str:
 # --------------------------------------------------------------------------- #
 # Catálogo de productos
 # --------------------------------------------------------------------------- #
+CODIGO_HS_POR_DEFECTO = "3822190090"    # reactivos de diagnóstico o laboratorio (el de la plantilla de factura)
+
+
 class Producto(db.Model):
     __tablename__ = "productos"
 
@@ -309,6 +314,8 @@ class Producto(db.Model):
     precio = db.Column(db.Numeric(10, 2), nullable=False, default=0)
     iva_pct = db.Column(db.Numeric(5, 2), nullable=False, default=Decimal("21.00"))
     activo = db.Column(db.Boolean, nullable=False, default=True)
+    # Código arancelario (HS Code): sale en la columna «HS Code» de la factura en Excel
+    codigo_hs = db.Column(db.String(20), default=CODIGO_HS_POR_DEFECTO)
     # Los servicios (p. ej. análisis bioinformático) no son mercancía: no llevan stock
     controlar_stock = db.Column(db.Boolean, nullable=False, default=True, server_default=db.true())
     # Por debajo de esta cantidad, el inventario lo marca como "stock bajo"

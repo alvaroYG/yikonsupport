@@ -8,6 +8,7 @@
     <dl class="mb-0 small">
       <dt>{{ _('Razón social') }}</dt><dd>{{ fac.razon_social }}</dd>
       <dt>{{ _('CIF / NIF') }}</dt><dd>{{ fac.cif or '—' }}</dd>
+      {% if cliente.eori %}<dt>{{ _('EORI') }}</dt><dd>{{ cliente.eori }}</dd>{% endif %}
       <dt>{{ _('Dirección') }}</dt><dd>{{ lugar(fac) }}</dd>
     </dl>
   </div>

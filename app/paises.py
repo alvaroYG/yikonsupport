@@ -19,6 +19,15 @@ _VALIDOS = set(CODIGOS)
 IDIOMAS_RECONOCER = ("es", "en", "pt", "fr", "de", "it", "nl", "ca", "pl", "el")
 
 
+# Los 27 de la Unión Europea (en sus facturas sale el EORI de Yikon y el del cliente)
+UE = {"AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU", "IE", "IT", "LT", "LU",
+      "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"}
+
+
+def es_ue(valor) -> bool:
+    return valor in UE
+
+
 def es_codigo(valor) -> bool:
     return bool(valor) and valor in _VALIDOS
 

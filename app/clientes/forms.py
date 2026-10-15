@@ -28,6 +28,8 @@ class ClienteForm(FlaskForm):
     direccion = StringField(_l("Dirección"), validators=[Optional(), Length(max=250)])
     ciudad = StringField(_l("Ciudad"), validators=[Optional(), Length(max=100)])
     codigo_postal = StringField(_l("Código postal"), validators=[Optional(), Length(max=12)])
+    eori = StringField(_l("EORI"), validators=[Optional(), Length(max=20)],
+                       description=_l("Solo clientes de la UE: sale en su factura."))
     provincia = StringField(_l("Provincia"), validators=[Optional(), Length(max=100)])
     pais = SelectField(_l("País"), default="ES")       # código ISO (app/paises.py): opciones en __init__
     # Datos de envío (salen en el albarán)
@@ -109,6 +111,9 @@ class ClienteForm(FlaskForm):
         except (TypeError, ValueError):
             return None
         return (lat, lon) if -90 <= lat <= 90 and -180 <= lon <= 180 else None
+
+    def validate_eori(self, campo):
+        campo.data = (campo.data or "").strip().upper().replace(" ", "") or None
 
     def validate_cif(self, campo):
         if not campo.data:

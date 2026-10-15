@@ -16,7 +16,7 @@ from app.utils import leer_precio, ordenar, paginar
 bp = Blueprint("clientes", __name__)
 
 CAMPOS = ["nombre", "razon_social", "cif", "prefijo", "email", "telefono", "persona_contacto",
-          "direccion", "ciudad", "codigo_postal", "provincia", "pais", "notas", "activo",
+          "direccion", "ciudad", "codigo_postal", "provincia", "pais", "eori", "notas", "activo",
           "envio_igual", "envio_destinatario", "envio_contacto", "envio_telefono", "envio_direccion",
           "envio_codigo_postal", "envio_ciudad", "envio_provincia", "envio_pais", "envio_instrucciones"]
 
