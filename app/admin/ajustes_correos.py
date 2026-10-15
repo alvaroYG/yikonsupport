@@ -43,7 +43,7 @@ def ajustes_correos():
     """Lista de los correos al cliente, con lo que se ha cambiado en cada idioma, y el logo."""
     from app.avisos_cliente import TIPOS
     filas = [{"clave": clave, "caso": caso, "tipo": TIPOS.get(cc.TIPO_DE_CASO.get(clave)),
-              "activado": cc.aviso_activado(clave), "idiomas": {i: cc.texto(clave, i)["cambiado"] for i in cc.IDIOMAS}}
+              "activado": cc.aviso_activado(clave), "acceso": clave in cc.CASOS_ACCESO, "idiomas": {i: cc.texto(clave, i)["cambiado"] for i in cc.IDIOMAS}}
              for clave, caso in cc.CASOS.items()]
     # Dos grupos: los avisos de los pedidos (cada usuario del cliente elige cuáles recibe, en la ficha
     # del cliente) y los de acceso a la plataforma (invitación y cambiar la contraseña: llegan siempre)

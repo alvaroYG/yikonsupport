@@ -3,25 +3,6 @@
    Lo que hay detrás: app/correos_cliente.py (CASOS) y app/admin/ajustes_correos.py #}
 {% block contenido %}
 {% with activa='correos' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
-<div class="card mb-3"><div class="card-body">
-  <h2 class="h5">{{ _('Qué correos recibe el cliente') }}</h2>
-  <p class="small text-muted">{{ _('Marca los avisos que se pueden enviar. Se aplica a todos los clientes y a todos los idiomas; también se respetan las preferencias individuales. Los correos de acceso siguen activos.') }}</p>
-  <form method="post" action="{{ url_for('admin.guardar_avisos_activos') }}">
-    {{ form.hidden_tag() }}
-    <div class="row g-2 mb-3">
-    {% for fila in grupos[0][1] %}
-      <div class="col-12 col-md-6"><div class="form-check">
-        <input class="form-check-input" type="checkbox" id="aviso-{{ fila.clave }}" name="avisos" value="{{ fila.clave }}" {% if fila.activado %}checked{% endif %}>
-        <label class="form-check-label" for="aviso-{{ fila.clave }}">{{ fila.caso.nombre }}</label>
-      </div></div>
-    {% endfor %}
-    </div>
-    <button class="btn btn-primary">{{ _('Guardar avisos activos') }}</button>
-  </form>
-</div></div>
-
-
-
 {% macro idiomas_de(cambiados, clave) %}
   {% for idioma, cambiado in cambiados.items() %}
   <a class="btn btn-sm {{ 'btn-outline-primary' if cambiado else 'btn-outline-secondary' }} me-1 mb-1"
@@ -37,14 +18,24 @@
       <div class="card-header"><h2 class="h5 mb-0"><i class="fas fa-envelope me-2 text-marca" aria-hidden="true"></i>{{ _('Avisos que reciben los clientes') }}</h2></div>
       <div class="card-body">
         <p class="text-muted small">{{ _('Cada cliente los recibe en el idioma que tiene elegido en la plataforma. Pulsa el idioma para cambiar el texto; «Original» es el que viene con la plataforma.') }}</p>
+        <p class="text-muted small">{{ _('La casilla de la izquierda dice si el aviso se envía: desmarcado, no le llega a ningún cliente (en ningún idioma). Si está marcado, además cuenta lo que cada usuario tenga elegido en la ficha de su cliente. Los de acceso salen siempre.') }}</p>
+        {# Las casillas (name="avisos") van con «Guardar avisos activos», debajo de la tabla #}
+        <form method="post" action="{{ url_for('admin.guardar_avisos_activos') }}">
+        {{ form.hidden_tag() }}
         <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
-          <thead><tr><th>{{ _('Correo') }}</th><th>{{ _('Cuándo se envía') }}</th><th>{{ _('Texto') }}</th></tr></thead>
+          <thead><tr><th scope="col"><span class="visually-hidden">{{ _('Se envía') }}</span></th><th>{{ _('Correo') }}</th><th>{{ _('Cuándo se envía') }}</th><th>{{ _('Texto') }}</th></tr></thead>
           {% for titulo, filas in grupos %}
           <tbody>
-            <tr class="table-light"><th colspan="3" class="small text-uppercase text-muted">{{ titulo }}</th></tr>
+            <tr class="table-light"><th colspan="4" class="small text-uppercase text-muted">{{ titulo }}</th></tr>
           {% for f in filas %}
-            <tr><td class="fw-semibold">{{ f.caso.nombre }}
+            <tr class="{{ 'aviso-apagado' if not f.activado }}">
+                <td class="text-center" style="width: 3rem">
+                  {% if f.acceso %}<span class="small text-muted text-nowrap" title="{{ _('Los correos de acceso se envían siempre') }}"><i class="fas fa-lock" aria-hidden="true"></i> {{ _('Siempre') }}</span>
+                  {% else %}<input class="form-check-input casilla-aviso" type="checkbox" id="aviso-{{ f.clave }}" name="avisos" value="{{ f.clave }}" {% if f.activado %}checked{% endif %}>
+                  <label class="visually-hidden" for="aviso-{{ f.clave }}">{{ _('Enviar «%(aviso)s»', aviso=f.caso.nombre) }}</label>{% endif %}</td>
+                <td class="fw-semibold">{{ f.caso.nombre }}
+                  {% if not f.activado %}<span class="badge text-bg-light border ms-1 fw-normal"><i class="fas fa-ban me-1" aria-hidden="true"></i>{{ _('Desactivado') }}</span>{% endif %}
                   {% if f.tipo %}<div class="small text-muted fw-normal" title="{{ _('Tipo de aviso: cada usuario del cliente elige si lo recibe (ficha del cliente → Avisos por email)') }}"><i class="fas fa-tag me-1" aria-hidden="true"></i>{{ f.tipo }}</div>{% endif %}</td>
                 <td class="small text-muted">{{ f.caso.cuando }}</td>
                 <td class="text-nowrap">{{ idiomas_de(f.idiomas, f.clave) }}</td></tr>
@@ -53,6 +44,8 @@
           {% endfor %}
         </table>
         </div>
+        <button class="btn btn-primary mt-3">{{ _('Guardar avisos activos') }}</button>
+        </form>
       </div>
     </div>
   </div>

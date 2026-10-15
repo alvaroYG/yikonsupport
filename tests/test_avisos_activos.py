@@ -9,10 +9,13 @@ from tests.conftest import confirmar_correos, login, pedido_cliente
 def test_desactivar_un_aviso_al_cliente(app, client):
     login(client, "admin")
     html = client.get("/admin/ajustes/correos").get_data(as_text=True)
-    assert 'name="avisos" value="preparacion"' in html and 'value="invitacion"' not in html.split("Guardar avisos activos")[0].split("Qué correos recibe el cliente")[1]
+    assert 'name="avisos" value="preparacion"' in html and 'name="avisos" value="invitacion"' not in html
+    assert html.count('name="avisos"') == len(cc.CASOS) - len(cc.CASOS_ACCESO)      # una casilla en cada fila
     activos = [c for c in cc.CASOS if c not in cc.CASOS_ACCESO and c != "preparacion"]
     r = client.post("/admin/ajustes/correos/avisos-activos", data={"avisos": activos})
     assert r.status_code == 302 and not cc.aviso_activado("preparacion") and cc.aviso_activado("enviado")
+    html = client.get("/admin/ajustes/correos").get_data(as_text=True)
+    assert 'class="aviso-apagado"' in html and "Desactivado" in html
     assert cc.aviso_activado("invitacion")                      # los de acceso, siempre
     assert client.post("/admin/ajustes/correos/avisos-activos", data={"avisos": ["invitacion"]}).status_code == 400
     client.post("/auth/logout")

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-15 08:47+0000\n"
+"POT-Creation-Date: 2026-10-15 09:08+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1785,7 +1785,7 @@ msgstr "You have not changed anything."
 msgid "Qué ve cada rol"
 msgstr "What each role sees"
 
-#: app/admin/ajustes_correos.py:28 app/templates/admin/ajustes_correos.html:62
+#: app/admin/ajustes_correos.py:28 app/templates/admin/ajustes_correos.html:55
 msgid "Firma y datos de contacto"
 msgstr "Signature and contact details"
 
@@ -1996,7 +1996,7 @@ msgstr ""
 #: app/templates/admin/ajustes_apartados.html:58
 #: app/templates/admin/ajustes_avisos.html:38
 #: app/templates/admin/ajustes_correo.html:52
-#: app/templates/admin/ajustes_correos.html:87
+#: app/templates/admin/ajustes_correos.html:80
 #: app/templates/admin/ajustes_empresa.html:24
 #: app/templates/admin/ajustes_proformas.html:30
 #: app/templates/admin/ajustes_seguridad.html:24
@@ -5194,6 +5194,7 @@ msgstr ""
 
 #: app/templates/admin/ajustes_apartados.html:11
 #: app/templates/admin/ajustes_apartados.html:42
+#: app/templates/admin/ajustes_correos.html:34
 msgid "Siempre"
 msgstr "Always"
 
@@ -5302,7 +5303,7 @@ msgid "original"
 msgstr "original"
 
 #: app/templates/admin/ajustes_correo.html:32
-#: app/templates/admin/ajustes_correos.html:42
+#: app/templates/admin/ajustes_correos.html:27
 msgid "Texto"
 msgstr "Text"
 
@@ -5376,37 +5377,19 @@ msgstr "(the signature, below the \"Shipped\" email)"
 msgid "Vista previa del correo"
 msgstr "Email preview"
 
-#: app/templates/admin/ajustes_correos.html:7
-msgid "Qué correos recibe el cliente"
-msgstr "Which emails the client receives"
-
-#: app/templates/admin/ajustes_correos.html:8
-msgid ""
-"Marca los avisos que se pueden enviar. Se aplica a todos los clientes y a"
-" todos los idiomas; también se respetan las preferencias individuales. "
-"Los correos de acceso siguen activos."
-msgstr ""
-"Tick the notices that may be sent. It applies to all clients and all "
-"languages; individual preferences are also respected. Access emails stay "
-"active."
-
-#: app/templates/admin/ajustes_correos.html:19
-msgid "Guardar avisos activos"
-msgstr "Save active notices"
-
-#: app/templates/admin/ajustes_correos.html:30
+#: app/templates/admin/ajustes_correos.html:11
 msgid "Cambiado"
 msgstr "Changed"
 
-#: app/templates/admin/ajustes_correos.html:30
+#: app/templates/admin/ajustes_correos.html:11
 msgid "Original"
 msgstr "Original"
 
-#: app/templates/admin/ajustes_correos.html:37
+#: app/templates/admin/ajustes_correos.html:18
 msgid "Avisos que reciben los clientes"
 msgstr "Notifications clients receive"
 
-#: app/templates/admin/ajustes_correos.html:39
+#: app/templates/admin/ajustes_correos.html:20
 msgid ""
 "Cada cliente los recibe en el idioma que tiene elegido en la plataforma. "
 "Pulsa el idioma para cambiar el texto; «Original» es el que viene con la "
@@ -5416,15 +5399,44 @@ msgstr ""
 "Click a language to change the text; \"Original\" is the one that comes "
 "with the platform."
 
-#: app/templates/admin/ajustes_correos.html:42
+#: app/templates/admin/ajustes_correos.html:21
+msgid ""
+"La casilla de la izquierda dice si el aviso se envía: desmarcado, no le "
+"llega a ningún cliente (en ningún idioma). Si está marcado, además cuenta"
+" lo que cada usuario tenga elegido en la ficha de su cliente. Los de "
+"acceso salen siempre."
+msgstr ""
+"The box on the left says whether the notice is sent: unticked, no client "
+"receives it (in any language). If ticked, what each user has chosen in "
+"their client page also applies. Access emails are always sent."
+
+#: app/templates/admin/ajustes_correos.html:27
+msgid "Se envía"
+msgstr "Sent"
+
+#: app/templates/admin/ajustes_correos.html:27
 msgid "Correo"
 msgstr "Email"
 
-#: app/templates/admin/ajustes_correos.html:42
+#: app/templates/admin/ajustes_correos.html:27
 msgid "Cuándo se envía"
 msgstr "When it is sent"
 
-#: app/templates/admin/ajustes_correos.html:48
+#: app/templates/admin/ajustes_correos.html:34
+msgid "Los correos de acceso se envían siempre"
+msgstr "Access emails are always sent"
+
+#: app/templates/admin/ajustes_correos.html:36
+#, python-format
+msgid "Enviar «%(aviso)s»"
+msgstr "Send «%(aviso)s»"
+
+#: app/templates/admin/ajustes_correos.html:38
+#: app/templates/admin/usuarios.html:41
+msgid "Desactivado"
+msgstr "Deactivated"
+
+#: app/templates/admin/ajustes_correos.html:39
 msgid ""
 "Tipo de aviso: cada usuario del cliente elige si lo recibe (ficha del "
 "cliente → Avisos por email)"
@@ -5432,7 +5444,11 @@ msgstr ""
 "Notification type: each client user can be set to receive it or not "
 "(client page → Email notifications)"
 
-#: app/templates/admin/ajustes_correos.html:64
+#: app/templates/admin/ajustes_correos.html:47
+msgid "Guardar avisos activos"
+msgstr "Save active notices"
+
+#: app/templates/admin/ajustes_correos.html:57
 msgid ""
 "Va al final de todos estos correos (también la invitación y el cambio de "
 "contraseña), debajo del logo: nombre, teléfono, email, web…"
@@ -5440,39 +5456,39 @@ msgstr ""
 "Goes at the end of all these emails (also the invitation and password "
 "reset), below the logo: name, phone, email, website…"
 
-#: app/templates/admin/ajustes_correos.html:70
+#: app/templates/admin/ajustes_correos.html:63
 msgid "Logo"
 msgstr "Logo"
 
-#: app/templates/admin/ajustes_correos.html:73
+#: app/templates/admin/ajustes_correos.html:66
 msgid "Logo de los correos"
 msgstr "Email logo"
 
-#: app/templates/admin/ajustes_correos.html:74
+#: app/templates/admin/ajustes_correos.html:67
 msgid "Desactivado: los correos salen sin logo."
 msgstr "Off: emails are sent without a logo."
 
-#: app/templates/admin/ajustes_correos.html:75
+#: app/templates/admin/ajustes_correos.html:68
 msgid "Logo subido por admin."
 msgstr "Logo uploaded by admin."
 
-#: app/templates/admin/ajustes_correos.html:75
+#: app/templates/admin/ajustes_correos.html:68
 msgid "El logo de la plataforma."
 msgstr "The platform's logo."
 
-#: app/templates/admin/ajustes_correos.html:81
+#: app/templates/admin/ajustes_correos.html:74
 msgid "Poner el logo al final de los correos"
 msgstr "Put the logo at the end of the emails"
 
-#: app/templates/admin/ajustes_correos.html:83
+#: app/templates/admin/ajustes_correos.html:76
 msgid "Usar otro logo"
 msgstr "Use another logo"
 
-#: app/templates/admin/ajustes_correos.html:85
+#: app/templates/admin/ajustes_correos.html:78
 msgid "PNG o JPG, de 1 MB como mucho. Sale a 44 px de alto."
 msgstr "PNG or JPG, 1 MB at most. Shown 44 px high."
 
-#: app/templates/admin/ajustes_correos.html:88
+#: app/templates/admin/ajustes_correos.html:81
 msgid "Volver al logo de la plataforma"
 msgstr "Back to the platform's logo"
 
@@ -5967,10 +5983,6 @@ msgstr "Company / clients"
 #: app/templates/admin/usuarios.html:37
 msgid "Último acceso"
 msgstr "Last access"
-
-#: app/templates/admin/usuarios.html:41
-msgid "Desactivado"
-msgstr "Deactivated"
 
 #: app/templates/admin/usuarios.html:43
 msgid "✉ Invitación pendiente"
@@ -10238,4 +10250,21 @@ msgstr "whether it always happens or only sometimes, and since when."
 
 #~ msgid "3. Fotos"
 #~ msgstr "3. Photos"
+
+#~ msgid "Qué correos recibe el cliente"
+#~ msgstr "Which emails the client receives"
+
+#~ msgid ""
+#~ "Marca los avisos que se pueden "
+#~ "enviar. Se aplica a todos los "
+#~ "clientes y a todos los idiomas; "
+#~ "también se respetan las preferencias "
+#~ "individuales. Los correos de acceso "
+#~ "siguen activos."
+#~ msgstr ""
+#~ "Tick the notices that may be sent."
+#~ " It applies to all clients and "
+#~ "all languages; individual preferences are "
+#~ "also respected. Access emails stay "
+#~ "active."
 

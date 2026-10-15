@@ -825,6 +825,11 @@ body.sin-sesion .login-caja {
 .seccion-ficha.en-pestana .seccion-cab:hover { background: transparent; }
 .seccion-ficha.en-pestana .seccion-flecha { display: none; }
 
+/* Ajustes → Correos al cliente: un aviso desactivado se ve apagado (y con la etiqueta «Desactivado») */
+.aviso-apagado td { opacity: .6; }
+.aviso-apagado td:first-child { opacity: 1; }
+.casilla-aviso { width: 1.3rem; height: 1.3rem; cursor: pointer; }
+
 /* Uso del pedido (RUO / IVD / indiferente): tres botones de opción */
 .opciones-uso { display: flex; flex-wrap: wrap; gap: .5rem; }
 .opciones-uso .btn { min-height: 2.75rem; display: inline-flex; align-items: center; }
