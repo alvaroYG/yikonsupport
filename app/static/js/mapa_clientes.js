@@ -3,6 +3,9 @@
 //     relleno dice si tiene pedidos, si es nuevo o si está inactivo, con forma distinta, no solo color).
 //     Al pasar el ratón, su nombre; al hacer clic, su resumen a la derecha. «Todo · Europa ·
 //     Latinoamérica», rueda o +/− para acercarse, la lista «Por país» y el filtro de Soporte de cliente.
+//     Los que se pisan (misma ciudad, o cerca con poco zoom) van en UN punto con el número: al hacer
+//     clic, si están en sitios distintos el mapa se acerca y se separan; si están en el mismo sitio,
+//     su lista sale a la derecha. Al cambiar el zoom se vuelven a agrupar.
 //  2. El formulario del cliente (clientes/form.html): un mapa pequeño con su punto; al hacer clic se
 //     pone el punto ahí (campos ocultos latitud/longitud y ubicacion_manual=1).
 (function () {
@@ -27,8 +30,10 @@
       gEtiquetas.attr("opacity", mapa.k > 2.2 ? 0 : 1);
       mapa.alPintar();
     });
+    zoom.on("end", () => mapa.alTerminar());
     svg.call(zoom);
     mapa.zoom = zoom;
+    mapa.alTerminar = () => {};
 
     mapa.irA = function (zona, animar) {
       const [[x0, y0], [x1, y1]] = Array.isArray(zona) ? zona : ZONAS[zona];
@@ -87,33 +92,109 @@
       pintar();
       m.irA("todo", false);
     });
+    // Posición de cada punto/grupo; al acabar un zoom, se vuelven a agrupar
     mapa.alPintar = () => mapa.gPuntos.selectAll(".mapa-punto")
-      .attr("transform", (c) => `translate(${mapa.proyeccion([c.lon, c.lat])}) scale(${mapa.escalaPunto()})`);
+      .attr("transform", (g) => `translate(${mapa.proyeccion([g.lon, g.lat])}) scale(${mapa.escalaPunto()})`);
+    let kAgrupado = null;
+    mapa.alTerminar = () => { if (Math.abs(mapa.k - kAgrupado) > 0.01) pintarPuntos(); };
 
-    function pintar() {
-      const datos = visibles();
-      const sel = mapa.gPuntos.selectAll(".mapa-punto").data(datos, (c) => c.id);
+    const SEPARACION = 20;           // px en pantalla: más cerca que esto, se pisan → un solo punto
+    const MISMO_SITIO = 0.02;        // grados: a esta distancia (la misma ciudad) no se separan nunca
+
+    // Agrupa los clientes que en pantalla, con el zoom de ahora, quedan a menos de SEPARACION px
+    function agrupar(datos) {
+      const grupos = [];
+      datos.forEach((c) => {
+        const [x, y] = mapa.proyeccion([c.lon, c.lat]).map((v) => v * mapa.k);
+        const cerca = grupos.find((g) => Math.hypot(g.x - x, g.y - y) < SEPARACION);
+        if (cerca) cerca.miembros.push(c);
+        else grupos.push({ x, y, miembros: [c] });
+      });
+      return grupos.map((g) => {
+        const m = g.miembros;
+        const ciudades = [...new Set(m.map((c) => c.ciudad).filter(Boolean))];
+        return {
+          clave: m.map((c) => c.id).sort((a, b) => a - b).join("-"), miembros: m,
+          lon: d3.mean(m, (c) => c.lon), lat: d3.mean(m, (c) => c.lat),
+          // Estado del grupo: si alguno tiene pedidos, el de pedidos; si no, nuevo; si no, inactivo
+          estado: ["con_pedidos", "nuevo", "inactivo"].find((e) => m.some((c) => c.estado === e)),
+          lugar: ciudades.length <= 2 ? ciudades.join(" / ") : `${ciudades.slice(0, 2).join(" / ")}…`,
+          mismoSitio: d3.max(m, (c) => Math.hypot(c.lon - m[0].lon, c.lat - m[0].lat)) < MISMO_SITIO,
+        };
+      });
+    }
+
+    function pintarPuntos() {
+      kAgrupado = mapa.k;
+      const grupos = agrupar(visibles());
+      const sel = mapa.gPuntos.selectAll(".mapa-punto").data(grupos, (g) => g.clave);
       sel.exit().remove();
       const nuevos = sel.enter().append("g")
-        .attr("class", (c) => "mapa-punto " + c.estado)
-        .attr("tabindex", 0).attr("role", "button").attr("aria-label", (c) => `${c.nombre}, ${c.ciudad}`)
-        .on("mousemove", (e, c) => {
+        .attr("class", (g) => `mapa-punto ${g.estado}${g.miembros.length > 1 ? " grupo" : ""}`)
+        .attr("tabindex", 0).attr("role", "button")
+        .attr("aria-label", (g) => g.miembros.length > 1
+          ? `${g.lugar}: ${g.miembros.length} ${T.clientes}` : `${g.miembros[0].nombre}, ${g.miembros[0].ciudad}`)
+        .on("mousemove", (e, g) => {
           const r = caja.getBoundingClientRect();
-          tip.innerHTML = `<b>${texto(c.nombre)}</b><br>${texto([c.ciudad, c.pais].filter(Boolean).join(", "))}`;
+          const m = g.miembros;
+          tip.innerHTML = m.length === 1
+            ? `<b>${texto(m[0].nombre)}</b><br>${texto([m[0].ciudad, m[0].pais].filter(Boolean).join(", "))}`
+            : `<b>${texto(g.lugar)} · ${m.length} ${texto(T.clientes)}</b><br>`
+              + m.slice(0, 6).map((c) => texto(c.nombre)).join("<br>") + (m.length > 6 ? "<br>…" : "");
           tip.style.left = (e.clientX - r.left + 14) + "px";
           tip.style.top = (e.clientY - r.top - 10) + "px";
           tip.classList.add("visible");
         })
         .on("mouseleave", () => tip.classList.remove("visible"))
-        .on("click", (e, c) => { e.stopPropagation(); elegir(c); })
-        .on("keydown", (e, c) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); elegir(c); } });
-      nuevos.append("circle").attr("class", "halo").attr("r", 13);
-      nuevos.append("circle").attr("class", "nucleo").attr("r", 7);
+        .on("click", (e, g) => { e.stopPropagation(); abrir(g); })
+        .on("keydown", (e, g) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrir(g); } });
+      nuevos.append("circle").attr("class", "halo").attr("r", (g) => g.miembros.length > 1 ? 17 : 13);
+      nuevos.append("circle").attr("class", "nucleo").attr("r", (g) => g.miembros.length > 1 ? 11 : 7);
+      nuevos.filter((g) => g.miembros.length > 1).append("text").attr("class", "cuantos")
+        .attr("text-anchor", "middle").attr("dy", "0.35em").text((g) => g.miembros.length);
       mapa.alPintar();
-      mapa.gPuntos.selectAll(".mapa-punto").classed("elegido", (c) => c === elegido);
+      marcarElegido();
+    }
+
+    function pintar() {
+      const datos = visibles();
+      pintarPuntos();
       // Los países con clientes, en el color de la marca
       mapa.gPaises.selectAll("path").classed("con-clientes", (f) => datos.some((c) => d3.geoContains(f, [c.lon, c.lat])));
       resumen(datos);
+    }
+
+    function marcarElegido() {
+      mapa.gPuntos.selectAll(".mapa-punto").classed("elegido", (g) => !!elegido && g.miembros.includes(elegido));
+    }
+
+    // Clic en un punto: un cliente → su resumen; un grupo → acercarse (si se pueden separar) o su lista
+    function abrir(g) {
+      tip.classList.remove("visible");
+      if (g.miembros.length === 1) { elegir(g.miembros[0]); return; }
+      if (!g.mismoSitio && mapa.k < 15) {
+        const xs = d3.extent(g.miembros, (c) => c.lon), ys = d3.extent(g.miembros, (c) => c.lat);
+        const margen = Math.max(xs[1] - xs[0], ys[1] - ys[0], 0.5);
+        mapa.irA([[xs[0] - margen, ys[0] - margen], [xs[1] + margen, ys[1] + margen]]);
+        return;
+      }
+      lista(g);
+    }
+
+    function lista(g) {
+      elegido = null;
+      marcarElegido();
+      const ficha = document.getElementById("mapa-ficha");
+      ficha.innerHTML = `
+        <h3 class="h5 mb-0">${texto(g.lugar || T.sin_pais)}</h3>
+        <p class="small text-muted mb-2">${g.miembros.length} ${texto(T.clientes)}</p>
+        <ul class="mapa-lista-grupo">${g.miembros.slice().sort((a, b) => a.nombre.localeCompare(b.nombre)).map((c) =>
+          `<li><button type="button" data-id="${c.id}"><i class="mapa-ley ${c.estado}" aria-hidden="true"></i>
+            <span>${texto(c.nombre)}</span><span class="small text-muted ms-auto">${texto(T[c.estado])}</span></button></li>`).join("")}</ul>`;
+      ficha.querySelectorAll("button[data-id]").forEach((b) => b.addEventListener("click", () => {
+        const c = g.miembros.find((x) => x.id === +b.dataset.id);
+        elegir(c, g);
+      }));
     }
 
     function contar(clave, hasta) {
@@ -148,16 +229,23 @@
 
     function irAPais(lista) {
       if (lista.length === 1) { elegir(lista[0]); return; }
+      const [primero] = lista;
+      if (lista.every((c) => Math.hypot(c.lon - primero.lon, c.lat - primero.lat) < MISMO_SITIO)) {
+        abrir({ miembros: lista, mismoSitio: true, lugar: [...new Set(lista.map((c) => c.ciudad).filter(Boolean))].join(" / ") });
+        return;
+      }
       const xs = d3.extent(lista, (c) => c.lon), ys = d3.extent(lista, (c) => c.lat);
       mapa.irA([[xs[0] - 3, ys[0] - 2], [xs[1] + 3, ys[1] + 2]]);
     }
 
-    function elegir(c) {
+    // grupo: si viene de la lista de un grupo, para poder volver a ella
+    function elegir(c, grupo) {
       elegido = c;
-      mapa.gPuntos.selectAll(".mapa-punto").classed("elegido", (x) => x === c);
+      marcarElegido();
       const max = d3.max(c.serie) || 1;
       const ficha = document.getElementById("mapa-ficha");
       ficha.innerHTML = `
+        ${grupo ? `<button type="button" class="btn btn-link btn-sm px-0 mb-1" data-volver>← ${texto(grupo.lugar)} · ${grupo.miembros.length} ${texto(T.clientes)}</button>` : ""}
         <h3 class="h5 mb-0">${texto(c.nombre)}</h3>
         <p class="small text-muted mb-2">${texto([c.ciudad, c.pais].filter(Boolean).join(", "))}
           · <span class="mapa-estado ${c.estado}">${texto(T[c.estado])}</span></p>
@@ -170,6 +258,8 @@
           ${c.serie.map((v, i) => `<i class="${i === c.serie.length - 1 ? "ultimo" : ""}" style="height:${Math.max(6, v / max * 100)}%" title="${T.meses[i]}: ${v}"></i>`).join("")}
         </div>
         <a class="btn btn-primary btn-sm" href="${texto(c.url)}">${texto(T.ver_ficha)} →</a>`;
+      const volver = ficha.querySelector("[data-volver]");
+      if (volver) volver.addEventListener("click", () => lista(grupo));
     }
 
     document.querySelectorAll("[data-zona]").forEach((b) => b.addEventListener("click", () => {

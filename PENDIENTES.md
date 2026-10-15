@@ -609,6 +609,10 @@ pruebas automáticas con navegador.
   formulario hay un mapita para ponerlo a mano con un clic o quitarlo. Los que no están situados salen en una
   tarjeta aparte con enlace a «Editar». **Al desplegar**: `actualizar.sh` (migración) y una vez
   `flask situar-clientes` para los clientes de antes (DESPLIEGUE.md). Test: `test_mapa_clientes.py`.
+  **Varios en el mismo sitio** (15/10): los puntos que se pisan (misma ciudad, o cerca con poco zoom) van en
+  uno solo con el número; al pasar el ratón, sus nombres; al hacer clic, si están en sitios distintos el mapa
+  se acerca y se separan, y si están en la misma ciudad su lista sale a la derecha (y desde cada uno, «← volver»).
+  Se reagrupan al cambiar el zoom. Solo `js/mapa_clientes.js` y `main.css`.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

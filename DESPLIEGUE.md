@@ -302,7 +302,7 @@ Al guardar un cliente, la plataforma busca su ciudad en OpenStreetMap (Nominatim
 Clientes → Mapa. Los clientes que ya existían antes del mapa (15/10/2026) se sitúan una vez con:
 
 ```bash
-sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && .venv/bin/flask --app run situar-clientes"
+sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && /srv/yikonpo/venv/bin/flask situar-clientes"
 ```
 
 Dice cuáles ha situado y cuáles no (sin ciudad o no encontrados): esos se sitúan a mano en «Editar»

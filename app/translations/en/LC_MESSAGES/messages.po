@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-15 12:42+0000\n"
+"POT-Creation-Date: 2026-10-15 13:00+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -125,7 +125,7 @@ msgstr ""
 
 #: app/apartados.py:66 app/buscador.py:109 app/clientes/routes.py:109
 #: app/navegacion.py:75 app/templates/clientes/lista.html:5
-#: app/templates/clientes/mapa.html:39
+#: app/templates/clientes/mapa.html:40
 #: app/templates/mensajes/_flotante_lista.html:8
 msgid "Clientes"
 msgstr "Clients"
@@ -2009,7 +2009,7 @@ msgstr ""
 #: app/admin/forms.py:21 app/clientes/forms.py:57 app/clientes/forms.py:127
 #: app/productos/forms.py:28 app/productos/forms.py:80
 #: app/templates/admin/usuarios.html:41 app/templates/clientes/detalle.html:265
-#: app/templates/clientes/mapa.html:65
+#: app/templates/clientes/mapa.html:66
 msgid "Activo"
 msgstr "Active"
 
@@ -4507,7 +4507,7 @@ msgid "Editar %(ref)s"
 msgstr "Edit %(ref)s"
 
 #: app/productos/routes.py:142 app/productos/routes.py:286
-#: app/templates/clientes/mapa.html:66
+#: app/templates/clientes/mapa.html:67
 msgid "pedidos"
 msgstr "orders"
 
@@ -6331,7 +6331,7 @@ msgid "No"
 msgstr "No"
 
 #: app/templates/clientes/detalle.html:5 app/templates/clientes/mapa.html:31
-#: app/templates/clientes/mapa.html:66
+#: app/templates/clientes/mapa.html:67
 msgid "Inactivo"
 msgstr "Inactive"
 
@@ -6551,7 +6551,7 @@ msgstr "Untick all"
 msgid "Precio para él"
 msgstr "Their price"
 
-#: app/templates/clientes/detalle.html:215 app/templates/clientes/mapa.html:64
+#: app/templates/clientes/detalle.html:215 app/templates/clientes/mapa.html:65
 msgid "Último pedido"
 msgstr "Last order"
 
@@ -6765,11 +6765,11 @@ msgstr "Where our clients are in Europe and Latin America"
 msgid "Zona"
 msgstr "Area"
 
-#: app/templates/clientes/mapa.html:11 app/templates/clientes/mapa.html:68
+#: app/templates/clientes/mapa.html:11 app/templates/clientes/mapa.html:69
 msgid "Europa"
 msgstr "Europe"
 
-#: app/templates/clientes/mapa.html:12 app/templates/clientes/mapa.html:68
+#: app/templates/clientes/mapa.html:12 app/templates/clientes/mapa.html:69
 msgid "Latinoamérica"
 msgstr "Latin America"
 
@@ -6794,39 +6794,43 @@ msgstr "Zoom out"
 msgid "Con pedidos"
 msgstr "With orders"
 
-#: app/templates/clientes/mapa.html:30 app/templates/clientes/mapa.html:65
+#: app/templates/clientes/mapa.html:30 app/templates/clientes/mapa.html:66
 msgid "Aún sin pedidos"
 msgstr "No orders yet"
 
-#: app/templates/clientes/mapa.html:34
+#: app/templates/clientes/mapa.html:32
+msgid "Varios en el mismo sitio"
+msgstr "Several in the same place"
+
+#: app/templates/clientes/mapa.html:35
 msgid "Cargando el mapa…"
 msgstr "Loading the map…"
 
-#: app/templates/clientes/mapa.html:40
+#: app/templates/clientes/mapa.html:41
 msgid "Países"
 msgstr "Countries"
 
-#: app/templates/clientes/mapa.html:41 app/templates/clientes/mapa.html:64
+#: app/templates/clientes/mapa.html:42 app/templates/clientes/mapa.html:65
 #, python-format
 msgid "Pedidos %(anio)s"
 msgstr "Orders %(anio)s"
 
-#: app/templates/clientes/mapa.html:44
+#: app/templates/clientes/mapa.html:45
 msgid "Elige un cliente en el mapa (o un país en la lista) para ver su resumen."
 msgstr "Pick a client on the map (or a country in the list) to see their summary."
 
-#: app/templates/clientes/mapa.html:47
+#: app/templates/clientes/mapa.html:48
 msgid "Por país"
 msgstr "By country"
 
-#: app/templates/clientes/mapa.html:52
+#: app/templates/clientes/mapa.html:53
 #, python-format
 msgid "%(num)s cliente sin situar"
 msgid_plural "%(num)s clientes sin situar"
 msgstr[0] "%(num)s client not placed"
 msgstr[1] "%(num)s clients not placed"
 
-#: app/templates/clientes/mapa.html:53
+#: app/templates/clientes/mapa.html:54
 msgid ""
 "No sale en el mapa: falta su ciudad o no se ha encontrado. Se sitúa en "
 "«Editar», haciendo clic en el mapa."
@@ -6834,23 +6838,23 @@ msgstr ""
 "Not on the map: the city is missing or wasn't found. Place it in “Edit” "
 "by clicking on the map."
 
-#: app/templates/clientes/mapa.html:65
+#: app/templates/clientes/mapa.html:66
 msgid "Ver ficha del cliente"
 msgstr "View client page"
 
-#: app/templates/clientes/mapa.html:66
+#: app/templates/clientes/mapa.html:67
 msgid "Sin país"
 msgstr "No country"
 
-#: app/templates/clientes/mapa.html:67
+#: app/templates/clientes/mapa.html:68
 msgid "cliente"
 msgstr "client"
 
-#: app/templates/clientes/mapa.html:67
+#: app/templates/clientes/mapa.html:68
 msgid "clientes"
 msgstr "clients"
 
-#: app/templates/clientes/mapa.html:67
+#: app/templates/clientes/mapa.html:68
 msgid "Pedidos por mes (últimos 12 meses)"
 msgstr "Orders per month (last 12 months)"
 
