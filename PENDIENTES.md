@@ -632,6 +632,9 @@ pruebas automáticas con navegador.
   ficha). Banco, IBAN, SWIFT, Incoterm, plazo de entrega y EORI de Yikon: Ajustes → Datos de Yikon (vienen los de
   la plantilla; el EORI, vacío). Migración `d4b8e6a1f725`. Tests: `test_por_facturar.py`. OJO: el sello dice
   «Plaça Francesc Macià 7, 12 · 08029»; la dirección de Ajustes es otra.
+  Retoques (15/10): el logo es el de la plantilla (`static/img/factura-logo.png`) a su tamaño, sin escalar (se
+  veía mal); «INVOICE» en una fila alta (salía cortado); «CP Ciudad, Provincia» en una línea y sin repetir la
+  provincia si es la ciudad; las líneas de dirección que no caben en su bloque se parten en dos.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

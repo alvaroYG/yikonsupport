@@ -142,9 +142,13 @@ USO_EXCEL = {"ruo": "FOR RESEARCH USE ONLY (RUO)", "ivd": "FOR IN VITRO DIAGNOST
 
 
 def _lineas_lugar(d):
-    """Dirección, «CP Ciudad», «Provincia» y país, una por renglón (sin las vacías)."""
-    return [x for x in (d.get("direccion"), " ".join(y for y in (d.get("codigo_postal"), d.get("ciudad")) if y),
-                        d.get("provincia"), (d.get("pais") or "").upper()) if x]
+    """Dirección, «CP Ciudad, Provincia» (la provincia en la misma línea y solo si no es la ciudad:
+    «03001 Alicante», no «Alicante, Alicante») y país, una por renglón (sin las vacías)."""
+    ciudad, provincia = d.get("ciudad") or "", d.get("provincia") or ""
+    lugar = " ".join(y for y in (d.get("codigo_postal"), ciudad) if y)
+    if provincia and provincia.strip().lower() != ciudad.strip().lower():
+        lugar = ", ".join(y for y in (lugar, provincia) if y)
+    return [x for x in (d.get("direccion"), lugar, (d.get("pais") or "").upper()) if x]
 
 
 def datos_para_facturar(pedido, hoy=None, envio=None) -> dict:
@@ -211,7 +215,8 @@ def _imagen(ws, archivo, celda, alto_px):
         from flask import current_app
         current_app.logger.warning("Factura en Excel: no se ha podido poner %s", ruta)
         return
-    img.width, img.height = round(img.width * alto_px / img.height), alto_px
+    if alto_px:
+        img.width, img.height = round(img.width * alto_px / img.height), alto_px
     ws.add_image(img, celda)
 
 
@@ -255,11 +260,12 @@ def excel_para_facturar(datos, empresa) -> bytes:
             celda.alignment = Alignment(**alineado)
         return celda
 
-    # 1. Logo y «INVOICE»
-    _imagen(ws, "yikon-logo.png", "B1", 70)
-    escribir(2, ultima, "INVOICE", Font(size=18, bold=True, color="A61C92"), horizontal="right")
-    for f in range(1, 5):
-        ws.row_dimensions[f].height = 15
+    # 1. Logo (el de la plantilla, a su tamaño: sin escalar se ve nítido) y «INVOICE»
+    for f in range(1, 6):
+        ws.row_dimensions[f].height = 18
+    ws.row_dimensions[3].height = 28
+    _imagen(ws, "factura-logo.png", "B1", None)
+    escribir(3, ultima, "INVOICE", Font(size=18, bold=True, color="A61C92"), horizontal="right", vertical="center")
 
     # 2. Seller / Billing Address / Delivery address, uno al lado del otro
     vendedor = [empresa.get("razon_social") or empresa.get("nombre")] + (empresa.get("direccion") or "").splitlines()
@@ -274,6 +280,19 @@ def excel_para_facturar(datos, empresa) -> bytes:
     else:
         inicios = [2, col["item"], col["hs"]]
     bloques = [("Seller.", vendedor), ("Billing Address.", datos["direccion"]), ("Delivery address", datos["entrega"])]
+    # Cada bloque tiene el ancho hasta el siguiente (el último, hasta el borde de la hoja): las líneas
+    # más largas se parten en dos para que no se corten ni se salgan de la página
+    import textwrap
+    anchos_col = {}
+    for clave, anchos in DISENO[formato]:
+        for k, a in enumerate(anchos):
+            anchos_col[col[clave] + k] = a
+    limites = inicios[1:] + [ultima + 1]
+    partidos = []
+    for (titulo, lineas), c0, fin in zip(bloques, inicios, limites):
+        caben = max(12, int(sum(anchos_col.get(c, 9) for c in range(c0, fin)) * 1.1) - 1)
+        partidos.append((titulo, [t for linea in lineas for t in (textwrap.wrap(linea, caben) or [linea])]))
+    bloques = partidos
     for (titulo, lineas), c0 in zip(bloques, inicios):
         escribir(6, c0, titulo, negrita)
         for i, texto in enumerate(lineas, start=7):

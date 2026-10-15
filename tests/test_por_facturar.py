@@ -333,3 +333,22 @@ def test_el_hs_code_es_de_cada_producto(app, client):
     p1.codigo_hs = "3002900000"
     db.session.commit()
     assert datos_para_facturar(p)["filas"][0]["hs"] == "3002900000"
+
+
+def test_direccion_compacta_y_lineas_largas_partidas(app, client):
+    """15/10/2026 · «CP Ciudad, Provincia» en una línea (sin repetir si la provincia es la ciudad) y las
+    líneas que no caben en su bloque, partidas en dos (antes se cortaban o se salían de la página)."""
+    from app.facturas.datos import _lineas_lugar
+    assert _lineas_lugar({"direccion": "C/ Mayor 1", "codigo_postal": "03001", "ciudad": "Alicante",
+                          "provincia": "Alicante", "pais": "Spain"}) == ["C/ Mayor 1", "03001 Alicante", "SPAIN"]
+    assert _lineas_lugar({"codigo_postal": "03203", "ciudad": "Elche", "provincia": "Alicante"}) == ["03203 Elche, Alicante"]
+    p = _enviado(client, cantidad=1)
+    c = p.cliente
+    c.envio_igual, c.envio_ciudad = False, "Alicante"
+    c.envio_direccion = "Calle Doctor Gadea 12, bajo izquierda, puerta del muelle de carga del edificio"
+    db.session.commit()
+    login(client, "fac")
+    celdas, ws = _excel(client, p)
+    textos = [v for v in celdas.values() if isinstance(v, str)]
+    assert "Calle Doctor Gadea 12, bajo izquierda, puerta del muelle de carga del edificio" not in textos
+    assert any(t.startswith("Calle Doctor Gadea 12") for t in textos) and any(t.endswith("del edificio") for t in textos)
