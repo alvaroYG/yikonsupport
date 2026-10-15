@@ -586,6 +586,17 @@ pruebas automáticas con navegador.
   pedido (la activa con fondo, sin recuadro ni subrayado) y caben en una fila; dentro de cada pestaña se quitó el
   «cristal» de las tarjetas, que dejaba un recuadro blanco sin margen. «Kits / Productos sueltos» y «Todo el
   catálogo / Solo lo que se marque» con los colores de la marca (la opción elegida lleva ✓). Solo `main.css`.
+- **Soporte de cliente da de alta clientes y sus usuarios** (15/10, decisión de Álvaro: «delegamos en ellos toda
+  la responsabilidad; admin solo vigila, no acepta nada»). Permisos nuevos (`permisos.py`): `clientes.crear` y
+  `clientes.datos` (Facturación, admin y Soporte de cliente: los suyos) y `clientes.usuarios` (admin y Soporte de
+  cliente). El cliente que da de alta un Soporte queda asignado a él. En la ficha, la pestaña «Usuarios y avisos»:
+  lista de usuarios de la empresa con «Añadir usuario» (siempre rol Cliente; se le prepara la invitación, que
+  revisa y envía quien la hace), «Editar» (nombre, email, idioma, activo) y «Reenviar invitación». Precios
+  especiales, asignar el Soporte y la gestión general de usuarios siguen siendo de admin/Facturación. Admin
+  recibe el aviso interno nuevo «Alta de un cliente o de un usuario» (Ajustes → Avisos internos; se puede dar
+  también a Facturación) y lo tiene todo en la auditoría. Si admin le quita a Soporte el apartado Clientes, pierde
+  todo esto. A Soporte no se le dice el nombre del cliente que ya tiene un CIF o prefijo. Test:
+  `test_soporte_da_de_alta.py`. Sin migración.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

@@ -29,7 +29,7 @@
     <p class="small mb-1" style="white-space:pre-line">{{ datos.direccion|join('\n') }}</p>
     <p class="small text-muted mb-0">{{ _('En el Excel va como dirección de facturación y de entrega: si la de entrega es otra, cámbiala allí.') }}</p>
     {% if datos.falta_direccion %}<p class="small text-muted mb-0 mt-1">{{ _('Faltan datos en la ficha del cliente.') }}
-      {% if current_user.puede('clientes.editar') %}<a href="{{ url_for('clientes.editar', id=pedido.cliente.id) }}">{{ _('Completar') }}</a>{% endif %}</p>{% endif %}
+      {% if current_user.puede('clientes.datos') %}<a href="{{ url_for('clientes.editar', id=pedido.cliente.id) }}">{{ _('Completar') }}</a>{% endif %}</p>{% endif %}
   </div></div></div>
   <div class="col-lg-6"><div class="card h-100"><div class="card-body">
     <h2 class="h6 text-marca">{{ _('Factura') }}</h2>

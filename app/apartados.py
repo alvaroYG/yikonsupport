@@ -64,8 +64,10 @@ APARTADOS = {
         fijos={"admin", "logistica"}, cambiables={"fas", "facturacion"}, de_fabrica={"fas", "facturacion"}),
     "clientes": Apartado(
         _l("Clientes"), "fa-building",
-        _l("La ficha de cada cliente: datos, usuarios, facturación (Soporte de cliente: solo los suyos)."),
-        permisos=("clientes.ver", "clientes.precios_visibles", "clientes.avisos", "clientes.catalogo"),
+        _l("La ficha de cada cliente: datos, usuarios, facturación (Soporte de cliente: solo los suyos; "
+           "los da de alta él, con sus usuarios)."),
+        permisos=("clientes.ver", "clientes.precios_visibles", "clientes.avisos", "clientes.catalogo",
+                  "clientes.crear", "clientes.datos", "clientes.usuarios"),
         fijos={"admin", "facturacion"}, cambiables={"fas"}, de_fabrica={"fas"}),
     "facturas": Apartado(
         _l("Facturas"), "fa-file-invoice-dollar",

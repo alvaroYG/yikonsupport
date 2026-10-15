@@ -44,7 +44,7 @@
   {% if current_user.puede('pedidos.albaran') and not pedido.cliente.envio_completo and pedido.estado not in ('enviado', 'entregado') %}
   <div class="alert alert-warning small"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>
     {{ _('%(cliente)s no tiene dirección de envío: sin ella no se puede hacer el albarán.', cliente=pedido.cliente.nombre) }}
-    {% if current_user.puede('clientes.editar') %}<a href="{{ url_for('clientes.editar', id=pedido.cliente_id) }}">{{ _('Completarla') }}</a>{% else %}{{ _('Pide a Facturación que la complete.') }}{% endif %}</div>
+    {% if current_user.puede('clientes.datos') %}<a href="{{ url_for('clientes.editar', id=pedido.cliente_id) }}">{{ _('Completarla') }}</a>{% else %}{{ _('Pide a su Soporte de cliente o a Facturación que la complete.') }}{% endif %}</div>
   {% endif %}
 
   {# Lo que indicó el cliente (uso y observaciones) y la caducidad más próxima de sus lotes #}

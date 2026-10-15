@@ -8,7 +8,7 @@ from tests.conftest import login
 USUARIOS = ["admin", "fac", "ofi", "loga", "sop", "cliA", "chrA"]
 MATRIZ = [
     ("/clientes/", {"admin", "fac", "loga"}),               # Almacén no ve fichas de clientes
-    ("/clientes/nuevo", {"admin", "fac"}),
+    ("/clientes/nuevo", {"admin", "fac", "loga"}),         # Soporte de cliente da de alta los suyos (15/10)
     ("/productos/", {"admin", "fac", "ofi", "loga"}),
     ("/productos/nuevo", {"admin", "fac"}),                 # Almacén: solo el mínimo, desde Inventario
     ("/productos/catalogo", {"cliA"}),

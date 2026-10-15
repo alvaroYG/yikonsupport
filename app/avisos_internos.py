@@ -79,6 +79,10 @@ AVISOS = {
     "factura_devuelta": Aviso(
         _l("Factura devuelta por Soporte de cliente"), _l("Con lo que hay que corregir."),
         "facturas.editar", posibles={"admin", "facturacion"}, de_fabrica={"facturacion"}),
+    "alta_cliente": Aviso(
+        _l("Alta de un cliente o de un usuario de un cliente"),
+        _l("Los dan de alta Soporte de cliente (los suyos) y Facturación; admin solo vigila: no tiene que aprobar nada."),
+        "clientes.ver", posibles={"admin", "facturacion"}, de_fabrica={"admin"}),
 }
 
 
@@ -172,6 +176,29 @@ def avisar(aviso, cliente, contenido, excluir_id=None, plantilla="aviso_interno"
 # --------------------------------------------------------------------------- #
 def _ref(pedido):
     return pedido.referencia_interna or f"#{pedido.id}"
+
+
+def _enlace_cliente(cliente, ancla=""):
+    return url_for("clientes.detalle", id=cliente.id, _external=True) + ancla
+
+
+def alta_cliente(cliente, quien):
+    """quien: el User que lo da de alta (no se le avisa a él)."""
+    avisar("alta_cliente", cliente, lambda: {
+        "asunto": _("Cliente nuevo: %(cliente)s", cliente=cliente.nombre),
+        "texto": _("%(quien)s (%(rol)s) ha dado de alta el cliente %(cliente)s.", quien=quien.nombre,
+                   rol=quien.rol_nombre, cliente=cliente.nombre),
+        "enlace": _enlace_cliente(cliente)}, excluir_id=quien.id)
+
+
+def alta_usuario(usuario, quien):
+    cliente = usuario.empresa
+    avisar("alta_cliente", cliente, lambda: {
+        "asunto": _("Usuario nuevo en %(cliente)s: %(email)s", cliente=cliente.nombre, email=usuario.email),
+        "texto": _("%(quien)s (%(rol)s) ha dado de alta a %(nombre)s (%(email)s) como usuario de %(cliente)s.",
+                   quien=quien.nombre, rol=quien.rol_nombre, nombre=usuario.nombre, email=usuario.email,
+                   cliente=cliente.nombre),
+        "enlace": _enlace_cliente(cliente, "#usuarios")}, excluir_id=quien.id)
 
 
 def _enlace(pedido, ancla=""):

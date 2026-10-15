@@ -2,7 +2,7 @@ import re
 
 from flask_babel import gettext as _, lazy_gettext as _l
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, EmailField, SelectMultipleField, StringField, SubmitField, TextAreaField
+from wtforms import BooleanField, EmailField, SelectField, SelectMultipleField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError
 from flask import render_template, request
 from app.extensions import db
@@ -72,7 +72,8 @@ class ClienteForm(FlaskForm):
         existente = db.session.scalar(
             db.select(Cliente).where(db.func.lower(Cliente.prefijo) == campo.data.lower()))
         if existente and existente is not self._cliente:
-            raise ValidationError(_("Ese prefijo ya lo usa %(nombre)s. Escribe otro.", nombre=existente.nombre))
+            raise ValidationError(_("Ese prefijo ya lo usa %(nombre)s. Escribe otro.", nombre=existente.nombre)
+                                  if _ve_todos() else _("Ese prefijo ya lo usa otro cliente. Escribe otro."))
         # Tampoco uno que otra empresa usó antes (y luego cambió): sus pedidos antiguos siguen
         # llamándose YK-2026-PREFIJO-1 (o PREFIJO_001, el formato de antes de octubre de 2026)
         # y la referencia interna es única.
@@ -92,5 +93,35 @@ class ClienteForm(FlaskForm):
         campo.data = campo.data.strip().upper().replace("-", "").replace(" ", "")
         existente = db.session.scalar(db.select(Cliente).filter_by(cif=campo.data))
         if existente and existente is not self._cliente:
-            raise ValidationError(_("Ese CIF ya está registrado (%(nombre)s).", nombre=existente.nombre))
+            # (Soporte de cliente no ve los clientes de otros: sin el nombre)
+            raise ValidationError(_("Ese CIF ya está registrado (%(nombre)s).", nombre=existente.nombre)
+                                  if _ve_todos() else _("Ese CIF ya está registrado en otro cliente."))
+
+
+def _ve_todos():
+    from flask_login import current_user
+    return current_user.puede("clientes.editar")
+
+
+class UsuarioClienteForm(FlaskForm):
+    """Un usuario de la empresa cliente, desde su ficha (Soporte de cliente y admin). Siempre con el rol
+    Cliente y en esta empresa; sin contraseña: se le manda la invitación para que la elija él."""
+    nombre = StringField(_l("Nombre"), validators=[DataRequired(), Length(max=100)])
+    email = EmailField(_l("Email"), validators=[DataRequired(), Email(), Length(max=120)])
+    idioma = SelectField(_l("Idioma"), choices=[("", _l("Automático (el de su navegador)")),
+                                               ("es", "Español"), ("en", "English")],
+                         default="", description=_l("Idioma de la web y de los emails que recibe."))
+    activo = BooleanField(_l("Activo"), default=True,
+                          description=_l("Desactivado no puede entrar (sus pedidos y mensajes se quedan)."))
+    submit = SubmitField(_l("Guardar"))
+
+    def __init__(self, *args, usuario=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._usuario = usuario
+
+    def validate_email(self, campo):
+        campo.data = campo.data.strip().lower()
+        existente = db.session.scalar(db.select(User).filter_by(email=campo.data))
+        if existente and existente is not self._usuario:
+            raise ValidationError(_("Ya existe un usuario con ese email."))
 

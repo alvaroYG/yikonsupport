@@ -101,7 +101,9 @@ asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y
 
 | Permiso | Admin | Facturación | Almacén | Soporte de cliente | Cliente |
 |---|:-:|:-:|:-:|:-:|:-:|
-| Ver clientes / editarlos | ✓ / ✓ | ✓ / ✓ | — | sus clientes / — | — |
+| Ver clientes / darlos de alta y cambiar sus datos | ✓ / ✓ | ✓ / ✓ | — | sus clientes / ✓ (quedan suyos) | — |
+| Usuarios de cada empresa cliente (alta con invitación, editar, desactivar) | ✓ | | | sus clientes | |
+| Precios especiales del cliente | ✓ | ✓ | | | |
 | Asignar el Soporte de cliente de una empresa | ✓ | | | | |
 | Catálogo de cada cliente, avisos por email, «Ve precios» | ✓ | ✓ | | sus clientes | |
 | Productos: ver / editar | ✓ / ✓ | ✓ / ✓ | ✓ / solo el mínimo (Inventario) | ✓ / — | catálogo sin precios + SDS |
@@ -114,7 +116,7 @@ asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y
 | Reservar lotes | ✓ | ✓ | ✓ (aceptados) | sus clientes | |
 | Preparar, hacer fotos y enviar | ✓ | | ✓ | | |
 | Albarán (PDF) para el paquete | ✓ | | ✓ | | |
-| Datos de facturación y envío de la empresa | editar | editar | | ver (sus clientes) | ver los suyos («Mi empresa») |
+| Datos de facturación y envío de la empresa | editar | editar | | editar (sus clientes) | ver los suyos («Mi empresa») |
 | Validar las fotos (o devolver a preparación) | ✓ (suple) | | | sus clientes | |
 | Marcar recibido | ✓ | | ✓ (en su nombre) | | ✓ |
 | Saltarse el flujo (queda en auditoría) | ✓ | | | | |

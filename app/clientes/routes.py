@@ -98,16 +98,25 @@ def mi_empresa():
 
 
 @bp.route("/nuevo", methods=["GET", "POST"])
-@requiere_permiso("clientes.editar")
+@requiere_permiso("clientes.crear")
 def nuevo():
     form = ClienteForm()
     if form.validate_on_submit():
         cliente = Cliente()
         _guardar(form, cliente)
+        # Soporte de cliente: el cliente que da de alta es suyo (si no, ni lo vería)
+        if current_user.rol == "fas" and current_user not in cliente.logisticos:
+            cliente.logisticos.append(current_user)
         db.session.add(cliente)
         db.session.flush()
         registrar("crear", cliente, cliente.nombre)
+        from app import avisos_internos
+        avisos_internos.alta_cliente(cliente, current_user)
         db.session.commit()
+        if current_user.puede("clientes.usuarios"):
+            flash(_("Cliente «%(nombre)s» creado. Ahora añade sus usuarios: les llegará la invitación.",
+                    nombre=cliente.nombre), "success")
+            return redirect(url_for("clientes.detalle", id=cliente.id) + "#usuarios")
         flash(_("Cliente «%(nombre)s» creado.", nombre=cliente.nombre), "success")
         return redirect(url_for("clientes.detalle", id=cliente.id))
     return render_template("clientes/form.html", title=_("Nuevo cliente"), form=form)
@@ -152,7 +161,11 @@ def detalle(id):
         usuarios, copias = avisos_cliente.tabla(cliente)
         avisos = {"usuarios": usuarios, "copias": copias, "tipos": avisos_cliente.TIPOS,
                   "explicacion": avisos_cliente.EXPLICACION, "max_copias": avisos_cliente.MAX_COPIAS}
+    # Pestaña «Usuarios» (su Soporte de cliente y admin): los de la empresa, activos primero
+    usuarios = (sorted(cliente.usuarios, key=lambda u: (not u.activo, u.nombre.lower()))
+                if current_user.puede("clientes.usuarios") else None)
     return render_template("clientes/detalle.html", title=cliente.nombre, cliente=cliente, avisos=avisos, catalogo=catalogo,
+                           usuarios=usuarios,
                            pedidos=pedidos, facturas=facturas, precios=precios, precios_productos=precios_productos,
                            productos_sin_precio=productos_sin_precio,
                            kits_sin_precio=kits_sin_precio, formatos=FORMATOS_FACTURA, regimenes=REGIMENES_IVA)
@@ -236,9 +249,9 @@ def borrar_precio_producto(id, precio_id):
 
 
 @bp.route("/<int:id>/editar", methods=["GET", "POST"])
-@requiere_permiso("clientes.editar")
+@requiere_permiso("clientes.datos")
 def editar(id):
-    cliente = db.get_or_404(Cliente, id)
+    cliente = cliente_o_404(id)                # Soporte de cliente: solo los suyos
     form = ClienteForm(obj=cliente, cliente=cliente)
     if request.method == "GET" and "logisticos" in form:
         form.logisticos.data = [u.id for u in cliente.logisticos]
@@ -254,6 +267,91 @@ def editar(id):
         flash(_("Cliente actualizado."), "success")
         return redirect(url_for("clientes.detalle", id=cliente.id))
     return render_template("clientes/form.html", title=_("Editar %(nombre)s", nombre=cliente.nombre), form=form)
+
+
+# --------------------------------------------------------------------------- #
+# Usuarios de la empresa (pestaña «Usuarios»): los da de alta su Soporte de cliente (o admin)
+# --------------------------------------------------------------------------- #
+def _usuario_de(cliente, uid):
+    from app.permisos import ROLES_CLIENTE
+    usuario = db.get_or_404(User, uid)
+    if usuario.cliente_id != cliente.id or usuario.rol not in ROLES_CLIENTE:
+        abort(404)
+    return usuario
+
+
+@bp.route("/<int:id>/usuarios/nuevo", methods=["GET", "POST"])
+@requiere_permiso("clientes.usuarios")
+def nuevo_usuario(id):
+    """Alta de un usuario de esta empresa (rol Cliente). Se le prepara la invitación para que elija su
+    contraseña (como todas las invitaciones, la revisa y envía quien la hace)."""
+    import secrets
+
+    from app.admin.routes import _invitar
+    from app.clientes.forms import UsuarioClienteForm
+    cliente = cliente_o_404(id)
+    form = UsuarioClienteForm()
+    if form.validate_on_submit():
+        usuario = User(nombre=form.nombre.data, email=form.email.data, rol="cliente", cliente_id=cliente.id,
+                       activo=form.activo.data, idioma=form.idioma.data or None)
+        usuario.set_password(secrets.token_urlsafe(32))        # nadie la sabe: la elige él con la invitación
+        db.session.add(usuario)
+        db.session.flush()
+        registrar("crear", usuario, f"rol=cliente · empresa={cliente.nombre}"
+                  + (" · invitación preparada" if usuario.activo else ""))
+        if usuario.activo:
+            _invitar(usuario)
+        from app import avisos_internos
+        avisos_internos.alta_usuario(usuario, current_user)
+        db.session.commit()
+        flash(_("Usuario %(email)s creado. La invitación está pendiente de revisar y enviar.", email=usuario.email)
+              if usuario.activo else _("Usuario %(email)s creado.", email=usuario.email), "success")
+        return redirect(url_for("clientes.detalle", id=cliente.id) + "#usuarios")
+    return render_template("clientes/usuario_form.html", title=_("Nuevo usuario de %(cliente)s", cliente=cliente.nombre),
+                           form=form, cliente=cliente)
+
+
+@bp.route("/<int:id>/usuarios/<int:uid>", methods=["GET", "POST"])
+@requiere_permiso("clientes.usuarios")
+def editar_usuario(id, uid):
+    from app.clientes.forms import UsuarioClienteForm
+    cliente = cliente_o_404(id)
+    usuario = _usuario_de(cliente, uid)
+    form = UsuarioClienteForm(obj=usuario, usuario=usuario)
+    if request.method == "GET":
+        form.idioma.data = usuario.idioma or ""
+    if form.validate_on_submit():
+        detalle = cambios(usuario, form, ["nombre", "email", "activo"])
+        usuario.nombre, usuario.email, usuario.activo = form.nombre.data, form.email.data, form.activo.data
+        usuario.idioma = form.idioma.data or None
+        registrar("editar", usuario, detalle or "idioma")
+        db.session.commit()
+        flash(_("Usuario actualizado."), "success")
+        return redirect(url_for("clientes.detalle", id=cliente.id) + "#usuarios")
+    return render_template("clientes/usuario_form.html", title=_("Editar %(nombre)s", nombre=usuario.nombre),
+                           form=form, cliente=cliente, usuario=usuario)
+
+
+@bp.route("/<int:id>/usuarios/<int:uid>/invitar", methods=["POST"])
+@requiere_permiso("clientes.usuarios")
+def invitar_usuario(id, uid):
+    """Volver a mandarle la invitación (perdió el email, caducó el enlace...). Solo si aún no ha entrado."""
+    from flask_wtf import FlaskForm
+
+    from app.admin.routes import _invitar
+    cliente = cliente_o_404(id)
+    usuario = _usuario_de(cliente, uid)
+    volver = redirect(url_for("clientes.detalle", id=cliente.id) + "#usuarios")
+    if not FlaskForm().validate_on_submit():
+        return volver
+    if usuario.activo and usuario.ultimo_acceso is None:
+        _invitar(usuario)
+        registrar("editar", usuario, "invitación reenviada")
+        db.session.commit()
+        flash(_("Invitación preparada para %(email)s. Revisa el correo antes de enviarlo.", email=usuario.email), "success")
+    else:
+        flash(_("No se envía: el usuario ya ha entrado alguna vez o está desactivado."), "warning")
+    return volver
 
 
 @bp.route("/<int:id>/ver-precios", methods=["POST"])

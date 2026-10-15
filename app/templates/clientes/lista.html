@@ -3,7 +3,7 @@
 {% block contenido %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">{{ _('Clientes') }}</h1>
-  {% if current_user.puede('clientes.editar') %}
+  {% if current_user.puede('clientes.crear') %}
   <a href="{{ url_for('clientes.nuevo') }}" class="btn btn-primary">{{ _('+ Nuevo cliente') }}</a>{% endif %}</div>
 {# Buscador y filtros (se aplican en el servidor: valen con muchas páginas). Los desplegables
    filtran al elegir; el texto, con Intro o el botón. #}

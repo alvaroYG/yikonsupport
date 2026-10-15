@@ -47,7 +47,13 @@ TODOS = PEDIDOS   # (nombre antiguo; OJO: no es set(ROLES), un rol nuevo no here
 PERMISOS = {
     # Clientes (empresas/clínicas): admin y Facturación, todos; el FAS, los suyos. Almacén no.
     "clientes.ver": {"admin", "facturacion", "fas"},
-    "clientes.editar": OFICINA,                        # datos, facturación, precios especiales
+    "clientes.editar": OFICINA,                        # precios especiales (y ve todos los clientes)
+    # Soporte de cliente lleva sus clientes de punta a punta (15/10/2026): los da de alta (quedan
+    # asignados a él), cambia sus datos y crea/edita los usuarios de esas empresas. Admin solo vigila
+    # (le llega el aviso «Alta de cliente o usuario» y lo tiene todo en la auditoría); no aprueba nada.
+    "clientes.crear": OFICINA | {"fas"},
+    "clientes.datos": OFICINA | {"fas"},               # «Editar»: datos, facturación y envío (FAS: los suyos)
+    "clientes.usuarios": {"admin", "fas"},             # los usuarios de la empresa (FAS: de sus clientes)
     "clientes.asignar_soporte": {"admin"},             # quién es su Soporte de cliente (decide quién ve qué)
     "clientes.precios_visibles": GESTION,              # decidir si un cliente ve precios
     "clientes.avisos": GESTION,                        # qué avisos por email recibe cada usuario del cliente

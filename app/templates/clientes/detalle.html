@@ -8,7 +8,7 @@
     {% if current_user.puede('pedidos.crear') %}<a href="{{ url_for('pedidos.nuevo', cliente_id=cliente.id) }}" class="btn btn-primary"
        data-bs-toggle="modal" data-bs-target="#modal-pedido" data-cliente-id="{{ cliente.id }}"><i class="fas fa-plus me-1"></i> {{ _('Hacer un pedido') }}</a>{% endif %}
     {% if current_user.puede('mensajes.ver') %}<a href="{{ url_for('mensajes.conversacion', cliente_id=cliente.id) }}" class="btn btn-outline-primary"><i class="fas fa-comments me-1"></i> {{ _('Mensajes') }}</a>{% endif %}
-    {% if current_user.puede('clientes.editar') %}<a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-outline-primary">{{ _('Editar') }}</a>{% endif %}
+    {% if current_user.puede('clientes.datos') %}<a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-outline-primary">{{ _('Editar') }}</a>{% endif %}
     {# Todo lo del cliente en un ZIP (app/clientes/exportar.py). Queda en la auditoría #}
     {% if current_user.puede('clientes.exportar') %}
     <form method="post" action="{{ url_for('clientes.exportar', id=cliente.id) }}" class="d-inline">
@@ -57,7 +57,7 @@
     {% if facturas is not none %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-facturacion" data-bs-toggle="tab" data-bs-target="#pestana-facturacion" type="button" role="tab" aria-controls="pestana-facturacion" aria-selected="false">{{ _('Facturación') }} <span class="badge rounded-pill cuenta-pestana">{{ facturas.total }}</span></button></li>{% endif %}
     {% if current_user.puede('pedidos.ver_importes') %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-precios" data-bs-toggle="tab" data-bs-target="#pestana-precios" type="button" role="tab" aria-controls="pestana-precios" aria-selected="false">{{ _('Precios especiales') }} <span class="badge rounded-pill cuenta-pestana">{{ precios|length + precios_productos|length }}</span></button></li>{% endif %}
     {% if catalogo %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-catalogo" data-bs-toggle="tab" data-bs-target="#pestana-catalogo" type="button" role="tab" aria-controls="pestana-catalogo" aria-selected="false">{{ _('Su catálogo') }} <span class="badge rounded-pill cuenta-pestana">{{ _('Propio') if cliente.catalogo_propio else _('Todo') }}</span></button></li>{% endif %}
-    {% if avisos %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-avisos" data-bs-toggle="tab" data-bs-target="#pestana-avisos" type="button" role="tab" aria-controls="pestana-avisos" aria-selected="false">{{ _('Avisos por email') }} <span class="badge rounded-pill cuenta-pestana">{{ avisos.usuarios|length + avisos.copias|length }}</span></button></li>{% endif %}
+    {% if avisos or usuarios is not none %}<li class="nav-item" role="presentation"><button class="nav-link" id="tab-avisos" data-bs-toggle="tab" data-bs-target="#pestana-avisos" type="button" role="tab" aria-controls="pestana-avisos" aria-selected="false">{% if usuarios is not none %}{{ _('Usuarios y avisos') }} <span class="badge rounded-pill cuenta-pestana">{{ usuarios|selectattr('activo')|list|length }}</span>{% else %}{{ _('Avisos por email') }} <span class="badge rounded-pill cuenta-pestana">{{ avisos.usuarios|length + avisos.copias|length }}</span>{% endif %}</button></li>{% endif %}
     </ul>
   </div>
   <div class="card-body tab-content">
@@ -76,7 +76,7 @@
     <div class="card mb-4" id="envio"><div class="card-body">
       <div class="d-flex justify-content-between align-items-start mb-2">
         <h2 class="h5 mb-0">{{ _('Facturación y envío') }}</h2>
-        {% if current_user.puede('clientes.editar') %}<a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-sm btn-outline-primary">{{ _('Cambiar') }}</a>{% endif %}
+        {% if current_user.puede('clientes.datos') %}<a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-sm btn-outline-primary">{{ _('Cambiar') }}</a>{% endif %}
       </div>
       <p class="small text-muted">{{ _('Salen en el albarán que va dentro del paquete. Sus usuarios los ven en «Mi empresa», sin poder cambiarlos.') }}</p>
       {% include "clientes/_datos_empresa.html" %}
@@ -246,8 +246,35 @@
     {% endif %}
   </div>
 {% endif %}
-{% if avisos %}
+{% if avisos or usuarios is not none %}
   <div class="tab-pane" id="pestana-avisos" role="tabpanel" aria-labelledby="tab-avisos" tabindex="0">
+    {# Usuarios de la empresa: los da de alta su Soporte de cliente (o admin). Siempre rol Cliente; se les
+       manda la invitación para que elijan su contraseña. Admin lo ve todo en Usuarios y en la auditoría. #}
+    {% if usuarios is not none %}
+    <div class="card mb-4" id="usuarios"><div class="card-body">
+      <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+        <h2 class="h5 mb-0"><i class="fas fa-users me-2" aria-hidden="true"></i>{{ _('Usuarios') }}</h2>
+        <a href="{{ url_for('clientes.nuevo_usuario', id=cliente.id) }}" class="btn btn-sm btn-primary"><i class="fas fa-user-plus me-1" aria-hidden="true"></i>{{ _('Añadir usuario') }}</a>
+      </div>
+      <p class="small text-muted">{{ _('Las personas de %(cliente)s que entran en la plataforma: ven y hacen los pedidos de su empresa. Al añadirlas les llega una invitación para elegir su contraseña.', cliente=cliente.nombre) }}</p>
+      <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>{{ _('Nombre') }}</th><th>{{ _('Email') }}</th><th>{{ _('Estado') }}</th><th>{{ _('Último acceso') }}</th><th></th></tr></thead>
+        <tbody>{% for u in usuarios %}
+          <tr class="{{ 'text-muted' if not u.activo }}"><td>{{ u.nombre }}</td><td>{{ u.email }}</td>
+            <td>{% if not u.activo %}{{ _('Desactivado') }}{% elif not u.ultimo_acceso %}<span class="badge est-pendiente">{{ _('✉ Invitación pendiente') }}</span>{% else %}{{ _('Activo') }}{% endif %}</td>
+            <td class="small">{{ u.ultimo_acceso|fecha_hora if u.ultimo_acceso else '—' }}</td>
+            <td class="text-end text-nowrap">
+              {% if u.activo and not u.ultimo_acceso %}
+              <form method="post" action="{{ url_for('clientes.invitar_usuario', id=cliente.id, uid=u.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-secondary" title="{{ _('Volver a enviarle el email para elegir su contraseña') }}">{{ _('Reenviar invitación') }}</button></form>
+              {% endif %}
+              <a href="{{ url_for('clientes.editar_usuario', id=cliente.id, uid=u.id) }}" class="btn btn-sm btn-outline-primary">{{ _('Editar') }}</a></td></tr>
+        {% else %}<tr><td colspan="5" class="text-muted">{{ _('Este cliente aún no tiene usuarios.') }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </div></div>
+    {% endif %}
     {# Avisos por email: qué recibe cada usuario del cliente y emails en copia (app/avisos_cliente.py).
        Lo cambian admin y su Soporte de cliente. #}
     {% if avisos %}

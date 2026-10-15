@@ -1107,8 +1107,8 @@ def albaran(id):
         return redirect(destino)
     datos = pedido.datos_para_albaran["envio"]
     if not (datos.get("direccion") and (datos.get("ciudad") or datos.get("codigo_postal"))):
-        flash(_("%(cliente)s no tiene dirección de envío: complétala en su ficha (Clientes → Facturación y envío) "
-                "o pide a Facturación que lo haga.", cliente=pedido.cliente.nombre), "warning")
+        flash(_("%(cliente)s no tiene dirección de envío: complétala en su ficha (Clientes → Direcciones) "
+                "o pide a su Soporte de cliente o a Facturación que lo haga.", cliente=pedido.cliente.nombre), "warning")
         return redirect(destino)
     referencia = pedido.referencia_interna or str(pedido.id)
     nombre = "Albaran_" + "".join(c if c.isalnum() or c in "-_" else "_" for c in referencia) + ".pdf"
