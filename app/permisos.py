@@ -78,7 +78,8 @@ PERMISOS = {
     # Proforma antes del pedido
     "pedidos.proforma.enviar": GESTION,          # preparar y enviar la proforma (FAS: sus clientes)
     "pedidos.proforma.responder": {"cliente"},   # aceptarla (→ "aceptado") o pedir cambios
-    "pedidos.proforma.cancelar": {"cliente"},    # el cliente cancela mientras es proforma
+    "pedidos.proforma.cancelar": {"cliente"},    # el cliente cancela mientras es proforma («Cancelar pedido»)
+    "pedidos.proforma.modificar": {"cliente"},   # ...y lo modifica («Modificar pedido»; si ya tenía proforma, se retira)
     "pedidos.exportar": PEDIDOS,                 # PDF del estado de pedidos
     # Incidencias: "Hay un problema con este pedido" (enviado o recibido). Se habla en el chat del pedido
     "pedidos.incidencias.abrir": {"cliente"},

@@ -3,9 +3,9 @@
 {#
   Vista de móvil para preparar UN pedido. De arriba abajo, en el orden en que se trabaja:
   1. qué lleva (con casillas para ir marcando lo que ya está en la caja),
-  2. de qué lotes coger cada producto (los que caducan antes, igual que restará el envío),
-  3. fotos: hacer con la cámara o elegir de la galería (se reducen en el móvil antes de subir),
-  4. botón fijo abajo: "Enviar a validación".
+     con los lotes reservados debajo de cada fila,
+  2. fotos: hacer con la cámara o elegir de la galería (se reducen en el móvil antes de subir),
+  3. botón fijo abajo: "Enviar a validación".
   Las casillas son solo una ayuda en pantalla: no se guardan.
 #}
 {% block clase_body %}vista-movil{% endblock %}
@@ -37,11 +37,42 @@
   {% endif %}
 
   {% if en_preparacion %}
+  {# Repartir las reservas entre las filas, en el orden en que se preparan.
+     Un producto repetido en varios kits o suelto no duplica sus lotes reservados. #}
+  {% set reservas_filas = namespace(por_articulo={}) %}
+  {% for articulo, reparto in lotes %}
+    {% set bolsa = namespace(lotes=[]) %}
+    {% for lote, n in reparto %}
+      {% set bolsa.lotes = bolsa.lotes + [namespace(lote=lote, disponible=n)] %}
+    {% endfor %}
+    {% set _ = reservas_filas.por_articulo.update({(articulo.tipo_articulo, articulo.id): bolsa.lotes}) %}
+  {% endfor %}
+  {% macro lotes_de_fila(tipo, id, cantidad, controlar=True) %}
+    {% if controlar %}
+      {% set fila = namespace(pendiente=cantidad) %}
+      <span class="d-block small mt-2 ps-2 border-start" data-lotes-fila>
+      {% for reserva in reservas_filas.por_articulo.get((tipo, id), []) %}
+        {% set coger = [fila.pendiente, reserva.disponible]|min %}
+        {% if coger > 0 %}
+          <span class="d-block">{{ _('Lote:') }} <span class="lote-codigo">{{ reserva.lote.codigo }}</span> × <strong>{{ coger }}</strong>
+            {{ lote_caducidad(reserva.lote, hoy, dias_aviso) }}</span>
+          {% set reserva.disponible = reserva.disponible - coger %}
+          {% set fila.pendiente = fila.pendiente - coger %}
+        {% endif %}
+      {% endfor %}
+      {% if fila.pendiente > 0 %}<span class="d-block text-warning-emphasis">{{ _('⚠ Pendiente de reservar: %(n)s unidades.', n=fila.pendiente) }}</span>{% endif %}
+      </span>
+    {% endif %}
+  {% endmacro %}
   {# ---------- 1. Qué lleva ---------- #}
   <div class="card mb-3">
-    <div class="card-header"><h2 class="h5">{{ _('1. Qué lleva') }}</h2>
+    <div class="card-header"><h2 class="h5">{{ _('1. Qué lleva y de qué lotes') }}</h2>
       <span class="small text-muted">{{ _('márcalo al meterlo') }}</span></div>
     <div class="card-body">
+      {% if lotes or faltan %}
+      <p class="small text-muted">{{ _('Coge exactamente estos lotes: están reservados para este pedido. Si no encuentras alguno, avisa antes de meter otro.') }}</p>
+      {% for texto in faltan %}<div class="alert alert-warning py-2 small">{{ _('⚠ Pendiente:') }} {{ texto }}</div>{% endfor %}
+      {% endif %}
       {% for kp in pedido.kits %}
         {% if kp.kit.cerrado %}
         {# Kit cerrado: se mete la bolsa entera tal como llega; una sola casilla. Debajo, lo que
@@ -50,6 +81,7 @@
           <input type="checkbox" class="form-check-input">
           <span><strong>{{ kp.cantidad }}</strong> × {{ kp.kit.nombre }}
             <span class="small text-muted d-block">{{ kp.kit.referencia }} · {{ _('kit cerrado, tal como llega') }}</span>
+            {{ lotes_de_fila('kit', kp.kit_id, kp.cantidad) }}
             <span class="small text-muted d-block">{{ _('Dentro:') }}
               {% for l in kp.lineas %}<span class="d-block ps-2">{{ l.cantidad }} × {{ l.producto.nombre }}</span>{% endfor %}</span></span>
         </label>
@@ -60,7 +92,8 @@
         <label class="preparar-check">
           <input type="checkbox" class="form-check-input">
           <span><strong>{{ l.cantidad }}</strong> × {{ l.producto.nombre }}
-            <span class="small text-muted d-block">{{ l.producto.referencia }}</span></span>
+            <span class="small text-muted d-block">{{ l.producto.referencia }}</span>
+            {{ lotes_de_fila('producto', l.producto_id, l.cantidad, l.producto.controlar_stock) }}</span>
         </label>
         {% endfor %}
         {% endif %}
@@ -71,7 +104,8 @@
         <label class="preparar-check">
           <input type="checkbox" class="form-check-input">
           <span><strong>{{ l.cantidad }}</strong> × {{ l.producto.nombre }}
-            <span class="small text-muted d-block">{{ l.producto.referencia }}</span></span>
+            <span class="small text-muted d-block">{{ l.producto.referencia }}</span>
+            {{ lotes_de_fila('producto', l.producto_id, l.cantidad, l.producto.controlar_stock) }}</span>
         </label>
         {% endfor %}
       {% endif %}
@@ -80,29 +114,6 @@
       {% endif %}
     </div>
   </div>
-
-  {# ---------- 2. Lotes a coger ---------- #}
-  {% if lotes or faltan %}
-  <div class="card mb-3">
-    <div class="card-header"><h2 class="h5">{{ _('2. Lotes a coger') }}</h2></div>
-    <div class="card-body">
-      <p class="small text-muted">{{ _('Coge exactamente estos lotes: están reservados para este pedido. Si no encuentras alguno, avisa antes de meter otro.') }}</p>
-      {% for texto in faltan %}
-        <div class="alert alert-warning py-2 small">{{ _('⚠ Pendiente:') }} {{ texto }}</div>
-      {% endfor %}
-      {% for articulo, reparto in lotes %}
-        <div class="mb-2">
-          <div class="fw-semibold">{{ articulo.nombre }}
-            {% if articulo.tipo_articulo == 'kit' %}<span class="small text-muted fw-normal">· {{ _('kit cerrado (todas sus cajas)') }}</span>{% endif %}</div>
-          {% for lote, n in reparto %}
-          <div class="small"><span class="lote-codigo">{{ lote.codigo }}</span> × <strong>{{ n }}</strong>
-            {{ lote_caducidad(lote, hoy, dias_aviso) }}</div>
-          {% endfor %}
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
 
   {% if pedido.estado == 'aceptado' %}
   {# Aceptado: todavía no se ha empezado. Un botón grande para empezar (y ya salen las fotos) #}
@@ -114,9 +125,9 @@
     </form>
   </div>
   {% else %}
-  {# ---------- 3. Fotos ---------- #}
+  {# ---------- 2. Fotos ---------- #}
   <div class="card mb-3">
-    <div class="card-header"><h2 class="h5">{{ _('3. Fotos') }}</h2>
+    <div class="card-header"><h2 class="h5">{{ _('2. Fotos') }}</h2>
       <span class="small text-muted">{{ ngettext('%(num)s foto', '%(num)s fotos', pedido.fotos|length) }}</span></div>
     <div class="card-body">
       {% if pedido.fotos %}

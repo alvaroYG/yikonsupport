@@ -19,9 +19,9 @@ from app.inventario.stock import aplicar_cambio_de_estado, lotes_enviados, resum
 from app.utils import es_entero, limpiar_busqueda, ordenar
 from app.models import (ESTADOS_PEDIDO, ESTADOS_PEDIDO_CLIENTE, ESTADOS_PREPARACION, TRANSICIONES, puede_alguno,
                         Cliente, DocumentoPedido, FotoPedido, Kit, KitPedido, LineaPedido, Pedido, Producto,
-                        RevisionPedido, hilo_de)
+                        RevisionPedido, ahora, hilo_de)
 from app.pedidos.forms import (TRANSPORTISTAS_HABITUALES, AnadirKitForm, DatosEnvioForm, DocumentoForm, EstadoPedidoForm,
-                               FotosForm, LineaForm, PedidoClienteForm, PedidoInternoForm, ValidacionForm,
+                               FotosForm, LineaForm, PedidoClienteForm, PedidoInternoForm, PedidoModificarClienteForm, ValidacionForm,
                                con_ids_propios)
 from app.mensajes import servicio as servicio_mensajes
 from app.mensajes.forms import MensajeForm
@@ -239,6 +239,125 @@ def nuevo():
     return render_template("pedidos/form.html", title=_("Nuevo pedido"), form=form)
 
 
+# --------------------------------------------------------------------------- #
+# El cliente modifica o cancela su pedido mientras no lo ha aceptado
+# --------------------------------------------------------------------------- #
+ESTADOS_CLIENTE_CAMBIA = ("proforma_solicitada", "proforma_enviada", "cambios_solicitados")
+
+
+def cliente_puede_cambiar(pedido, permiso="pedidos.proforma.modificar"):
+    """¿El cliente puede modificar (o cancelar: permiso="pedidos.proforma.cancelar") este pedido?
+    Solo el suyo, y hasta que acepta la proforma."""
+    return current_user.rol == "cliente" and current_user.puede(permiso) and pedido.estado in ESTADOS_CLIENTE_CAMBIA
+
+
+def form_modificar(pedido, formdata=None):
+    """El formulario de «Modificar pedido» con lo que lleva ahora (sin datos del navegador)."""
+    form = PedidoModificarClienteForm(formdata=formdata, pedido=pedido)
+    if formdata is None:
+        form.contenido.data = _contenido_para_repetir(pedido, sueltos=True, productos_permitidos=form.productos_permitidos)
+        form.referencia.data, form.fecha.data = pedido.referencia, pedido.fecha
+    return form
+
+
+def _sin_cambios(pedido, form):
+    """¿«Guardar cambios» sin haber cambiado nada? (así no se retira la proforma ni se avisa por nada)"""
+    actuales = []
+    for kp in pedido.kits:
+        productos = {}
+        for l in kp.lineas:
+            productos[l.producto_id] = productos.get(l.producto_id, 0) + l.cantidad
+        actuales.append((kp.kit_id, kp.cantidad, tuple(sorted(productos.items()))))
+    nuevos = [(b["kit"].id, b["cantidad"], tuple(sorted(b["productos"].items()))) for b in form.kits_validos]
+    sueltos = sorted((l.producto_id, l.cantidad) for l in pedido.lineas_sueltas)
+    return (sorted(actuales) == sorted(nuevos) and sueltos == sorted(form.sueltos_validos.items())
+            and (pedido.referencia or None) == (form.referencia.data or None) and pedido.fecha == form.fecha.data
+            and not (form.documento.data and form.documento.data.filename))
+
+
+@bp.route("/<int:id>/modificar", methods=["GET", "POST"])
+@requiere_permiso("pedidos.proforma.modificar")
+def modificar(id):
+    """«Modificar pedido» del cliente: kits, productos sueltos, su referencia, la fecha y (opcional) otro
+    documento. Si ya tenía la proforma (enviada o con cambios pedidos), se retira: pasa a «cambios
+    solicitados» y Facturación recibe un aviso para hacer otra. Los lotes reservados se sueltan."""
+    pedido = pedido_o_404(id)
+    if not cliente_puede_cambiar(pedido):
+        flash(_("Este pedido ya no se puede modificar. Si necesita cambiar algo, escríbanos en los mensajes del pedido."),
+              "warning")
+        return redirect(url_for("pedidos.detalle", id=id))
+    if request.method == "GET":
+        form = form_modificar(pedido)
+    else:
+        form = PedidoModificarClienteForm(pedido=pedido)
+    if request.method == "POST" and form.validate_on_submit():
+        if _sin_cambios(pedido, form):
+            flash(_("No ha cambiado nada: el pedido sigue igual."), "info")
+            return redirect(url_for("pedidos.detalle", id=id))
+        antes = pedido.resumen_contenido(" · ")
+        precios_kits = {kp.kit_id: kp.precio_unitario for kp in pedido.kits}
+        precios_sueltos = {l.producto_id: (l.precio_unitario, l.descuento_pct) for l in pedido.lineas_sueltas}
+        reservas.liberar(pedido)                  # los lotes se vuelven a proponer con la proforma nueva
+        pedido.kits.clear()
+        pedido.lineas.clear()
+        db.session.flush()
+        _poner_contenido(pedido, form, precios_kits, precios_sueltos)
+        pedido.referencia, pedido.fecha = form.referencia.data, form.fecha.data
+        if form.documento.data and form.documento.data.filename:
+            db.session.add(docs.guardar_documento(form.documento.data, pedido))
+        db.session.flush()
+        ahora_lleva = pedido.resumen_contenido(" · ")
+        proforma, retirada = pedido.proforma_actual, None
+        if pedido.estado in ("proforma_enviada", "cambios_solicitados") and proforma is not None:
+            retirada = proforma.numero_y_version
+            with force_locale("es"):    # queda guardado: en español (lo lee Yikon en la proforma)
+                nota = _("El cliente ha modificado el pedido: hay que preparar una proforma nueva.")
+            if proforma.estado == "enviada":
+                proforma.estado, proforma.respondida_por, proforma.respondida_fecha = "cambios", current_user, ahora()
+            proforma.comentario_cambios = nota
+            if pedido.estado == "proforma_enviada":
+                if error := _cambiar_estado(pedido, "cambios_solicitados",
+                                            f"el cliente ha modificado el pedido · proforma {proforma.numero} retirada",
+                                            avisar=False):
+                    db.session.rollback()
+                    flash(error, "danger")
+                    return redirect(url_for("pedidos.detalle", id=id))
+        registrar("editar", pedido, f"modificado por el cliente · antes: {antes} · ahora: {ahora_lleva}")
+        servicio_mensajes.enviar(current_user, pedido.cliente,
+                                 _("He modificado el pedido. Ahora lleva: %(contenido)s", contenido=ahora_lleva),
+                                 pedido=pedido, avisar=False)        # (el aviso a Yikon es «pedido_modificado»)
+        avisos_internos.pedido_modificado(pedido, current_user.nombre, antes, retirada)
+        db.session.commit()
+        flash(_("Pedido modificado. Le enviaremos una proforma nueva con los cambios.") if retirada
+              else _("Pedido modificado. Lo tendremos en cuenta al preparar su proforma."), "success")
+        return redirect(url_for("pedidos.detalle", id=id))
+    return render_template("pedidos/modificar.html", title=_("Modificar pedido %(ref)s", ref=pedido.referencia_interna),
+                           form=form, pedido=pedido)
+
+
+@bp.route("/<int:id>/cancelar", methods=["POST"])
+@requiere_permiso("pedidos.proforma.cancelar")
+def cancelar(id):
+    """«Cancelar pedido» del cliente (hasta que acepta la proforma), con un motivo opcional que queda
+    en el chat del pedido. Si tenía la proforma, se retira; los lotes reservados se sueltan."""
+    pedido = pedido_o_404(id)
+    if not cliente_puede_cambiar(pedido, "pedidos.proforma.cancelar"):
+        flash(_("Este pedido ya no se puede cancelar desde aquí. Escríbanos en los mensajes del pedido."), "warning")
+        return redirect(url_for("pedidos.detalle", id=id))
+    motivo = (request.form.get("motivo") or "").strip()[:1000]
+    if error := _cambiar_estado(pedido, "cancelado", "cancelado por el cliente" + (f" · motivo: {motivo}" if motivo else ""),
+                                avisar=False):
+        flash(error, "danger")
+        return redirect(url_for("pedidos.detalle", id=id))
+    servicio_mensajes.enviar(current_user, pedido.cliente,
+                             _("✕ He cancelado el pedido.") + ("\n" + _("Motivo: %(motivo)s", motivo=motivo) if motivo else ""),
+                             pedido=pedido, avisar=False)            # (el aviso a Yikon es «pedido_cancelado»)
+    avisos_internos.pedido_cancelado(pedido, current_user.nombre, motivo)
+    db.session.commit()
+    flash(_("Pedido cancelado."), "success")
+    return redirect(url_for("pedidos.detalle", id=id))
+
+
 def _rellenar_para_repetir(form):
     """/pedidos/nuevo?repetir=ID: el formulario sale con el contenido de ese pedido."""
     id_repetir = request.args.get("repetir", type=int)
@@ -295,24 +414,7 @@ def _crear_pedido(pedido, form):
     # Añadirlo a la sesión YA: las consultas de abajo hacen "autoflush" y SQLAlchemy
     # avisaría de un pedido enganchado al cliente pero fuera de la sesión.
     db.session.add(pedido)
-    for bloque in form.kits_validos:
-        kit = bloque["kit"]
-        kp = KitPedido(kit=kit, cantidad=bloque["cantidad"], precio_unitario=kit.precio_para(pedido.cliente),
-                       iva_pct=kit.iva_pct)
-        pedido.kits.append(kp)
-        # Los productos del kit, en el orden del kit (el que se eligió en su ficha)
-        posicion = {c.producto_id: i for i, c in enumerate(kit.componentes)}
-        for producto_id, cantidad in sorted(bloque["productos"].items(), key=lambda x: posicion.get(x[0], 999)):
-            producto = db.session.get(Producto, producto_id)
-            pedido.lineas.append(LineaPedido(producto=producto, cantidad=cantidad, kit_pedido=kp,
-                                             precio_unitario=0, iva_pct=producto.iva_pct))
-        # ¿Quitó productos o cambió cantidades respecto al kit del catálogo × nº de kits?
-        estandar = {c.producto_id: c.cantidad * bloque["cantidad"] for c in kit.componentes_activos}
-        kp.modificado = bloque["productos"] != estandar
-    for producto_id, cantidad in form.sueltos_validos.items():
-        producto = db.session.get(Producto, producto_id)
-        pedido.lineas.append(LineaPedido(producto=producto, cantidad=cantidad,
-                                         precio_unitario=producto.precio_para(pedido.cliente), iva_pct=producto.iva_pct))
+    _poner_contenido(pedido, form)
     db.session.flush()
     if not pedido.con_proforma:
         # Pedido creado por Yikon: no hay proforma en la que elegir lote, así que se reservan
@@ -326,6 +428,32 @@ def _crear_pedido(pedido, form):
     if pedido.estado == "proforma_solicitada" and current_user.es_cliente:
         avisos_internos.proforma_pedida(pedido, current_user.nombre)      # (Ajustes → Avisos internos)
     db.session.commit()
+
+
+def _poner_contenido(pedido, form, precios_kits=None, precios_sueltos=None):
+    """Kits y productos sueltos del formulario → líneas del pedido (al crearlo y al modificarlo).
+    precios_kits {kit_id: precio} / precios_sueltos {producto_id: (precio, dto)}: los que ya tenía
+    el pedido (al modificarlo se conservan los que Yikon hubiera ajustado a mano)."""
+    precios_kits, precios_sueltos = precios_kits or {}, precios_sueltos or {}
+    for bloque in form.kits_validos:
+        kit = bloque["kit"]
+        kp = KitPedido(kit=kit, cantidad=bloque["cantidad"],
+                       precio_unitario=precios_kits.get(kit.id, kit.precio_para(pedido.cliente)), iva_pct=kit.iva_pct)
+        pedido.kits.append(kp)
+        # Los productos del kit, en el orden del kit (el que se eligió en su ficha)
+        posicion = {c.producto_id: i for i, c in enumerate(kit.componentes)}
+        for producto_id, cantidad in sorted(bloque["productos"].items(), key=lambda x: posicion.get(x[0], 999)):
+            producto = db.session.get(Producto, producto_id)
+            pedido.lineas.append(LineaPedido(producto=producto, cantidad=cantidad, kit_pedido=kp,
+                                             precio_unitario=0, iva_pct=producto.iva_pct))
+        # ¿Quitó productos o cambió cantidades respecto al kit del catálogo × nº de kits?
+        estandar = {c.producto_id: c.cantidad * bloque["cantidad"] for c in kit.componentes_activos}
+        kp.modificado = bloque["productos"] != estandar
+    for producto_id, cantidad in form.sueltos_validos.items():
+        producto = db.session.get(Producto, producto_id)
+        precio, dto = precios_sueltos.get(producto_id, (producto.precio_para(pedido.cliente), 0))
+        pedido.lineas.append(LineaPedido(producto=producto, cantidad=cantidad, precio_unitario=precio,
+                                         descuento_pct=dto, iva_pct=producto.iva_pct))
 
 
 def _nuevo_pedido_cliente():
@@ -364,7 +492,8 @@ CON_BOTON_PROPIO = {
 
 def _opciones_desplegable(pedido):
     return [e for e in pedido.transiciones_para(current_user)
-            if (pedido.estado, e) not in CON_BOTON_PROPIO]
+            if (pedido.estado, e) not in CON_BOTON_PROPIO
+            and not (e == "cancelado" and current_user.rol == "cliente")]   # el cliente: «Cancelar pedido»
 
 
 def _sigue_en(pedido, *estados):
@@ -495,6 +624,9 @@ def detalle(id):
         **_contexto_proforma(pedido),
         **_contexto_facturas(pedido),
         **_contexto_incidencias(pedido),
+        # «Modificar pedido» / «Cancelar pedido» del cliente (hasta que acepta la proforma)
+        modificar_form=con_ids_propios(form_modificar(pedido), "modificar") if cliente_puede_cambiar(pedido) else None,
+        puede_cancelar=cliente_puede_cambiar(pedido, "pedidos.proforma.cancelar"),
     )
 
 

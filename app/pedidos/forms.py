@@ -222,6 +222,24 @@ class PedidoClienteForm(_PedidoConLineasForm):
         comprobar_referencia_unica(campo, self._cliente_id)
 
 
+class PedidoModificarClienteForm(PedidoClienteForm):
+    """«Modificar pedido» del cliente (mientras no lo ha aceptado): la misma ventana que al pedir,
+    con lo que lleva ya puesto. El documento aquí es opcional: el del pedido ya está; si sube otro,
+    se añade a los documentos del pedido."""
+    documento_obligatorio = False
+    documento = FileField(_l("Otro documento (opcional)"),
+                          description=_l("Si ha cambiado su orden de compra, adjunte la nueva. %(formatos)s",
+                                         formatos=TEXTO_DOCUMENTO))
+    submit = SubmitField(_l("Guardar cambios"))
+
+    def __init__(self, *args, pedido=None, **kwargs):
+        self._pedido = pedido
+        super().__init__(*args, cliente_id=pedido.cliente_id if pedido else None, **kwargs)
+
+    def validate_referencia(self, campo):
+        comprobar_referencia_unica(campo, self._cliente_id, pedido_actual=self._pedido)
+
+
 class PedidoInternoForm(_PedidoConLineasForm):
     """Formulario de Yikon (admin, logística, FAS): eligen el cliente (FAS, solo los suyos)
     y meten todos los productos de una vez. Los precios salen del catálogo y se

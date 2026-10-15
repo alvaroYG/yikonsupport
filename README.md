@@ -109,6 +109,7 @@ asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y
 | Pedidos: crear | ✓ | ✓ | — | sus clientes | vía proforma; kits y sueltos de su catálogo |
 | Enviar proformas / aceptarlas o pedir cambios | ✓ / — | ✓ / — | — | sus clientes / — | — / ✓ |
 | Cambiar líneas y precios, cancelar, reabrir | ✓ | ✓ | — | sus clientes | |
+| Modificar o cancelar su pedido hasta aceptar la proforma | | | | | ✓ |
 | Reservar lotes | ✓ | ✓ | ✓ (aceptados) | sus clientes | |
 | Preparar, hacer fotos y enviar | ✓ | | ✓ | | |
 | Validar las fotos (o devolver a preparación) | ✓ (suple) | | | sus clientes | |

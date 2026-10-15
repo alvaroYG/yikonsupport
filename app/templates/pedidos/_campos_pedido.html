@@ -49,7 +49,7 @@
     <div class="form-text" id="{{ form.referencia.id }}-ayuda">{{ form.referencia.description }}</div>
     <div class="text-danger small" id="{{ form.referencia.id }}-error" data-error-referencia
          {% if not form.referencia.errors %}hidden{% endif %}>✕ {{ form.referencia.errors[0] if form.referencia.errors
-         else _("El nº de referencia de su empresa es obligatorio.") }}</div>
+         else _("El nº de pedido interno es obligatorio.") }}</div>
   </div>
 </div>
 {# Documento del pedido: OBLIGATORIO para todos (cliente y Yikon). Pintado a mano para mostrar el error aquí

@@ -476,6 +476,20 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Preparar: los lotes debajo de cada fila** (15/10, hecho por Álvaro con ChatGPT en `pedidos/preparar.html`):
+  en «1. Qué lleva y de qué lotes», el lote, las unidades y la caducidad salen debajo de cada kit cerrado o
+  producto; si un producto va en varias filas, las reservas se reparten sin repetirse. Traducido al inglés y
+  con test (`test_preparar.py`, pedido mixto kit + suelto).
+- **El cliente modifica o cancela su pedido** (15/10) mientras no ha aceptado la proforma (proforma solicitada,
+  enviada o con cambios pedidos): botones «Modificar pedido» y «Cancelar pedido» en su ficha (ya no cancela con
+  «Cambiar estado»). Modificar abre la misma ventana que al pedir, con lo que lleva (kits, sueltos, su nº de
+  pedido, fecha y, opcional, otro documento); se conservan los precios puestos a mano por Yikon. Si ya tenía la
+  proforma, se retira (pasa a «cambios solicitados» con la nota «El cliente ha modificado el pedido…») y se
+  sueltan los lotes reservados. Guardar sin cambiar nada no hace nada. Cancelar: motivo opcional (queda en el
+  chat del pedido). Avisos nuevos en Ajustes → Avisos internos: «pedido_modificado» y «pedido_cancelado»
+  (de fábrica, Facturación y su Soporte de cliente). Ya aceptado, el cliente ve «¿Necesita cambiar algo?
+  Escríbanos» (abre el chat). Permiso nuevo `pedidos.proforma.modificar`; rutas `/pedidos/<id>/modificar` y
+  `/cancelar`. Test: `test_cliente_modifica_cancela.py`.
 - **Ficha del pedido en pestañas** (15/10, opción B de las maquetas «Ficha del pedido · tres propuestas»): la
   columna ancha va en pestañas (Contenido y lotes · Proforma · Fotos · Facturas; cada una con su resumen);
   Documentos, Datos de envío e Historial siguen a la derecha. Las pinta `static/js/ficha_pedido.js` a partir

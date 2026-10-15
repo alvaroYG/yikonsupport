@@ -1,1 +1,1 @@
-Sustituye app/templates/clientes/detalle.html y recarga la ficha. Una tarjeta de Precios especiales con pestañas Kits y Productos sueltos. Al guardar o borrar un precio de producto se vuelve a su pestaña. No requiere migración.
+Sustituye app/templates/pedidos/preparar.html. Recarga Preparar. Los lotes reservados aparecen debajo del kit cerrado o producto correspondiente. Si el mismo producto aparece en varias filas, sus cantidades se reparten en orden sin duplicarlas. Se mantienen caducidades y avisos; no se modifican las reservas ni el inventario. No requiere migración.

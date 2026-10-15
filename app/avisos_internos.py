@@ -39,6 +39,13 @@ AVISOS = {
     "cambios_proforma": Aviso(
         _l("Un cliente pide cambios a la proforma"), _l("Con lo que pide cambiar (también queda en el chat)."),
         "pedidos.proforma.enviar", de_fabrica={"facturacion", "fas"}, existia=True),
+    "pedido_modificado": Aviso(
+        _l("Un cliente modifica su pedido antes de aceptarlo"),
+        _l("Con lo que llevaba y lo que lleva ahora. Si ya tenía la proforma, se retira sola: hay que hacer otra."),
+        "pedidos.proforma.enviar", de_fabrica={"facturacion", "fas"}),
+    "pedido_cancelado": Aviso(
+        _l("Un cliente cancela su pedido antes de aceptarlo"), _l("Con el motivo, si lo da."),
+        "pedidos.ver", de_fabrica={"facturacion", "fas"}),
     "proforma_aceptada": Aviso(
         _l("Un cliente acepta la proforma"), _l("Para empezar a prepararlo."),
         "pedidos.ver", de_fabrica={"logistica"}),
@@ -186,6 +193,33 @@ def cambios_proforma(pedido, numero, comentario, quien, excluir_id=None):
         "texto": _("%(quien)s (%(cliente)s) pide cambios a la proforma %(numero)s del pedido %(ref)s.", quien=quien,
                    cliente=pedido.cliente.nombre, numero=numero, ref=_ref(pedido)),
         "comentario": comentario, "enlace": _enlace(pedido, "#proforma")}, excluir_id, pedido_id=pedido.id)
+
+
+def pedido_modificado(pedido, quien, antes, proforma_retirada=None):
+    """El cliente ha cambiado su pedido (aún sin aceptar). proforma_retirada: el nº de la proforma
+    que tenía y se ha retirado (hay que hacer otra)."""
+    def mensaje():
+        texto = _("⚠ %(quien)s (%(cliente)s) ha modificado el pedido %(ref)s.", quien=quien,
+                  cliente=pedido.cliente.nombre, ref=_ref(pedido))
+        if proforma_retirada:
+            texto += " " + _("La proforma %(numero)s que tenía se ha retirado: hay que preparar y enviar una nueva.",
+                             numero=proforma_retirada)
+        else:
+            texto += " " + _("Revisa el contenido antes de enviarle la proforma.")
+        return {"asunto": _("⚠ Pedido modificado por el cliente: %(ref)s (%(cliente)s)", ref=_ref(pedido),
+                            cliente=pedido.cliente.nombre),
+                "texto": texto + "\n\n" + _("Antes llevaba: %(antes)s", antes=antes),
+                "lineas": pedido.resumen_contenido("\n").split("\n") if pedido.lineas else [],
+                "enlace": _enlace(pedido, "#proforma")}
+    avisar("pedido_modificado", pedido.cliente, mensaje, pedido_id=pedido.id)
+
+
+def pedido_cancelado(pedido, quien, motivo=None):
+    avisar("pedido_cancelado", pedido.cliente, lambda: {
+        "asunto": _("✕ Pedido cancelado por el cliente: %(ref)s (%(cliente)s)", ref=_ref(pedido), cliente=pedido.cliente.nombre),
+        "texto": _("%(quien)s (%(cliente)s) ha cancelado el pedido %(ref)s.", quien=quien,
+                   cliente=pedido.cliente.nombre, ref=_ref(pedido)),
+        "comentario": motivo or None, "enlace": _enlace(pedido)}, pedido_id=pedido.id)
 
 
 def proforma_aceptada(pedido, numero, quien):

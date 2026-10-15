@@ -84,3 +84,25 @@ def test_aceptado_se_empieza_desde_el_movil(app, client):
     assert r.headers["Location"].endswith(f"/pedidos/{p.id}/preparar")
     assert db.session.get(Pedido, p.id).estado == "en_preparacion"
     assert 'capture="environment"' in client.get(f"/pedidos/{p.id}/preparar").get_data(as_text=True)
+
+
+def test_los_lotes_salen_debajo_de_cada_fila_sin_duplicar(app, client):
+    """15/10 (cambio de Álvaro en preparar.html): el lote, la cantidad y la caducidad, debajo de cada
+    kit o producto de «Qué lleva». Si el mismo producto va en un kit y suelto, las unidades
+    reservadas se reparten entre las filas (no se repiten)."""
+    from tests.conftest import contenido, doc_pedido, proforma_aceptada
+    login(client, "admin")
+    client.post("/inventario/movimiento", data={"producto_id": 1, "tipo": "entrada", "cantidad": 10,
+                                                "lote": "L-MIXTO", "caducidad": "2099-12-31"})
+    client.post("/auth/logout")
+    login(client, "cliA")
+    client.post("/pedidos/nuevo", data={"contenido": contenido([(1, 1, {1: 1})], sueltos={1: 2}),
+                                        "fecha": "2026-09-25", "referencia": "OC-MIXTO", "documento": doc_pedido()})
+    proforma_aceptada()
+    client.post("/auth/logout")
+    p = db.session.scalar(db.select(Pedido).order_by(Pedido.id.desc()))
+    login(client, "admin")
+    html = client.get(f"/pedidos/{p.id}/preparar").get_data(as_text=True)
+    assert html.count('L-MIXTO</span> × <strong>1</strong>') == 1      # la fila del kit
+    assert html.count('L-MIXTO</span> × <strong>2</strong>') == 1      # la del suelto
+    assert "Pendiente de reservar" not in html

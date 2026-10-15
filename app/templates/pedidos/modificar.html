@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{# «Modificar pedido» del cliente en página propia: se usa si el navegador no abre la ventana (o al volver
+   con un error). Lo normal es la ventana de la ficha del pedido (pedidos/detalle.html). #}
+{% block contenido %}
+<h1 class="h3">{{ _('Modificar pedido') }} <span class="badge ref-interna ms-2 align-middle">{{ pedido.referencia_interna }}</span></h1>
+<p class="text-muted">{{ pedido.cliente.nombre }}</p>
+{% if pedido.estado in ('proforma_enviada', 'cambios_solicitados') %}
+<div class="alert alert-warning" style="max-width:720px"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Al guardar se retira la proforma que le enviamos y le prepararemos una nueva con los cambios.') }}</div>
+{% endif %}
+<div class="card" style="max-width:720px"><div class="card-body">
+<form method="post" action="{{ url_for('pedidos.modificar', id=pedido.id) }}" enctype="multipart/form-data" novalidate>
+  {% include "pedidos/_campos_pedido.html" %}
+  <div class="mt-3">
+    {{ form.submit(id=False, class_="btn btn-primary") }}
+    <a href="{{ url_for('pedidos.detalle', id=pedido.id) }}" class="btn btn-link">{{ _('Volver sin cambiar nada') }}</a>
+  </div>
+</form></div></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>
+{% endblock %}

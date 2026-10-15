@@ -28,6 +28,11 @@
       {% if pedido.fecha_entrega_estimada and pedido.estado == 'enviado' %}
         · <strong class="text-body">🚚 {{ _('Entrega estimada: %(fecha)s', fecha=pedido.fecha_entrega_estimada|fecha) }}</strong>{% endif %}
       {% if pedido.creado_por %}· {{ _('creado por %(nombre)s', nombre=pedido.creado_por.nombre) }}{% endif %}</div>
+    {# El cliente, ya aceptado y antes de salir: los cambios, por el chat #}
+    {% if current_user.rol == 'cliente' and pedido.estado in ('aceptado', 'en_preparacion', 'en_validacion', 'validado') and (mensaje_form or mensajes) %}
+    <div class="small mt-1"><i class="fas fa-info-circle me-1 text-marca" aria-hidden="true"></i>{{ _('¿Necesita cambiar algo?') }}
+      <button type="button" class="btn btn-link btn-sm p-0 align-baseline" data-abre-chat="mensajes">{{ _('Escríbanos') }}</button></div>
+    {% endif %}
     {# Seguimiento del envío: lo ve también el cliente #}
     {% if pedido.estado in ('enviado', 'entregado') and (pedido.transportista or pedido.numero_seguimiento or pedido.enlace_seguimiento) %}
     <div class="seguimiento mt-2">
@@ -57,6 +62,16 @@
             onsubmit='return confirm({{ _("¿Marcar como recibido en nombre del cliente?")|tojson }})'>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn btn-outline-primary"><i class="fas fa-flag-checkered me-1" aria-hidden="true"></i>{{ _('Marcar como recibido') }}</button></form>{% endif %}
+    {# El cliente, hasta que acepta la proforma: «Modificar pedido» y «Cancelar pedido» (ventanas más abajo) #}
+    {% if modificar_form %}
+      <a href="{{ url_for('pedidos.modificar', id=pedido.id) }}" class="btn btn-outline-primary"
+         data-bs-toggle="modal" data-bs-target="#modal-modificar" data-repetir="{{ modificar_form.contenido.data or '' }}">
+        <i class="fas fa-pen me-1" aria-hidden="true"></i>{{ _('Modificar pedido') }}</a>
+    {% endif %}
+    {% if puede_cancelar %}
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-cancelar">
+        <i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Cancelar pedido') }}</button>
+    {% endif %}
     {# Incidencias: el cliente avisa de un problema con un pedido que ya tiene (ventana más abajo) #}
     {% if puede_abrir_incidencia %}
       <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modal-incidencia">
@@ -589,6 +604,55 @@
 
 {# El siguiente paso para quien mira: barra fija abajo #}
 {% include "pedidos/_lo_que_toca.html" %}
+
+{# Ventana «Modificar pedido» (el cliente, hasta que acepta la proforma): la misma que al pedir, con lo
+   que lleva ya puesto (el botón le pasa el contenido en data-repetir: js/pedido.js) #}
+{% if modificar_form %}
+<div class="modal fade" id="modal-modificar" tabindex="-1" aria-labelledby="modal-modificar-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+    <form method="post" action="{{ url_for('pedidos.modificar', id=pedido.id) }}" enctype="multipart/form-data" novalidate>
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="modal-modificar-titulo">{{ _('Modificar pedido') }} <span class="badge ref-interna ms-2">{{ pedido.referencia_interna }}</span></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+      </div>
+      <div class="modal-body">
+        {% if pedido.estado in ('proforma_enviada', 'cambios_solicitados') %}
+        <div class="alert alert-warning py-2 small"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Al guardar se retira la proforma que le enviamos y le prepararemos una nueva con los cambios.') }}</div>
+        {% endif %}
+        {% with form=modificar_form %}{% include "pedidos/_campos_pedido.html" %}{% endwith %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Volver sin cambiar nada') }}</button>
+        {{ modificar_form.submit(id=False, class_="btn btn-primary") }}
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endif %}
+
+{# Ventana «Cancelar pedido» (el cliente, hasta que acepta la proforma). El motivo es opcional. #}
+{% if puede_cancelar %}
+<div class="modal fade" id="modal-cancelar" tabindex="-1" aria-labelledby="modal-cancelar-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{{ url_for('pedidos.cancelar', id=pedido.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-header"><h2 class="modal-title h5" id="modal-cancelar-titulo">{{ _('¿Cancelar el pedido %(ref)s?', ref=pedido.referencia_interna) }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button></div>
+      <div class="modal-body">
+        {% if pedido.estado == 'proforma_enviada' %}<p class="small">{{ _('La proforma que le enviamos quedará anulada.') }}</p>{% endif %}
+        <label class="form-label" for="motivo-cancelar">{{ _('Motivo (opcional)') }}</label>
+        <textarea class="form-control" id="motivo-cancelar" name="motivo" rows="3" maxlength="1000"
+                  placeholder="{{ _('Nos ayuda a mejorar, pero no es obligatorio.') }}"></textarea>
+        <p class="small text-muted mt-2 mb-0">{{ _('Avisaremos a su contacto en Yikon. Si cambia de idea, puede hacer un pedido nuevo cuando quiera.') }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('No, mantener el pedido') }}</button>
+        <button class="btn btn-danger"><i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Sí, cancelar el pedido') }}</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endif %}
 
 {# Ventana "Hay un problema con este pedido" (el cliente; app/incidencias.py) #}
 {% if puede_abrir_incidencia %}

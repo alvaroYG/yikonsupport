@@ -248,8 +248,9 @@ def test_numeracion_sin_choques(app, client, monkeypatch):
 def test_el_cliente_cancela_mientras_es_proforma(app, client):
     p = _pedir(client)
     login(client, "cliA")
-    assert 'value="cancelado"' in client.get(f"/pedidos/{p.id}").get_data(as_text=True)
-    client.post(f"/pedidos/{p.id}/estado", data={"estado": "cancelado"})
+    html = client.get(f"/pedidos/{p.id}").get_data(as_text=True)
+    assert 'value="cancelado"' not in html and 'data-bs-target="#modal-cancelar"' in html   # 15/10: su propio botón
+    client.post(f"/pedidos/{p.id}/cancelar")
     assert db.session.get(Pedido, p.id).estado == "cancelado"
     # pero una vez aceptado, ya no (lo cancela Yikon)
     pedido_cliente(client, con_proforma=True)
@@ -258,3 +259,5 @@ def test_el_cliente_cancela_mientras_es_proforma(app, client):
     login(client, "cliA"); client.post(f"/pedidos/{q.id}/proforma/responder", data={"aceptar": "1"})
     assert db.session.get(Pedido, q.id).estado == "aceptado"
     assert client.post(f"/pedidos/{q.id}/estado", data={"estado": "cancelado"}).status_code == 403
+    client.post(f"/pedidos/{q.id}/cancelar")
+    assert db.session.get(Pedido, q.id).estado == "aceptado"

@@ -314,7 +314,7 @@
 <script src="{{ url_for('static', filename='js/menu.js') }}"></script>
 {% if current_user.is_authenticated %}<script src="{{ url_for('static', filename='js/buscador.js') }}"></script>{% endif %}
 {% if current_user.is_authenticated and not current_user.es_cliente and current_user.puede('mensajes.ver') %}<script src="{{ url_for('static', filename='js/mensajes_flotante.js') }}"></script>{% endif %}
-{% if nuevo_pedido_form and request.endpoint != 'pedidos.nuevo' %}
+{% if nuevo_pedido_form and request.endpoint not in ('pedidos.nuevo', 'pedidos.modificar') %}
   {% with form_pedido=nuevo_pedido_form() %}{% include "pedidos/_modal_pedido.html" %}{% endwith %}
 {% endif %}
 {% include "_revision_correo.html" %}
