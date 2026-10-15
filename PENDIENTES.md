@@ -476,6 +476,15 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Ficha del pedido en pestañas** (15/10, opción B de las maquetas «Ficha del pedido · tres propuestas»): la
+  columna ancha va en pestañas (Contenido y lotes · Proforma · Fotos · Facturas; cada una con su resumen);
+  Documentos, Datos de envío e Historial siguen a la derecha. Las pinta `static/js/ficha_pedido.js` a partir
+  de cada `.grupo-pestana` de `pedidos/detalle.html` (sin JavaScript se ve todo seguido); se abre la de la
+  dirección (#lotes, #facturas…), si no la de «Lo que toca». Barra fija abajo **«Lo que toca»**
+  (`pedidos/_lo_que_toca.html`): el siguiente paso para quien mira (enviar la proforma, empezar la preparación,
+  hacer fotos / mandar a validar, validar, enviar, confirmar la recepción, la factura…); los pasos de un clic se
+  hacen ahí. Cabecera: «Repetir» y «Cambiar estado» con texto; fuera «Abrir todo» y el icono de registrar
+  factura (es la pestaña). Test: `test_ficha_pestanas.py`.
 - **Quién habla con los clientes** (14/10): en Ajustes → Qué ve cada rol, un bloque nuevo con dos filas:
   «Conversación general» (de fábrica: el FAS) y «Mensajes en los pedidos» (de fábrica: Facturación, Almacén y
   FAS); admin y el cliente, siempre. Sin la casilla, el rol lee pero no escribe. Dar la general a Facturación

@@ -37,34 +37,26 @@
       {% if pedido.enlace_seguimiento %}· <a href="{{ pedido.enlace_seguimiento }}" target="_blank" rel="noopener noreferrer">{{ _('Seguir el envío ↗') }}</a>{% endif %}
     </div>
     {% endif %}</div>
-  {# Acciones del pedido: botones de solo icono. El texto va en title (mensaje al pasar el
-     ratón, que ficha_pedido.js convierte en el aviso de Bootstrap) y en aria-label (lectores
-     de pantalla). "Empezar preparación" conserva su texto: es el paso principal del flujo. #}
+  {# Acciones del pedido, con su nombre escrito. El paso que le toca a quien mira (empezar la
+     preparación, validar, confirmar la recepción…) no está aquí: va en la barra «Lo que toca»
+     de abajo (pedidos/_lo_que_toca.html). #}
   <div class="d-flex flex-wrap gap-2 justify-content-end" id="acciones-pedido">
-    {# Abre o cierra todas las secciones de la ficha (js/ficha_pedido.js) #}
-    <button type="button" class="btn btn-outline-secondary" id="btn-secciones"
-            data-abrir="{{ _('Abrir todo') }}" data-cerrar="{{ _('Cerrar todo') }}"
-            title="{{ _('Abrir todo') }}" aria-label="{{ _('Abrir todo') }}"><i class="fas fa-expand-alt" aria-hidden="true"></i></button>
     {# Repetir: abre la ventana de nuevo pedido con los mismos productos ya puestos #}
     {% if repetir_json and nuevo_pedido_form %}
       <a href="{{ url_for('pedidos.nuevo', repetir=pedido.id, cliente_id=pedido.cliente_id) }}" class="btn btn-outline-primary"
          data-bs-toggle="modal" data-bs-target="#modal-pedido" data-repetir="{{ repetir_json }}"
          data-cliente-id="{{ pedido.cliente_id }}"
-         title="{{ _('Repetir pedido') }}" aria-label="{{ _('Repetir pedido') }}"><i class="fas fa-redo" aria-hidden="true"></i></a>
+         title="{{ _('Hacer otro pedido con lo mismo') }}"><i class="fas fa-redo me-1" aria-hidden="true"></i>{{ _('Repetir') }}</a>
     {% endif %}
     {% if estado_form %}
       <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-estado"
-              title="{{ _('Cambiar estado') }}" aria-label="{{ _('Cambiar estado') }}"><i class="fas fa-exchange-alt" aria-hidden="true"></i></button>{% endif %}
-    {# Los pasos del flujo con su propio botón (el resto, en "Cambiar estado") #}
-    {% if current_user.puede('pedidos.preparar') and pedido.lineas and pedido.estado == 'aceptado' %}
-      <form method="post" action="{{ url_for('pedidos.empezar_preparacion', id=pedido.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-primary" style="white-space:nowrap"><i class="fas fa-box-open me-1"></i> {{ _('Empezar preparación') }}</button></form>{% endif %}
-    {% if pedido.estado == 'enviado' and (current_user.puede('pedidos.recibir') or current_user.puede('pedidos.enviar')) %}
+              ><i class="fas fa-exchange-alt me-1" aria-hidden="true"></i>{{ _('Cambiar estado') }}</button>{% endif %}
+    {# Recibido en nombre del cliente (Yikon). Al cliente se le pide en la barra «Lo que toca». #}
+    {% if pedido.estado == 'enviado' and current_user.rol != 'cliente' and current_user.puede('pedidos.enviar') %}
       <form method="post" action="{{ url_for('pedidos.marcar_recibido', id=pedido.id) }}"
-            onsubmit='return confirm({{ (_("¿Confirma que ha recibido el pedido?") if current_user.rol == "cliente" else _("¿Marcar como recibido en nombre del cliente?"))|tojson }})'>
+            onsubmit='return confirm({{ _("¿Marcar como recibido en nombre del cliente?")|tojson }})'>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-primary" title="{{ _('Marcar como recibido') }}" aria-label="{{ _('Marcar como recibido') }}"><i class="fas fa-flag-checkered" aria-hidden="true"></i></button></form>{% endif %}
+        <button class="btn btn-outline-primary"><i class="fas fa-flag-checkered me-1" aria-hidden="true"></i>{{ _('Marcar como recibido') }}</button></form>{% endif %}
     {# Incidencias: el cliente avisa de un problema con un pedido que ya tiene (ventana más abajo) #}
     {% if puede_abrir_incidencia %}
       <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modal-incidencia">
@@ -84,8 +76,6 @@
         <i class="fas fa-lock" aria-hidden="true"></i><span class="ms-1">{{ _('Interno') }}</span>
         {% if internos_sin_leer %}<span class="contador-chat" data-contador-chat>{{ internos_sin_leer }}<span class="visually-hidden"> {{ _('sin leer') }}</span></span>{% endif %}</button>
     {% endif %}
-    {% if factura_form %}
-      <a href="#facturas" class="btn btn-outline-primary" title="{{ _('Registrar factura') }}" aria-label="{{ _('Registrar factura') }}"><i class="fas fa-file-invoice" aria-hidden="true"></i></a>{% endif %}
   </div>
 
   {# ---------- Chats del pedido: se abren debajo de la cabecera (js/chat_pedido.js) ----------
@@ -152,17 +142,35 @@
 {% endif %}
 
 {# ====================================================================================
-   LA FICHA, EN DOS COLUMNAS DE SECCIONES PLEGABLES (macro `seccion` de _macros.html)
-     Izquierda (ancha): lo que ES el pedido → contenido, lotes, facturas, proforma, fotos.
-     Derecha (estrecha): lo de consulta    → documentos, envío, historial.
+   LA FICHA: PESTAÑAS A LA IZQUIERDA Y DOCUMENTOS A LA DERECHA
+     Izquierda (ancha): lo que ES el pedido, en pestañas (cada .grupo-pestana es una):
+       Contenido y lotes · Proforma · Fotos · Facturas.
+       js/ficha_pedido.js pinta la barra de pestañas a partir de los grupos que hay (cada
+       pestaña enseña el resumen de su primera sección) y enseña uno cada vez. Sin JavaScript
+       se ve todo seguido, como antes. Se abre la pestaña de la dirección (#facturas, #lotes…),
+       si no la de «Lo que toca» y si no la primera.
+     Derecha (estrecha): documentos, datos de envío e historial, siempre a la vista (secciones
+       plegables como antes: qué está abierto lo recuerda el navegador de cada persona).
    Los mensajes no están en la ficha: van en los botones de chat de la cabecera (más arriba).
-   El orden no cambia nunca. Cada sección enseña su resumen en la cabecera, esté abierta o
-   cerrada. Qué está abierto lo recuerda el navegador de cada persona (js/ficha_pedido.js);
-   una sección con algo que hacer (data-forzar) llega siempre abierta.
+   Lo que le toca hacer a quien mira va en la barra fija de abajo (pedidos/_lo_que_toca.html).
    En pantallas estrechas las dos columnas se apilan (CSS: .ficha-columnas).
    ==================================================================================== #}
 <div class="ficha-columnas">
 <div class="ficha-principal">
+<nav class="pestanas-ficha" aria-label="{{ _('Partes del pedido') }}" data-pestanas hidden></nav>
+{# Aviso de cada pestaña (sale junto a su nombre): solo si ahí hay algo que te toca o un problema #}
+{% set aviso = namespace(pedido='', proforma='', fotos='', facturas='') %}
+{% if incidencias|selectattr('abierta')|list %}{% set aviso.pedido = _('problema abierto') %}
+{% elif problemas_lotes and current_user.puede('pedidos.lotes') %}{% set aviso.pedido = _('faltan lotes') %}{% endif %}
+{% if proforma_form %}{% set aviso.proforma = _('cambios pedidos') if pedido.estado == 'cambios_solicitados' else _('por enviar') %}
+{% elif respuesta_form %}{% set aviso.proforma = _('por responder') %}{% endif %}
+{% if validacion_form %}{% set aviso.fotos = _('por validar') %}
+{% elif fotos_form and pedido.estado == 'en_preparacion' %}{% set aviso.fotos = _('devuelto') if pedido.devuelto else (_('por enviar a validar') if pedido.fotos else _('por hacer')) %}{% endif %}
+{% if current_user.puede('facturas.revisar') and pedido.facturas|selectattr('fase', 'equalto', 'revision')|list %}{% set aviso.facturas = _('por revisar') %}
+{% elif current_user.puede('facturas.editar') and pedido.facturas|selectattr('fase', 'equalto', 'por_enviar')|list %}{% set aviso.facturas = _('por enviar') %}
+{% elif factura_form and not pedido.facturas and pedido.estado in ('enviado', 'entregado') %}{% set aviso.facturas = _('por registrar') %}{% endif %}
+
+<div class="grupo-pestana" id="pestana-pedido" data-pestana="pedido" data-aviso="{{ aviso.pedido }}" data-orden="1" data-titulo="{{ _('Contenido y lotes') }}" data-icono="fa-boxes">
 
 {# ---------- Contenido del pedido: kits (con sus productos) y productos sueltos ----------
    - Los kits llevan el precio (por kit); sus productos no tienen precio propio.
@@ -348,9 +356,12 @@
 {% endcall %}
 {% endif %}
 
+</div>{# /pestaña Contenido y lotes #}
+
 {# ---------- Facturas de este pedido ----------
    Yikon: lista, PDF y registrar una nueva con los importes del pedido.
    Cliente: sus facturas con el PDF (sin notas internas), solo las ya enviadas. #}
+<div class="grupo-pestana" id="pestana-facturas" data-pestana="facturas" data-aviso="{{ aviso.facturas }}" data-orden="4" data-titulo="{{ _('Facturas') }}" data-icono="fa-file-invoice">
 {% set gestiona = current_user.puede('facturas.ver') %}
 {# El cliente solo ve las que ya le hemos enviado (no las que están en revisión o por enviar) #}
 {% set facturas_visibles = pedido.facturas if gestiona else pedido.facturas|selectattr('enviada')|list %}
@@ -429,7 +440,13 @@
 {% endcall %}
 {% endif %}
 
+</div>{# /pestaña Facturas #}
+
+<div class="grupo-pestana" id="pestana-proforma" data-pestana="proforma" data-aviso="{{ aviso.proforma }}" data-orden="2" data-titulo="{{ _('Proforma') }}" data-icono="fa-file-signature">
 {% include "pedidos/_proforma.html" %}
+</div>
+
+<div class="grupo-pestana" id="pestana-fotos" data-pestana="fotos" data-aviso="{{ aviso.fotos }}" data-orden="3" data-titulo="{{ _('Fotos') }}" data-icono="fa-camera">
 
 {# ---------- Fotos de preparación (nunca visibles para el cliente) ---------- #}
 {% if current_user.puede('pedidos.fotos.ver') and (pedido.fotos or puede_subir_fotos or validacion_form) %}
@@ -497,6 +514,8 @@
   {% endif %}
 {% endcall %}
 {% endif %}
+</div>{# /pestaña Fotos #}
+
 
 </div>
 
@@ -551,7 +570,7 @@
 {% set iconos = iconos_estado %}
 {% if historial %}
 {% set resumen_historial %}{{ historial[-1].titulo }} · {{ historial[-1].fecha|fecha_hora('%d/%m %H:%M') }}{% endset %}
-{% call seccion('historial', _('Historial'), 'fa-stream', resumen_historial, abierta=false) %}
+{% call seccion('historial', _('Historial'), 'fa-stream', resumen_historial, abierta=true) %}
   <ol class="historial">
     {% for e in historial %}
     <li class="{{ 'es-estado' if e.estado else '' }}">
@@ -567,6 +586,9 @@
 {% endif %}
 </div>
 </div>
+
+{# El siguiente paso para quien mira: barra fija abajo #}
+{% include "pedidos/_lo_que_toca.html" %}
 
 {# Ventana "Hay un problema con este pedido" (el cliente; app/incidencias.py) #}
 {% if puede_abrir_incidencia %}

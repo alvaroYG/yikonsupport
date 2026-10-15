@@ -1,0 +1,97 @@
+{# ---------- «Lo que toca»: la barra fija de abajo de la ficha del pedido ----------
+   El siguiente paso del pedido PARA QUIEN MIRA, siempre a la vista (aunque estés en otra pestaña).
+   Solo sale si esta persona tiene algo que hacer. Los pasos de un clic (empezar la preparación,
+   validar, marcar como recibido) se hacen aquí mismo; el resto lleva a su pestaña («Ir a…»).
+   `paso.ir` es el id de la sección (la pestaña que la contiene se abre: js/ficha_pedido.js). #}
+{% set paso = namespace(texto=none, detalle=none, ir=none, icono='fa-hand-point-right', accion=none) %}
+{% set facturas_en_revision = pedido.facturas|selectattr('fase', 'equalto', 'revision')|list %}
+{% set facturas_por_enviar = pedido.facturas|selectattr('fase', 'equalto', 'por_enviar')|list %}
+{% if validacion_form %}
+  {% set paso.texto = _('Revisa las fotos: ¿está bien preparado y se puede enviar?') %}
+  {% set paso.detalle = ngettext('%(num)s foto de la preparación', '%(num)s fotos de la preparación', pedido.fotos|length) %}
+  {% set paso.icono = 'fa-eye' %}
+  {% set paso.ir = 'fotos' %}
+  {% set paso.accion = 'validar' %}
+{% elif respuesta_form %}
+  {% set paso.texto = _('Revise la proforma y acéptela o pida cambios') %}
+  {% set paso.icono = 'fa-file-signature' %}
+  {% set paso.ir = 'proforma' %}
+{% elif proforma_form %}
+  {% set paso.texto = _('El cliente ha pedido cambios a la proforma') if pedido.estado == 'cambios_solicitados' else _('Prepara y envía la proforma') %}
+  {% set paso.detalle = _('Revisa el contenido y los lotes antes de enviarla') %}
+  {% set paso.icono = 'fa-file-signature' %}
+  {% set paso.ir = 'proforma' %}
+{% elif current_user.puede('pedidos.preparar') and pedido.lineas and pedido.estado == 'aceptado' %}
+  {% set paso.texto = _('Aceptado: listo para empezar a prepararlo') %}
+  {% set paso.icono = 'fa-box-open' %}
+  {% set paso.accion = 'preparar' %}
+{% elif fotos_form and pedido.estado == 'en_preparacion' %}
+  {% set paso.texto = _('Haz las fotos y mándalo a validar') if not pedido.fotos else _('Cuando esté listo, mándalo a validar') %}
+  {% set paso.detalle = ngettext('%(num)s foto subida', '%(num)s fotos subidas', pedido.fotos|length) if pedido.fotos else none %}
+  {% set paso.icono = 'fa-camera' %}
+  {% set paso.ir = 'fotos' %}
+  {% if pedido.fotos %}{% set paso.accion = 'a_validacion' %}{% endif %}
+{% elif problemas_lotes and current_user.puede('pedidos.lotes') %}
+  {% set paso.texto = _('Faltan lotes por asignar') %}
+  {% set paso.icono = 'fa-lock' %}
+  {% set paso.ir = 'lotes' %}
+{% elif pedido.estado == 'validado' and estado_form and 'enviado' in estado_form.estado.choices|map('first') %}
+  {% set paso.texto = _('Validado: listo para enviar') %}
+  {% set paso.detalle = _('Al enviarlo se piden el transportista y el nº de seguimiento') %}
+  {% set paso.icono = 'fa-truck' %}
+  {% set paso.accion = 'enviar' %}
+{% elif pedido.estado == 'enviado' and current_user.puede('pedidos.recibir') %}
+  {% set paso.texto = _('¿Ha llegado el pedido? Confírmenos que lo ha recibido') %}
+  {% set paso.icono = 'fa-flag-checkered' %}
+  {% set paso.accion = 'recibido' %}
+{% elif facturas_en_revision and current_user.puede('facturas.revisar') %}
+  {% set paso.texto = _('Revisa la factura antes de que se envíe') %}
+  {% set paso.icono = 'fa-file-invoice' %}
+  {% set paso.ir = 'facturas' %}
+{% elif facturas_por_enviar and current_user.puede('facturas.editar') %}
+  {% set paso.texto = _('La factura está lista: envíala al cliente') %}
+  {% set paso.icono = 'fa-file-invoice' %}
+  {% set paso.ir = 'facturas' %}
+{% elif factura_form and not pedido.facturas and pedido.estado in ('enviado', 'entregado') %}
+  {% set paso.texto = _('Falta registrar la factura') %}
+  {% set paso.icono = 'fa-file-invoice' %}
+  {% set paso.ir = 'facturas' %}
+{% endif %}
+
+{% if paso.texto %}
+<div class="lo-que-toca" role="region" aria-label="{{ _('Lo que toca ahora') }}" data-lo-que-toca{% if paso.ir %} data-pestana-inicial="{{ paso.ir }}"{% endif %}>
+  <span class="lo-que-toca-icono"><i class="fas {{ paso.icono }}" aria-hidden="true"></i></span>
+  <div class="lo-que-toca-texto">
+    <strong>{{ paso.texto }}</strong>
+    {% if paso.detalle or paso.accion == 'validar' %}<div class="small text-muted">{{ paso.detalle or '' }}{% if paso.accion == 'validar' and current_user.rol != 'fas' %} · {{ _('Normalmente valida %(rol)s: si lo haces tú, queda registrado.', rol=rol_fas) }}{% endif %}</div>{% endif %}
+  </div>
+  <div class="lo-que-toca-botones">
+  {% if paso.accion == 'validar' %}
+    <a href="#fotos" class="btn btn-outline-danger" data-ir-a="fotos" data-enfocar="#{{ validacion_form.comentario.id }}"><i class="fas fa-times me-1" aria-hidden="true"></i>{{ _('Rechazar…') }}</a>
+    <form method="post" action="{{ url_for('pedidos.validar', id=pedido.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primary" name="aprobar" value="1"><i class="fas fa-check me-1" aria-hidden="true"></i>{{ _('Validar y dar permiso para enviar') }}</button></form>
+  {% elif paso.accion == 'preparar' %}
+    <form method="post" action="{{ url_for('pedidos.empezar_preparacion', id=pedido.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primary"><i class="fas fa-box-open me-1" aria-hidden="true"></i>{{ _('Empezar preparación') }}</button></form>
+  {% elif paso.accion == 'a_validacion' %}
+    <a href="#fotos" class="btn btn-outline-primary" data-ir-a="fotos"><i class="fas fa-camera me-1" aria-hidden="true"></i>{{ _('Ver las fotos') }}</a>
+    <form method="post" action="{{ url_for('pedidos.enviar_a_validacion', id=pedido.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primary">{{ _('Enviar a validación →') }}</button></form>
+  {% elif paso.accion == 'enviar' %}
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-estado" data-estado-destino="enviado">
+      <i class="fas fa-truck me-1" aria-hidden="true"></i>{{ _('Enviar…') }}</button>
+  {% elif paso.accion == 'recibido' %}
+    <form method="post" action="{{ url_for('pedidos.marcar_recibido', id=pedido.id) }}"
+          onsubmit='return confirm({{ (_("¿Confirma que ha recibido el pedido?") if current_user.rol == "cliente" else _("¿Marcar como recibido en nombre del cliente?"))|tojson }})'>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primary"><i class="fas fa-flag-checkered me-1" aria-hidden="true"></i>{{ _('Marcar como recibido') }}</button></form>
+  {% else %}
+    {% set destinos = {'fotos': _('Ir a las fotos'), 'proforma': _('Ir a la proforma'), 'lotes': _('Ir a los lotes'), 'facturas': _('Ir a las facturas')} %}
+    <a href="#{{ paso.ir }}" class="btn btn-primary" data-ir-a="{{ paso.ir }}">{{ destinos[paso.ir] }} <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i></a>
+  {% endif %}
+  </div>
+</div>
+{% endif %}

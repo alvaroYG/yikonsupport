@@ -34,7 +34,7 @@
 
   {% if proforma_form %}
     {% if pedido.estado == 'cambios_solicitados' %}{{ cambios_pedidos }}{% endif %}
-    <p class="small text-muted">{{ _('El cliente ha pedido una proforma. Revisa el contenido del pedido y los lotes (las dos secciones de arriba): al enviarla se guarda tal cual está ahora, con la caducidad de los lotes elegidos, que quedan reservados, y el cliente recibe un email.') }}</p>
+    <p class="small text-muted">{{ _('El cliente ha pedido una proforma. Revisa el contenido del pedido y los lotes (pestaña «Contenido y lotes»): al enviarla se guarda tal cual está ahora, con la caducidad de los lotes elegidos, que quedan reservados, y el cliente recibe un email.') }}</p>
     {% include "pedidos/_proforma_tabla.html" %}
     <form method="post" action="{{ url_for('proformas.enviar', id=pedido.id) }}" class="row g-3 mt-1"
           enctype="multipart/form-data" novalidate>

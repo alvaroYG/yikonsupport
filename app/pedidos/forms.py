@@ -194,10 +194,10 @@ class _PedidoConLineasForm(FlaskForm):
 
 class PedidoClienteForm(_PedidoConLineasForm):
     """Formulario del usuario cliente: el cliente es SU empresa, no se elige."""
-    referencia = StringField(_l("Nº de referencia de su empresa"),
-                             validators=[DataRequired(message=_l("El nº de referencia de su empresa es obligatorio.")),
+    referencia = StringField(_l("Nº de pedido de empresa"),
+                             validators=[DataRequired(message=_l("El nº de pedido interno es obligatorio.")),
                                          Length(max=50)],
-                             description=_l("Su número de pedido interno."))
+                             description=_l("Su número de pedido interno de la empresa."))
     documento = FileField(_l("Documento de su pedido interno"),
                           description=_l("La orden de compra o registro interno. %(formatos)s", formatos=TEXTO_DOCUMENTO))
     submit = SubmitField(_l("Solicitar proforma"))   # el pedido empieza pidiendo proforma
@@ -228,7 +228,7 @@ class PedidoInternoForm(_PedidoConLineasForm):
     pueden retocar después en la ficha (descuentos, quitar/añadir líneas)."""
     cliente_id = SelectField(_l("Cliente"), coerce=int, validators=[DataRequired(message=_l("Elige el cliente."))])
     # filters: se aplica ANTES de validar (Optional() cortaría el strip del validador)
-    referencia = StringField(_l("Nº de referencia de la empresa"), filters=[lambda s: (s or "").strip() or None],
+    referencia = StringField(_l("Nº de pedido de empresa"), filters=[lambda s: (s or "").strip() or None],
                              validators=[Optional(), Length(max=50)],
                              description=_l("Opcional: el nº de pedido del cliente, si lo tiene."))
     documento = FileField(_l("Documento del pedido"), description=TEXTO_DOCUMENTO)

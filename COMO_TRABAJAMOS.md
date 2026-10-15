@@ -30,7 +30,7 @@ Recoge cómo le gusta trabajar a Álvaro y las reglas que se han ido decidiendo.
    - Lee el código que vas a tocar antes de editarlo (no lo reconstruyas de memoria).
    - Tests nuevos para lo nuevo, con aserciones **que comprueben algo de verdad** (no le gustan las
      aserciones vacías). Ajusta los tests existentes solo si el comportamiento cambió a propósito.
-   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 629 tests y pasan todos:
+   - Pasa **toda** la batería (`python -m pytest -q`) antes de entregar. Hoy son 635 tests y pasan todos:
      no se entrega nada con alguno en rojo.
    - Traducciones al inglés (ver más abajo): `tests/test_idioma.py` falla si queda algo sin traducir.
    - Migraciones: una por paso, encadenada a la última, probada **subiendo, bajando y volviendo a subir**.
@@ -128,5 +128,5 @@ que te trae un informe; se amplía con los pasos de lo nuevo.
 - Última migración: `d4e8a1c6f203` (compartir un mensaje con Almacén o Facturación).
 - **En producción** desde el 13/10/2026 en https://yikonsupport.com (Hetzner). Cómo entrar al servidor
   (`ssh alvaro@2.31.22.223`), correo (Brevo), copias y cómo actualizar: «Nuestro servidor» en `DESPLIEGUE.md`.
-- Tests: 629, todos pasan (los de la revisión de correos se adaptaron con `confirmar_correos()` de
+- Tests: 635, todos pasan (los de la revisión de correos se adaptaron con `confirmar_correos()` de
   `tests/conftest.py`, que hace lo que el botón «Enviar» de la ventana de revisión).

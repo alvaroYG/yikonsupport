@@ -807,6 +807,39 @@ body.sin-sesion .login-caja {
   color: #6a5f70; font-size: .85rem; font-weight: 400; margin-left: .35rem; }
 .seccion-flecha { color: #6a5f70; flex-shrink: 0; transition: transform .2s ease; }
 .seccion-cab:not(.collapsed) .seccion-flecha { transform: rotate(180deg); }
+
+/* Ficha del pedido: pestañas de la columna ancha (js/ficha_pedido.js las pinta a partir de cada .grupo-pestana) */
+.grupo-pestana { display: flex; flex-direction: column; gap: .75rem; }
+.grupo-pestana[hidden] { display: none !important; }
+.pestanas-ficha { display: flex; flex-wrap: wrap; gap: .35rem; padding: .35rem; background: #fff; border: 1px solid var(--borde); border-radius: 1rem; }
+.pestana-ficha { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem; padding: .35rem .9rem; border: 0; border-radius: .75rem;
+  background: transparent; color: #4a4050; font-weight: 700; white-space: nowrap; }
+.pestana-ficha > i { color: var(--marca); }
+.pestana-aviso { display: inline-flex; align-items: center; gap: .25rem; font-size: .78rem; font-weight: 700; color: #8a3a00;
+  background: #fff1e0; border: 1px solid #f2c48d; border-radius: 999px; padding: .05rem .5rem; }
+.pestana-ficha:hover { background: #faf5fa; color: var(--marca-oscuro); }
+.pestana-ficha:focus-visible { outline: 2px solid var(--marca); outline-offset: 1px; }
+.pestana-ficha.activa { background: #f6e3f3; color: var(--marca-oscuro); }
+/* Dentro de una pestaña las secciones no se pliegan: su cabecera es solo un título */
+.seccion-ficha.en-pestana .seccion-cab { cursor: default; }
+.seccion-ficha.en-pestana .seccion-cab:hover { background: transparent; }
+.seccion-ficha.en-pestana .seccion-flecha { display: none; }
+
+/* Barra «Lo que toca» (pedidos/_lo_que_toca.html): fija abajo mientras se ve la ficha */
+.lo-que-toca { position: sticky; bottom: 1rem; z-index: 1020; margin: 1rem 4.75rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem;
+  background: #fff; border: 1.5px solid var(--marca); border-radius: 1rem; padding: .75rem 1rem; box-shadow: 0 -4px 24px rgba(80, 20, 80, .14); }
+.lo-que-toca-icono { width: 2.6rem; height: 2.6rem; border-radius: .75rem; background: #f6e3f3; color: var(--marca); display: flex; align-items: center; justify-content: center; flex: none; font-size: 1.1rem; }
+.lo-que-toca-texto { flex: 1 1 16rem; min-width: 0; }
+.lo-que-toca-texto strong { font-size: 1.02rem; }
+.lo-que-toca-botones { display: flex; flex-wrap: wrap; gap: .5rem; }
+.lo-que-toca-botones form { margin: 0; }
+@media (max-width: 575.98px) {   /* en el móvil, compacta: el texto y los botones en fila */
+  .lo-que-toca { margin-right: 0; bottom: 5rem; padding: .6rem .75rem; gap: .5rem; }
+  .lo-que-toca-icono, .lo-que-toca-texto .small { display: none; }
+  .lo-que-toca-texto strong { font-size: .95rem; }
+  .lo-que-toca-botones { width: 100%; flex-wrap: nowrap; }
+  .lo-que-toca-botones > * { flex: 1 1 0; min-width: 0; }
+  .lo-que-toca-botones .btn { width: 100%; padding-left: .5rem; padding-right: .5rem; } }
 .seccion-cuerpo { padding: .25rem 1rem 1rem; }
 /* En el móvil el resumen baja a una segunda línea, debajo del título */
 @media (max-width: 575.98px) {
