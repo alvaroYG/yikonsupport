@@ -358,6 +358,22 @@ document.querySelectorAll("form").forEach(function (form) {
   });
 });
 
+// ---------- Uso del pedido (RUO / IVD / indiferente): obligatorio para el cliente ----------
+document.querySelectorAll("form").forEach(function (form) {
+  const grupo = form.querySelector("[data-uso-obligatorio]");
+  const error = form.querySelector("[data-error-uso]");
+  if (!grupo || !error) return;
+  const opciones = grupo.querySelectorAll('input[type="radio"]');
+  form.addEventListener("submit", function (evento) {
+    if (!Array.from(opciones).some(function (o) { return o.checked; })) {
+      evento.preventDefault();
+      error.hidden = false;
+      opciones[0].focus();
+    }
+  });
+  opciones.forEach(function (o) { o.addEventListener("change", function () { error.hidden = true; }); });
+});
+
 // El modal lleva novalidate: mostramos el error aquí sin enviar el formulario
 // ni perder los kits, cantidades y referencia que ya se han escrito.
 document.querySelectorAll("form").forEach(function (form) {

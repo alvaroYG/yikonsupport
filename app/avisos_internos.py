@@ -182,7 +182,9 @@ def proforma_pedida(pedido, quien):
     avisar("proforma_pedida", pedido.cliente, lambda: {
         "asunto": _("Proforma pedida: %(ref)s (%(cliente)s)", ref=_ref(pedido), cliente=pedido.cliente.nombre),
         "texto": _("%(quien)s (%(cliente)s) ha pedido una proforma: pedido %(ref)s.", quien=quien,
-                   cliente=pedido.cliente.nombre, ref=_ref(pedido)),
+                   cliente=pedido.cliente.nombre, ref=_ref(pedido))
+                 + ("\n" + _("Uso: %(uso)s", uso=pedido.uso_nombre) if pedido.uso else ""),
+        "comentario": pedido.observaciones,          # sus observaciones, si las ha puesto
         "lineas": pedido.resumen_contenido("\n").split("\n") if pedido.lineas else [],
         "enlace": _enlace(pedido, "#proforma")}, pedido_id=pedido.id)
 

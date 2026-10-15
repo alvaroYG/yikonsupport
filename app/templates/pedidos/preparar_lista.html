@@ -18,6 +18,7 @@
         <div>
           <div class="fw-bold fs-5">{{ p.referencia_interna or '#' ~ p.id }}</div>
           <div class="text-muted">{{ p.cliente.nombre }}</div>
+          {% if p.uso %}<span class="uso-pedido mt-1"><i class="fas fa-flask" aria-hidden="true"></i>{{ p.uso_nombre }}</span>{% endif %}
         </div>
         <div class="text-end">{{ estado_pedido(p) }}</div>
       </div>
@@ -27,6 +28,7 @@
       </div>
       <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
         <span><i class="fas fa-camera me-1"></i>{{ ngettext('%(num)s foto', '%(num)s fotos', p.fotos|length) }}</span>
+        {% if p.caducidad_proxima %}<span><i class="fas fa-hourglass-half me-1" aria-hidden="true"></i>{{ _('cad. %(fecha)s', fecha=p.caducidad_proxima|fecha) }}</span>{% endif %}
         <span>{{ p.fecha|fecha }} <i class="fas fa-chevron-right ms-1"></i></span>
       </div>
     </div>

@@ -5,12 +5,12 @@ from flask_babel import gettext as _, lazy_gettext as _l
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, MultipleFileField
 from wtforms import (DateField, DecimalField, FieldList, Form, FormField, HiddenField, IntegerField, SelectField,
-                     StringField, SubmitField, TextAreaField)
+                     RadioField, StringField, SubmitField, TextAreaField)
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, ValidationError
 
 from app.alcance import filtrar_clientes
 from app.extensions import db
-from app.models import ESTADOS_PEDIDO, Cliente, Kit, Pedido, Producto
+from app.models import ESTADOS_PEDIDO, USOS_PEDIDO, Cliente, Kit, Pedido, Producto
 
 
 def opciones_clientes():
@@ -116,6 +116,12 @@ class _PedidoConLineasForm(FlaskForm):
     """
     contenido = HiddenField()
     fecha = DateField(_l("Fecha del pedido"), default=date.today, validators=[DataRequired()])
+    # Para qué uso es el pedido (RUO / IVD / indiferente) y observaciones (15/10/2026). El uso es
+    # obligatorio para el cliente (uso_obligatorio) y opcional cuando lo crea Yikon.
+    uso = RadioField(_l("Uso del pedido"), choices=list(USOS_PEDIDO.items()), validators=[Optional()])
+    observaciones = TextAreaField(_l("Observaciones"), validators=[Optional(), Length(max=2000)],
+                                  description=_l("Opcional: lo que debamos tener en cuenta (fechas, condiciones de envío, lotes…)."))
+    uso_obligatorio = False
     admite_sueltos = True             # productos sueltos (fuera de un kit): Yikon y también el cliente
     kits_permitidos = None            # ids de kits que se pueden pedir (None = todos): el cliente, su catálogo
     productos_permitidos = None       # ids de productos sueltos que se pueden pedir (None = todos los activos)
@@ -128,6 +134,14 @@ class _PedidoConLineasForm(FlaskForm):
         self.catalogo_json = json.dumps(catalogo_kits())
         self.productos_json = json.dumps(
             [{"id": pid, "texto": texto} for pid, texto in opciones_productos()]) if self.admite_sueltos else "[]"
+
+    def validate(self, extra_validators=None):
+        valido = super().validate(extra_validators)
+        # (no puede ir en validate_uso: el Optional() del campo corta la validación si viene vacío)
+        if self.uso_obligatorio and not self.uso.data:
+            self.uso.errors = list(self.uso.errors) + [_("Elija el uso del pedido.")]
+            valido = False
+        return valido
 
     def validate_documento(self, campo):
         # La regla la pone el formulario, no algo que llegue del navegador
@@ -201,6 +215,7 @@ class PedidoClienteForm(_PedidoConLineasForm):
     documento = FileField(_l("Documento de su pedido interno"),
                           description=_l("La orden de compra o registro interno. %(formatos)s", formatos=TEXTO_DOCUMENTO))
     submit = SubmitField(_l("Solicitar proforma"))   # el pedido empieza pidiendo proforma
+    uso_obligatorio = True
 
     def __init__(self, *args, cliente_id=None, **kwargs):
         super().__init__(*args, **kwargs)

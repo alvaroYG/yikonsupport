@@ -10,7 +10,7 @@ PDF = b"%PDF-1.4 orden de compra interna"
 
 def _pedido_con_documento(client, usuario="cliA", nombre="OC-2026-15.pdf", contenido=PDF, ref="OC-15"):
     login(client, usuario)
-    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), 
+    r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), 
         "contenido": contenido_pedido([(1, 1, {1: 1})]), "fecha": "2026-09-25", "referencia": ref,
         "documento": (BytesIO(contenido), nombre)}, content_type="multipart/form-data")
     return r, db.session.scalar(db.select(Pedido).order_by(Pedido.id.desc()))

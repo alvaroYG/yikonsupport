@@ -414,6 +414,13 @@ class PrecioProductoCliente(db.Model):
 # --------------------------------------------------------------------------- #
 # Pedidos (compras de los clientes)
 # --------------------------------------------------------------------------- #
+# Uso del pedido que indica el cliente (Pedido.uso)
+USOS_PEDIDO = {
+    "ruo": _l("RUO (solo investigación)"),
+    "ivd": _l("IVD (diagnóstico in vitro)"),
+    "indiferente": _l("Indiferente"),
+}
+
 ESTADOS_PEDIDO = {
     # 1-3. Proforma: el cliente la pide, Yikon la revisa y se la envía; el cliente la
     #      acepta o pide cambios (y Yikon le envía otra)
@@ -515,6 +522,10 @@ class Pedido(db.Model):
     enlace_seguimiento = db.Column(db.String(500))
     estado = db.Column(db.String(20), nullable=False, default="aceptado")
     notas = db.Column(db.Text)
+    # Lo que indica el cliente al pedir (15/10/2026): para qué uso es (USOS_PEDIDO; obligatorio para el
+    # cliente, opcional si lo crea Yikon) y sus observaciones. Los ve todo Yikon (también en Preparar).
+    uso = db.Column(db.String(12))
+    observaciones = db.Column(db.Text)
     creado = db.Column(db.DateTime(timezone=True), default=ahora)
     # ¿Va por proforma? (los pedidos que hace el cliente). Si se cancela y se reabre, o hay
     # que cambiarlo después de aceptar la proforma, vuelve a "proforma solicitada".
@@ -576,6 +587,18 @@ class Pedido(db.Model):
     @property
     def estado_nombre(self):
         return ESTADOS_PEDIDO.get(self.estado, self.estado)
+
+    @property
+    def caducidad_proxima(self):
+        """La caducidad más próxima de los lotes reservados para el pedido (None si no tiene ninguno
+        con caducidad). Sale en Preparar: es la que cuenta para el cliente."""
+        fechas = [r.lote.caducidad for r in self.reservas if r.lote is not None and r.lote.caducidad]
+        return min(fechas) if fechas else None
+
+    @property
+    def uso_nombre(self):
+        """«RUO (solo investigación)», «IVD (…)», «Indiferente» o None si no se indicó."""
+        return USOS_PEDIDO.get(self.uso) if self.uso else None
 
     @property
     def estado_cliente(self):

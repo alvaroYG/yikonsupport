@@ -52,7 +52,7 @@ def test_flujo_logistics_y_factura(app, client):
     login(client, "loga")
     a = db.session.scalar(db.select(Cliente).filter_by(nombre="Clínica A"))
     # en un solo paso: cliente + productos
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": a.id, "fecha": "2026-09-01",
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": a.id, "fecha": "2026-09-01",
                                         "contenido": contenido(sueltos={1: 2})})
     pedido = db.session.scalar(db.select(Pedido))
     assert pedido.referencia_interna == ref("CLA", 1) and pedido.estado == "aceptado"
@@ -95,7 +95,7 @@ def test_cliente_pide_varios_kits(app, client):
     db.session.add(Kit(referencia="K2", nombre="Kit dos", precio=80, componentes=[ComponenteKit(producto=p2, cantidad=1)]))
     db.session.commit()
     login(client, "cliA")
-    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), 
+    r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), 
         "contenido": contenido([(1, 2, {1: 2}), (2, 1, {p2.id: 5}), (1, 1, {1: 1})]),   # K1 dos veces
         "fecha": "2026-09-25", "referencia": "OC-VARIOS"})
     assert r.status_code == 302
@@ -108,7 +108,7 @@ def test_cliente_pide_varios_kits(app, client):
 
 def test_pedido_sin_kits_no_se_crea(app, client):
     login(client, "cliA")
-    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([]), "fecha": "2026-09-25", "referencia": "X"})
+    r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "contenido": contenido([]), "fecha": "2026-09-25", "referencia": "X"})
     assert "al menos un kit" in r.get_data(as_text=True)
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 0
 
@@ -130,7 +130,7 @@ def test_ventana_de_nuevo_pedido(app, client):
 
 def test_referencia_de_empresa_obligatoria(app, client):
     login(client, "cliA")
-    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(1, 1, {1: 1})]),
+    r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "contenido": contenido([(1, 1, {1: 1})]),
                                             "fecha": "2026-09-25", "referencia": "  "})
     assert "es obligatorio" in r.get_data(as_text=True)
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 0

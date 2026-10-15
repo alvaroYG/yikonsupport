@@ -476,6 +476,18 @@ pruebas automáticas con navegador.
   las propuestas aceptadas tal cual (14/10): **precios a 0**, todos los kits **montados**, referencias de kit
   inventadas (PGTA-CI-ILL-24…), índices con variantes «a decidir» en -001 y la primera opción en los kits con
   «ó». Se corrige todo después desde la web.
+- **Qué correos recibe el cliente** (15/10, hecho por Álvaro con ChatGPT): en Ajustes → Correos al cliente, casillas
+  para activar o desactivar cada aviso para todos los clientes (`correos_cliente.aviso_activado`); los de acceso
+  siempre salen. OJO: el zip traía versiones viejas de `correo.py`, `revision_correo.py` y `correos_cliente.py`
+  que deshacían cosas (cabeceras contra el spam, avisos entre compañeros sin revisión, Facturación en la
+  revisión, el texto «Almacén»). Se juntó lo nuevo sobre las versiones buenas. Test: `test_avisos_activos.py`.
+- **Uso del pedido y observaciones** (15/10): al pedir, el cliente elige el uso — RUO (solo investigación),
+  IVD (diagnóstico in vitro) o Indiferente; obligatorio para él, opcional si lo crea Yikon — y puede poner
+  observaciones (`Pedido.uso`, `Pedido.observaciones`; migración `e2a7c5b91d04`). También en «Modificar
+  pedido». Se ven en la ficha (debajo del título), en el aviso de proforma pedida y en Preparar, que además
+  enseña la **caducidad más próxima de los lotes reservados** (`Pedido.caducidad_proxima`), también en la
+  lista de pedidos por preparar. Test: `test_uso_observaciones.py`. **Al desplegar**: `actualizar.sh` hace la
+  migración; los pedidos de antes quedan sin uso (no sale nada).
 - **Preparar: los lotes debajo de cada fila** (15/10, hecho por Álvaro con ChatGPT en `pedidos/preparar.html`):
   en «1. Qué lleva y de qué lotes», el lote, las unidades y la caducidad salen debajo de cada kit cerrado o
   producto; si un producto va en varias filas, las reservas se reparten sin repetirse. Traducido al inglés y

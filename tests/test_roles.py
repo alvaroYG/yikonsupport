@@ -107,10 +107,10 @@ def test_producto_suelto_de_la_oficina(app, client):
     """Facturación crea pedidos para cualquier cliente (con productos sueltos si hace falta). Almacén no."""
     import json
     login(client, "ofi")
-    assert client.post("/pedidos/nuevo", data={"cliente_id": 2}).status_code == 403
+    assert client.post("/pedidos/nuevo", data={"uso": "ruo", "cliente_id": 2}).status_code == 403
     client.post("/auth/logout")
     login(client, "fac")
-    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), 
+    r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), 
         "cliente_id": 2, "fecha": "2026-09-30",
         "contenido": json.dumps({"kits": [], "sueltos": [{"producto_id": 1, "cantidad": 2}]})})
     assert r.status_code == 302

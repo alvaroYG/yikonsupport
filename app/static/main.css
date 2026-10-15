@@ -825,6 +825,13 @@ body.sin-sesion .login-caja {
 .seccion-ficha.en-pestana .seccion-cab:hover { background: transparent; }
 .seccion-ficha.en-pestana .seccion-flecha { display: none; }
 
+/* Uso del pedido (RUO / IVD / indiferente): tres botones de opción */
+.opciones-uso { display: flex; flex-wrap: wrap; gap: .5rem; }
+.opciones-uso .btn { min-height: 2.75rem; display: inline-flex; align-items: center; }
+.uso-pedido { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700; font-size: .85rem; border-radius: 999px;
+  padding: .15rem .65rem; background: #eef1fb; color: #2f3f73; border: 1px solid #c9d1ef; }
+.observaciones-pedido { background: #fffaf0; border: 1px solid #f0dfb8; border-radius: .75rem; padding: .5rem .75rem; white-space: pre-line; }
+
 /* Barra «Lo que toca» (pedidos/_lo_que_toca.html): fija abajo mientras se ve la ficha */
 .lo-que-toca { position: sticky; bottom: 1rem; z-index: 1020; margin: 1rem 4.75rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem;
   background: #fff; border: 1.5px solid var(--marca); border-radius: 1rem; padding: .75rem 1rem; box-shadow: 0 -4px 24px rgba(80, 20, 80, .14); }

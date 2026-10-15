@@ -110,6 +110,7 @@ asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y
 | Enviar proformas / aceptarlas o pedir cambios | ✓ / — | ✓ / — | — | sus clientes / — | — / ✓ |
 | Cambiar líneas y precios, cancelar, reabrir | ✓ | ✓ | — | sus clientes | |
 | Modificar o cancelar su pedido hasta aceptar la proforma | | | | | ✓ |
+| Indicar el uso del pedido (RUO / IVD / indiferente) y observaciones | opcional | opcional | — | opcional | ✓ (uso obligatorio) |
 | Reservar lotes | ✓ | ✓ | ✓ (aceptados) | sus clientes | |
 | Preparar, hacer fotos y enviar | ✓ | | ✓ | | |
 | Validar las fotos (o devolver a preparación) | ✓ (suple) | | | sus clientes | |

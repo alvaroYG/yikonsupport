@@ -38,6 +38,17 @@
   </div>
   {% endif %}
 </div>
+{# ---- Uso del pedido: RUO / IVD / indiferente (obligatorio para el cliente; js/pedido.js avisa sin enviar) ---- #}
+<fieldset class="mb-3"{% if form.uso_obligatorio %} data-uso-obligatorio{% endif %}>
+  <legend class="form-label fs-6 mb-1">{{ form.uso.label.text }}{% if form.uso_obligatorio %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}</legend>
+  <div class="opciones-uso">
+    {% for opcion in form.uso %}
+    {{ opcion(class_="btn-check", **({"required": true} if form.uso_obligatorio else {})) }}
+    <label class="btn btn-outline-primary" for="{{ opcion.id }}">{{ opcion.label.text }}</label>
+    {% endfor %}
+  </div>
+  <div class="text-danger small mt-1" data-error-uso role="alert"{% if not form.uso.errors %} hidden{% endif %}>✕ {{ form.uso.errors[0] if form.uso.errors else _('Elija el uso del pedido.') }}</div>
+</fieldset>
 <div class="row">
   <div class="col-md-6">{{ campo(form.fecha) }}</div>
   <div class="col-md-6 mb-3">
@@ -73,4 +84,5 @@
   <a href="{{ url_for('pedidos.modelo_pedido_compra') }}">{{ _('Descargue nuestro modelo de pedido de compra (Word)') }}</a>,
   {{ _('rellénelo y adjúntelo aquí.') }}</p>
 {% endif %}
+{{ campo(form.observaciones, rows=2, maxlength=2000) }}
 {% if interno %}{{ campo(form.notas, rows=2) }}{% endif %}

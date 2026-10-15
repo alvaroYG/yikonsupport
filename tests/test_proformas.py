@@ -158,7 +158,7 @@ def test_la_proforma_es_una_foto_fija(app, client):
 def test_los_pedidos_internos_no_pasan_por_proforma(app, client):
     from tests.conftest import contenido
     login(client, "loga")
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25",
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25",
                                         "contenido": contenido([(1, 1, {1: 1})])})
     assert db.session.scalar(db.select(Pedido)).estado == "aceptado"
 
@@ -203,7 +203,7 @@ def test_tras_aceptar_no_se_cambia_sin_nueva_proforma(app, client):
 def test_admin_no_puede_forzar_proforma_enviada_sin_proforma(app, client):
     from tests.conftest import contenido
     login(client, "admin")
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "contenido": contenido([(1, 1, {1: 1})])})
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "contenido": contenido([(1, 1, {1: 1})])})
     p = db.session.scalar(db.select(Pedido))
     assert 'value="proforma_enviada"' not in client.get(f"/pedidos/{p.id}").get_data(as_text=True)
     assert client.post(f"/pedidos/{p.id}/estado", data={"estado": "proforma_enviada"}).status_code == 403
@@ -213,7 +213,7 @@ def test_admin_no_puede_forzar_proforma_enviada_sin_proforma(app, client):
 def test_reabrir_un_pedido_normal_no_dice_que_acepto_una_proforma(app, client):
     from tests.conftest import contenido
     login(client, "loga")
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "contenido": contenido([(1, 1, {1: 1})])})
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "contenido": contenido([(1, 1, {1: 1})])})
     p = db.session.scalar(db.select(Pedido))
     client.post(f"/pedidos/{p.id}/estado", data={"estado": "cancelado"})
     correos = _correos(app)

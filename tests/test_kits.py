@@ -18,7 +18,7 @@ def _kit_completo():
 
 
 def _pedir(client, kits, sueltos=None, referencia="OC-K", **extra):
-    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido(kits, sueltos), "fecha": "2026-09-25",
+    r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "contenido": contenido(kits, sueltos), "fecha": "2026-09-25",
                                             "referencia": referencia, **extra})
     proforma_aceptada()        # sin pasar por la proforma (eso se prueba en test_proformas.py)
     return r
@@ -114,7 +114,7 @@ def test_el_cliente_no_puede_meter_productos_ajenos_al_kit_pero_si_sueltos(app, 
 def test_logistics_pide_kits_y_sueltos(app, client):
     kit, p2 = _kit_completo()
     login(client, "loga")
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25",
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25",
                                         "contenido": contenido([(kit.id, 1, {1: 1, p2.id: 2})], {p2.id: 5})})
     p = db.session.scalar(db.select(Pedido))
     assert not p.kits[0].modificado
@@ -164,7 +164,7 @@ def test_precio_a_mano_y_cantidades(app, client):
 def test_anadir_y_quitar_kits_en_la_ficha(app, client):
     kit, p2 = _kit_completo()
     login(client, "loga")
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "contenido": contenido(sueltos={1: 1})})
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "contenido": contenido(sueltos={1: 1})})
     p = db.session.scalar(db.select(Pedido))
     client.post(f"/pedidos/{p.id}/kits", data={"kit_id": kit.id, "cantidad": 2})
     db.session.refresh(p)
@@ -219,7 +219,7 @@ def test_json_manipulado_no_da_error_500(app, client):
              base % ("1", "2.5"), base % ("true", "1"), base % ("1", "-1"), base % ("5000", "1"),
              "[" * 5000 + "]" * 5000, "x" * 60000, '{"kits": "hola"}', "null"]
     for texto in malos:
-        r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": texto, "fecha": "2026-09-25", "referencia": "OC-X"})
+        r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "contenido": texto, "fecha": "2026-09-25", "referencia": "OC-X"})
         assert r.status_code == 200, texto[:40]
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 0
 
@@ -229,7 +229,7 @@ def test_filas_repetidas_no_superan_el_maximo(app, client):
     import json
     datos = {"kits": [{"kit_id": 1, "cantidad": 1,
                        "productos": [{"producto_id": 1, "cantidad": 100000}] * 5}]}
-    r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": json.dumps(datos), "fecha": "2026-09-25",
+    r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "contenido": json.dumps(datos), "fecha": "2026-09-25",
                                             "referencia": "OC-X"})
     assert r.status_code == 200 and db.session.scalar(db.select(db.func.count(Pedido.id))) == 0
 

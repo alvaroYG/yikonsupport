@@ -71,7 +71,7 @@ def test_stock_negativo_heredado_no_permite_enviar_de_mas(app, client):
 def test_referencia_de_solo_espacios_en_pedido_interno(app, client):
     login(client, "loga")
     for _i in range(2):
-        r = client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-01", "referencia": "   ",
+        r = client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-01", "referencia": "   ",
                                                 "contenido": contenido(sueltos={1: 1})})
         assert r.status_code == 302
     assert [p.referencia for p in db.session.scalars(db.select(Pedido))] == [None, None]
@@ -102,7 +102,7 @@ def test_repetir_un_pedido_de_mas_de_20_productos(app, client):
 def test_estadisticas_no_cuentan_pedidos_con_fecha_futura(app, client):
     login(client, "cliA")
     pedido_cliente(client)
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(1, 1, {1: 1})]),
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "contenido": contenido([(1, 1, {1: 1})]),
                                         "fecha": (date.today() + timedelta(days=60)).isoformat(),
                                         "referencia": "FUTURO"})
     client.post("/auth/logout"); login(client, "admin")

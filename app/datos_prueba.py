@@ -195,6 +195,7 @@ def crear_escenarios(app, avisar=print):
         nav.como(usuario_de[cliente.id])
         r = nav.post("/pedidos/nuevo", "el cliente hace un pedido", contenido=_contenido(kit),
                      fecha=date.today().isoformat(), referencia=referencia,
+                     uso=("ruo", "ivd", "indiferente")[len(caso) % 3],   # el uso del pedido: obligatorio
                      documento=(BytesIO(b"%PDF-1.4 orden de compra de prueba"), "orden_de_compra_prueba.pdf"))  # obligatorio
         p = _ultimo_pedido()
         if p is None or p is antes:

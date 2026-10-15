@@ -34,7 +34,7 @@ def test_pdf_admite_cualquier_caracter(app, client):
 def test_documento_vacio_no_da_error(app, client):
     login(client, "cliA")
     datos = {"contenido": contenido([(1, 1, {1: 1})]), "fecha": "2026-09-25",
-             "referencia": "OC-VACIO", "documento": (BytesIO(b""), "oc.pdf")}
+             "referencia": "OC-VACIO", "documento": (BytesIO(b""), "oc.pdf"), "uso": "ruo"}
     r = client.post("/pedidos/nuevo", data=datos, content_type="multipart/form-data")
     assert r.status_code == 200 and "El archivo está vacío." in r.get_data(as_text=True)
     pedido_cliente(client)

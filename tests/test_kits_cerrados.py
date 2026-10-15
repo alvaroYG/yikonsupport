@@ -28,7 +28,7 @@ def _entrada(client, articulo, cantidad, lote, caducidad="2099-12-31", tipo="ent
 def _pedido_de_kits(client, kit, serv, n):
     """cliA pide n kits KX y logistics lo confirma."""
     login(client, "cliA")
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "contenido": contenido([(kit.id, n, {1: 2 * n, serv.id: n})]),
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "contenido": contenido([(kit.id, n, {1: 2 * n, serv.id: n})]),
                                         "fecha": "2026-09-25", "referencia": f"OC-KX-{n}"})
     proforma_aceptada(); client.post("/auth/logout")
     p = db.session.scalar(db.select(Pedido).order_by(Pedido.id.desc()))

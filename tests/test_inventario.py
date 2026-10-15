@@ -73,7 +73,7 @@ def test_servicios_no_mueven_stock(app, client):
     db.session.add(servicio); db.session.commit()
     login(client, "loga")
     a = db.session.scalar(db.select(Cliente).filter_by(nombre="Clínica A"))
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": a.id, "fecha": "2026-09-25",
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": a.id, "fecha": "2026-09-25",
                                         "contenido": contenido(sueltos={servicio.id: 1})})
     p = db.session.scalar(db.select(Pedido))
     client.post("/auth/logout")

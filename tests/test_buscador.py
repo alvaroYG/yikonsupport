@@ -122,7 +122,7 @@ def test_pedidos_por_el_producto_que_llevan(app, client):
     db.session.add(otro); db.session.commit()
     login(client, "fac")                              # un pedido más para la Clínica B, solo con el buffer suelto
     import json
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": pb.cliente_id, "fecha": "2026-10-02",
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": pb.cliente_id, "fecha": "2026-10-02",
                                         "contenido": json.dumps({"kits": [], "sueltos": [{"producto_id": otro.id, "cantidad": 4}]})})
     pc = db.session.scalar(db.select(Pedido).order_by(Pedido.id.desc()))
     from app.buscador import buscar

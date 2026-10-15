@@ -96,7 +96,7 @@ def test_los_lotes_salen_debajo_de_cada_fila_sin_duplicar(app, client):
                                                 "lote": "L-MIXTO", "caducidad": "2099-12-31"})
     client.post("/auth/logout")
     login(client, "cliA")
-    client.post("/pedidos/nuevo", data={"contenido": contenido([(1, 1, {1: 1})], sueltos={1: 2}),
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "contenido": contenido([(1, 1, {1: 1})], sueltos={1: 2}),
                                         "fecha": "2026-09-25", "referencia": "OC-MIXTO", "documento": doc_pedido()})
     proforma_aceptada()
     client.post("/auth/logout")

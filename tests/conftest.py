@@ -112,7 +112,7 @@ def doc_pedido(nombre="pedido.pdf"):
     return (BytesIO(b"%PDF-1.4 orden de compra"), nombre)
 
 
-def pedido_cliente(client, referencia=None, cantidad=1, con_proforma=False):
+def pedido_cliente(client, referencia=None, cantidad=1, con_proforma=False, uso="ruo"):
     """El usuario cliente logueado pide `cantidad` kits K1 (= `cantidad` × P1).
     La referencia de su empresa es obligatoria: si no se indica, se inventa una única.
 
@@ -121,7 +121,8 @@ def pedido_cliente(client, referencia=None, cantidad=1, con_proforma=False):
     con_proforma=True lo deja en la fase de proforma (tests de test_proformas.py)."""
     import uuid
     datos = {"contenido": contenido([(1, cantidad, {1: cantidad})]), "fecha": "2026-09-25",
-             "referencia": referencia or f"OC-{uuid.uuid4().hex[:8]}", "documento": doc_pedido()}
+             "referencia": referencia or f"OC-{uuid.uuid4().hex[:8]}", "documento": doc_pedido(),
+             "uso": uso}           # el uso del pedido (RUO / IVD / indiferente): obligatorio para el cliente
     r = client.post("/pedidos/nuevo", data=datos)
     if not con_proforma:
         proforma_aceptada()

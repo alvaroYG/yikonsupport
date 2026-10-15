@@ -113,7 +113,7 @@ CASOS = {
         _l("Pedido registrado"), _l("Un pedido sin proforma queda aceptado."), _asunto_estado,
         lambda: _cambio_de_estado(_("Hemos registrado su pedido. Le avisaremos cuando empecemos a prepararlo."))),
     "preparacion": Caso(
-        _l("En preparación"), _l("Logística empieza a preparar el pedido."), _asunto_estado,
+        _l("En preparación"), _l("Almacén empieza a preparar el pedido."), _asunto_estado,
         lambda: _cambio_de_estado(_("Estamos preparando su pedido."))),
     "enviado": Caso(
         _l("Enviado"), _l("El pedido sale de la oficina."), _asunto_estado,
@@ -443,7 +443,9 @@ def caducidad(clave) -> str:
 
 
 def aviso_activado(clave):
-    """Activación global, independiente del idioma y de las preferencias del destinatario."""
+    """¿Está activado este aviso al cliente? (Ajustes → Correos al cliente → «Qué correos recibe el
+    cliente»). Es global: vale para todos los clientes e idiomas, además de lo que cada usuario tenga
+    marcado en la ficha de su cliente. Los de acceso (invitación, contraseña) siempre lo están."""
     return clave in CASOS_ACCESO or _ajuste("correo.aviso." + clave, "1") == "1"
 
 

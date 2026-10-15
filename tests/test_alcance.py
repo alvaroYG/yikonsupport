@@ -33,7 +33,7 @@ def test_logistics_solo_ve_sus_clientes(app, client):
 def test_logistics_no_crea_pedidos_para_clientes_ajenos(app, client):
     login(client, "loga")
     b = db.session.scalar(db.select(Cliente).filter_by(nombre="Clínica B"))
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": b.id, "fecha": "2026-09-25"})
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": b.id, "fecha": "2026-09-25"})
     assert db.session.scalar(db.select(db.func.count(Pedido.id))) == 0
 
 

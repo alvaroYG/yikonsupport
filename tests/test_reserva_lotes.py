@@ -48,7 +48,7 @@ def _ultimo():
 def _pedido_yikon(client, cantidad=3, usuario="admin"):
     """Pedido creado por Yikon (sin proforma): nace "aceptado"."""
     login(client, usuario)
-    client.post("/pedidos/nuevo", data={"documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "referencia": f"OC-{cantidad}-{usuario}",
+    client.post("/pedidos/nuevo", data={"uso": "ruo", "documento": doc_pedido(), "cliente_id": 1, "fecha": "2026-09-25", "referencia": f"OC-{cantidad}-{usuario}",
                                         "contenido": contenido(sueltos={1: cantidad})})
     return _ultimo()
 

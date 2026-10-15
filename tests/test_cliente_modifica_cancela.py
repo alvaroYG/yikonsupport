@@ -32,7 +32,8 @@ def _enviar_proforma(client, p):
 
 def _modificar(client, p, kits=2, referencia="OC-1"):
     return client.post(f"/pedidos/{p.id}/modificar", data={
-        "contenido": contenido([(1, kits, {1: kits})]), "fecha": "2026-10-20", "referencia": referencia})
+        "contenido": contenido([(1, kits, {1: kits})]), "fecha": "2026-10-20", "referencia": referencia,
+        "uso": "ruo"})
 
 
 def _destinatarios(correos, asunto):
@@ -157,7 +158,8 @@ def test_guardar_sin_cambiar_nada_no_retira_la_proforma(app, client):
     correos = _correos(app)
     login(client, "cliA")
     r = client.post(f"/pedidos/{p.id}/modificar", data={"contenido": contenido([(1, 1, {1: 1})]),
-                                                       "fecha": p.fecha.isoformat(), "referencia": "OC-1"},
+                                                       "fecha": p.fecha.isoformat(), "referencia": "OC-1",
+                                                       "uso": "ruo"},
                     follow_redirects=True)
     assert "No ha cambiado nada" in r.get_data(as_text=True)
     assert db.session.get(Pedido, p.id).estado == "proforma_enviada" and not correos

@@ -257,6 +257,7 @@ def form_modificar(pedido, formdata=None):
     if formdata is None:
         form.contenido.data = _contenido_para_repetir(pedido, sueltos=True, productos_permitidos=form.productos_permitidos)
         form.referencia.data, form.fecha.data = pedido.referencia, pedido.fecha
+        form.uso.data, form.observaciones.data = pedido.uso, pedido.observaciones
     return form
 
 
@@ -272,6 +273,8 @@ def _sin_cambios(pedido, form):
     sueltos = sorted((l.producto_id, l.cantidad) for l in pedido.lineas_sueltas)
     return (sorted(actuales) == sorted(nuevos) and sueltos == sorted(form.sueltos_validos.items())
             and (pedido.referencia or None) == (form.referencia.data or None) and pedido.fecha == form.fecha.data
+            and pedido.uso == (form.uso.data or None)
+            and (pedido.observaciones or None) == ((form.observaciones.data or "").strip() or None)
             and not (form.documento.data and form.documento.data.filename))
 
 
@@ -303,6 +306,7 @@ def modificar(id):
         db.session.flush()
         _poner_contenido(pedido, form, precios_kits, precios_sueltos)
         pedido.referencia, pedido.fecha = form.referencia.data, form.fecha.data
+        _poner_uso_y_observaciones(pedido, form)
         if form.documento.data and form.documento.data.filename:
             db.session.add(docs.guardar_documento(form.documento.data, pedido))
         db.session.flush()
@@ -414,6 +418,7 @@ def _crear_pedido(pedido, form):
     # Añadirlo a la sesión YA: las consultas de abajo hacen "autoflush" y SQLAlchemy
     # avisaría de un pedido enganchado al cliente pero fuera de la sesión.
     db.session.add(pedido)
+    _poner_uso_y_observaciones(pedido, form)
     _poner_contenido(pedido, form)
     db.session.flush()
     if not pedido.con_proforma:
@@ -428,6 +433,11 @@ def _crear_pedido(pedido, form):
     if pedido.estado == "proforma_solicitada" and current_user.es_cliente:
         avisos_internos.proforma_pedida(pedido, current_user.nombre)      # (Ajustes → Avisos internos)
     db.session.commit()
+
+
+def _poner_uso_y_observaciones(pedido, form):
+    pedido.uso = form.uso.data or None
+    pedido.observaciones = (form.observaciones.data or "").strip() or None
 
 
 def _poner_contenido(pedido, form, precios_kits=None, precios_sueltos=None):

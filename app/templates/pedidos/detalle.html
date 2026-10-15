@@ -28,6 +28,9 @@
       {% if pedido.fecha_entrega_estimada and pedido.estado == 'enviado' %}
         · <strong class="text-body">🚚 {{ _('Entrega estimada: %(fecha)s', fecha=pedido.fecha_entrega_estimada|fecha) }}</strong>{% endif %}
       {% if pedido.creado_por %}· {{ _('creado por %(nombre)s', nombre=pedido.creado_por.nombre) }}{% endif %}</div>
+    {# Lo que indicó el cliente al pedir: uso (RUO / IVD / indiferente) y observaciones #}
+    {% if pedido.uso %}<div class="mt-2"><span class="uso-pedido"><i class="fas fa-flask" aria-hidden="true"></i>{{ _('Uso: %(uso)s', uso=pedido.uso_nombre) }}</span></div>{% endif %}
+    {% if pedido.observaciones %}<div class="observaciones-pedido small mt-2"><strong>{{ _('Observaciones:') }}</strong> {{ pedido.observaciones }}</div>{% endif %}
     {# El cliente, ya aceptado y antes de salir: los cambios, por el chat #}
     {% if current_user.rol == 'cliente' and pedido.estado in ('aceptado', 'en_preparacion', 'en_validacion', 'validado') and (mensaje_form or mensajes) %}
     <div class="small mt-1"><i class="fas fa-info-circle me-1 text-marca" aria-hidden="true"></i>{{ _('¿Necesita cambiar algo?') }}

@@ -18,7 +18,8 @@ def _productos():
 
 
 def _pide(client, sueltos=None, kits=((1, 1, {1: 1}),), documento=True, **extra):
-    datos = {"contenido": contenido(list(kits), sueltos), "fecha": "2026-10-14", "referencia": "OC-S", **extra}
+    datos = {"contenido": contenido(list(kits), sueltos), "fecha": "2026-10-14", "referencia": "OC-S",
+             "uso": "ruo", **extra}
     if documento:
         datos["documento"] = doc_pedido()
     return client.post("/pedidos/nuevo", data=datos, content_type="multipart/form-data")
