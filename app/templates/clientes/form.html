@@ -19,6 +19,18 @@
     <div class="col-md-4">{{ campo(form.provincia) }}</div>
     <div class="col-md-4">{{ campo(form.pais) }}</div>
   </div>
+  {# Dónde sale en el mapa de clientes (js/mapa_clientes.js): se busca sola con la ciudad y el país al
+     guardar; si no queda bien, se hace clic en el mapa #}
+  {# (latitud, longitud y ubicacion_manual van en form.hidden_tag(), arriba) #}
+  <div class="mb-3">
+    <div class="form-label">{{ _('En el mapa de clientes') }}</div>
+    <div class="mapa-elegir card" data-mapa-elegir data-mundo="{{ url_for('static', filename='vendor/mapa/countries-110m.json') }}">
+      <svg role="img" aria-label="{{ _('Mapa para situar el cliente') }}"></svg></div>
+    <div class="form-text d-flex flex-wrap gap-2 align-items-center">
+      <span>{{ _('Se sitúa solo con la ciudad y el país al guardar. Si no queda bien, haz clic en el mapa donde está (rueda para acercarte).') }}</span>
+      <button type="button" class="btn btn-link btn-sm p-0" data-mapa-quitar hidden>{{ _('Quitar del mapa') }}</button>
+    </div>
+  </div>
 
   <h2 class="h6 mt-2 mb-3 pt-3 border-top"><i class="fas fa-truck me-2 text-muted" aria-hidden="true"></i>{{ _('Datos de envío') }}
     <span class="small text-muted fw-normal">· {{ _('salen en el albarán') }}</span></h2>
@@ -52,4 +64,9 @@
   poner();
 })();
 </script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/mapa/d3.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/mapa/topojson-client.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mapa_clientes.js') }}"></script>
 {% endblock %}

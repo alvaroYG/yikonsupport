@@ -597,6 +597,18 @@ pruebas automáticas con navegador.
   también a Facturación) y lo tiene todo en la auditoría. Si admin le quita a Soporte el apartado Clientes, pierde
   todo esto. A Soporte no se le dice el nombre del cliente que ya tiene un CIF o prefijo. Test:
   `test_soporte_da_de_alta.py`. Sin migración.
+- **Mapa de clientes** (15/10, Clientes → Mapa de clientes, y botón «Mapa» en la lista): Europa y Latinoamérica,
+  un punto por cliente (no mide nada, solo lo señala; relleno = con pedidos, aro turquesa = aún sin pedidos,
+  gris = inactivo). Al pasar el ratón, su nombre; al hacer clic, su resumen (pedidos del año, último pedido,
+  Soporte, pedidos por mes de los últimos 12 meses y «Ver ficha»). «Todo · Europa · Latinoamérica», zoom,
+  lista «Por país» (clic = acercarse) y filtro por Soporte de cliente (para quien ve todos). Cada uno ve los
+  clientes de su lista: Soporte de cliente, los suyos; Almacén y clientes, no. Lo dibuja `js/mapa_clientes.js`
+  con d3 y el mapa del mundo servidos desde `static/vendor/mapa` (sin servicios de fuera). Posición:
+  `Cliente.latitud/longitud` (migración `b5e1c7d9a206`); al guardar un cliente se busca su ciudad en
+  OpenStreetMap (`app/geocodificar.py`, solo si cambia la dirección; `GEOCODIFICAR=0` lo apaga) y en el
+  formulario hay un mapita para ponerlo a mano con un clic o quitarlo. Los que no están situados salen en una
+  tarjeta aparte con enlace a «Editar». **Al desplegar**: `actualizar.sh` (migración) y una vez
+  `flask situar-clientes` para los clientes de antes (DESPLIEGUE.md). Test: `test_mapa_clientes.py`.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

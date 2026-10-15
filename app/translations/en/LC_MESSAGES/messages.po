@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-15 12:21+0000\n"
+"POT-Creation-Date: 2026-10-15 12:42+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -43,13 +43,13 @@ msgid "Aceptado, sin empezar"
 msgstr "Accepted, not started"
 
 #: app/ajustes.py:20 app/correos_cliente.py:116 app/main/inicio_cliente.py:28
-#: app/main/inicio_yikon.py:59 app/models.py:477 app/models.py:494
+#: app/main/inicio_yikon.py:59 app/models.py:481 app/models.py:498
 #: app/pedidos/pendientes.py:60 app/pedidos/pendientes.py:167
 #: app/templates/pedidos/_proforma.html:27
 msgid "En preparación"
 msgstr "In preparation"
 
-#: app/ajustes.py:21 app/models.py:478
+#: app/ajustes.py:21 app/models.py:482
 msgid "Pendiente de validación"
 msgstr "Pending validation"
 
@@ -123,8 +123,9 @@ msgstr ""
 "The \"Batches\" section of each order (which batch ships and which "
 "shipped) and \"Trace batch\"."
 
-#: app/apartados.py:66 app/buscador.py:109 app/clientes/routes.py:85
+#: app/apartados.py:66 app/buscador.py:109 app/clientes/routes.py:109
 #: app/navegacion.py:75 app/templates/clientes/lista.html:5
+#: app/templates/clientes/mapa.html:39
 #: app/templates/mensajes/_flotante_lista.html:8
 msgid "Clientes"
 msgstr "Clients"
@@ -138,8 +139,8 @@ msgstr ""
 "theirs; they create them, with their users)."
 
 #: app/apartados.py:73 app/buscador.py:191 app/clientes/exportar.py:70
-#: app/facturas/routes.py:78 app/facturas/routes.py:96 app/navegacion.py:76
-#: app/navegacion.py:77 app/templates/clientes/detalle.html:96
+#: app/facturas/routes.py:78 app/facturas/routes.py:96 app/navegacion.py:79
+#: app/navegacion.py:80 app/templates/clientes/detalle.html:96
 #: app/templates/facturas/lista.html:5 app/templates/pedidos/detalle.html:385
 #: app/templates/pedidos/detalle.html:392
 msgid "Facturas"
@@ -161,7 +162,7 @@ msgstr ""
 "Without it, Customer Support doesn't review invoices: admin will review "
 "those that need it."
 
-#: app/apartados.py:79 app/main/routes.py:175 app/navegacion.py:90
+#: app/apartados.py:79 app/main/routes.py:175 app/navegacion.py:93
 #: app/templates/main/estadisticas.html:13
 msgid "Estadísticas"
 msgstr "Statistics"
@@ -170,7 +171,7 @@ msgstr "Statistics"
 msgid "Pedidos por mes, productos más pedidos y facturación por cliente."
 msgstr "Orders per month, most ordered products and revenue per client."
 
-#: app/apartados.py:82 app/buscador.py:122 app/navegacion.py:80
+#: app/apartados.py:82 app/buscador.py:122 app/navegacion.py:83
 msgid "Tickets ChromGo"
 msgstr "ChromGo tickets"
 
@@ -192,7 +193,7 @@ msgstr ""
 " on."
 
 #: app/apartados.py:89 app/buscador.py:204 app/documentos/routes.py:112
-#: app/navegacion.py:84 app/templates/documentos/lista.html:11
+#: app/navegacion.py:87 app/templates/documentos/lista.html:11
 msgid "Documentos internos"
 msgstr "Internal documents"
 
@@ -208,7 +209,7 @@ msgstr ""
 msgid "En pausa: actívalo cuando se empiece a usar."
 msgstr "Paused: turn it on when it starts being used."
 
-#: app/apartados.py:94 app/navegacion.py:87
+#: app/apartados.py:94 app/navegacion.py:90
 msgid "Administración"
 msgstr "Administration"
 
@@ -365,7 +366,7 @@ msgid "Ticket"
 msgstr "Ticket"
 
 #: app/admin/ajustes_mas.py:19 app/admin/routes.py:222 app/admin/routes.py:238
-#: app/auditoria.py:79 app/navegacion.py:98
+#: app/auditoria.py:79 app/navegacion.py:101
 #: app/templates/admin/_ajustes_nav.html:2
 msgid "Ajustes"
 msgstr "Settings"
@@ -805,7 +806,7 @@ msgstr "Kits"
 msgid "vencida"
 msgstr "overdue"
 
-#: app/admin/routes.py:48 app/buscador.py:214 app/navegacion.py:88
+#: app/admin/routes.py:48 app/buscador.py:214 app/navegacion.py:91
 #: app/templates/admin/estado.html:35 app/templates/admin/usuarios.html:5
 #: app/templates/clientes/detalle.html:256
 msgid "Usuarios"
@@ -986,7 +987,7 @@ msgstr ""
 "We've prepared the proforma for your order. You can download and accept "
 "it (or request changes) on the platform."
 
-#: app/correos_cliente.py:106 app/models.py:473 app/models.py:492
+#: app/correos_cliente.py:106 app/models.py:477 app/models.py:496
 msgid "Cambios solicitados"
 msgstr "Changes requested"
 
@@ -1040,7 +1041,7 @@ msgid "Estamos preparando su pedido."
 msgstr "We're preparing your order."
 
 #: app/admin/correos_estado.py:20 app/correos_cliente.py:119
-#: app/main/inicio_cliente.py:28 app/models.py:481 app/models.py:495
+#: app/main/inicio_cliente.py:28 app/models.py:485 app/models.py:499
 #: app/templates/admin/correo.html:13 app/templates/admin/correos.html:5
 msgid "Enviado"
 msgstr "Shipped"
@@ -1063,8 +1064,8 @@ msgstr ""
 "When you receive it, mark it as \"Received\" on the platform (button on "
 "the order page)."
 
-#: app/correos_cliente.py:125 app/main/inicio_cliente.py:29 app/models.py:482
-#: app/models.py:496
+#: app/correos_cliente.py:125 app/main/inicio_cliente.py:29 app/models.py:486
+#: app/models.py:500
 msgid "Recibido"
 msgstr "Received"
 
@@ -1077,7 +1078,7 @@ msgstr "The order is recorded as received."
 msgid "Su pedido consta como recibido. Gracias por su confianza."
 msgstr "Your order is recorded as received. Thank you for your trust."
 
-#: app/correos_cliente.py:128 app/models.py:483 app/models.py:497
+#: app/correos_cliente.py:128 app/models.py:487 app/models.py:501
 msgid "Cancelado"
 msgstr "Cancelled"
 
@@ -1336,27 +1337,27 @@ msgid_plural "%(num)s días"
 msgstr[0] "%(num)s day"
 msgstr[1] "%(num)s days"
 
-#: app/clientes/forms.py:14 app/datos_empresa.py:17
+#: app/clientes/forms.py:15 app/datos_empresa.py:17
 msgid "Nombre comercial"
 msgstr "Trade name"
 
-#: app/clientes/forms.py:15 app/datos_empresa.py:18
+#: app/clientes/forms.py:16 app/datos_empresa.py:18
 #: app/templates/clientes/_datos_empresa.html:9
 msgid "Razón social"
 msgstr "Legal name"
 
 #: app/datos_empresa.py:19 app/proformas/pdf.py:101
-#: app/templates/clientes/lista.html:42
+#: app/templates/clientes/lista.html:44
 msgid "CIF"
 msgstr "Tax ID"
 
-#: app/clientes/forms.py:25 app/datos_empresa.py:20
+#: app/clientes/forms.py:26 app/datos_empresa.py:20
 #: app/inventario/routes.py:261 app/templates/clientes/detalle.html:40
 #: app/templates/clientes/mi_empresa.html:12
 msgid "Teléfono"
 msgstr "Phone"
 
-#: app/clientes/forms.py:27 app/datos_empresa.py:21
+#: app/clientes/forms.py:28 app/datos_empresa.py:21
 #: app/templates/clientes/_datos_empresa.html:11
 #: app/templates/clientes/_datos_empresa.html:18
 #: app/templates/clientes/detalle.html:41
@@ -1367,7 +1368,7 @@ msgstr "Address"
 msgid "Código postal y ciudad"
 msgstr "Postcode and city"
 
-#: app/clientes/forms.py:31 app/clientes/forms.py:44 app/datos_empresa.py:23
+#: app/clientes/forms.py:32 app/clientes/forms.py:45 app/datos_empresa.py:23
 msgid "País"
 msgstr "Country"
 
@@ -1403,228 +1404,228 @@ msgstr "Problem with the order: %(motivo)s"
 msgid "Hemos resuelto el problema que nos indicó (%(motivo)s)."
 msgstr "We have resolved the problem you reported (%(motivo)s)."
 
-#: app/models.py:463
+#: app/models.py:467
 msgid "RUO (solo investigación)"
 msgstr "RUO (research use only)"
 
-#: app/models.py:464
+#: app/models.py:468
 msgid "IVD (diagnóstico in vitro)"
 msgstr "IVD (in vitro diagnostic)"
 
-#: app/models.py:465
+#: app/models.py:469
 msgid "Indiferente"
 msgstr "No preference"
 
-#: app/models.py:471 app/models.py:490 app/pedidos/historial.py:60
+#: app/models.py:475 app/models.py:494 app/pedidos/historial.py:60
 msgid "Proforma solicitada"
 msgstr "Proforma requested"
 
-#: app/models.py:472
+#: app/models.py:476
 msgid "Proforma enviada"
 msgstr "Proforma sent"
 
-#: app/main/inicio_cliente.py:27 app/models.py:476 app/models.py:493
+#: app/main/inicio_cliente.py:27 app/models.py:480 app/models.py:497
 msgid "Aceptado"
 msgstr "Accepted"
 
-#: app/models.py:479
+#: app/models.py:483
 msgid "Listo para enviar"
 msgstr "Ready to ship"
 
-#: app/models.py:491
+#: app/models.py:495
 msgid "Proforma recibida"
 msgstr "Proforma received"
 
-#: app/models.py:803
+#: app/models.py:807
 msgid "Pendiente de respuesta"
 msgstr "Awaiting response"
 
-#: app/models.py:804
+#: app/models.py:808
 msgid "Aceptada"
 msgstr "Accepted"
 
-#: app/models.py:805
+#: app/models.py:809
 msgid "El cliente pidió cambios"
 msgstr "Client requested changes"
 
-#: app/models.py:806
+#: app/models.py:810
 msgid "Retirada por Yikon"
 msgstr "Withdrawn by Yikon"
 
-#: app/models.py:834
+#: app/models.py:838
 msgid "Llegó dañado"
 msgstr "Arrived damaged"
 
-#: app/models.py:835
+#: app/models.py:839
 msgid "Falta algo"
 msgstr "Something is missing"
 
-#: app/models.py:836
+#: app/models.py:840
 msgid "Temperatura"
 msgstr "Temperature"
 
-#: app/models.py:837 app/models.py:1518
+#: app/models.py:841 app/models.py:1522
 msgid "Otro"
 msgstr "Other"
 
-#: app/models.py:960
+#: app/models.py:964
 msgid "A · Kits sin precio"
 msgstr "A · Kits without prices"
 
-#: app/models.py:961
+#: app/models.py:965
 msgid "B · Kits con precio por línea"
 msgstr "B · Kits with line prices"
 
-#: app/models.py:962
+#: app/models.py:966
 msgid "C · Lista con precio unitario"
 msgstr "C · List with unit prices"
 
-#: app/models.py:965
+#: app/models.py:969
 msgid "España (IVA)"
 msgstr "Spain (VAT)"
 
-#: app/models.py:966
+#: app/models.py:970
 msgid "UE · sin IVA"
 msgstr "EU · no VAT"
 
-#: app/models.py:967
+#: app/models.py:971
 msgid "Exportación · sin IVA"
 msgstr "Export · no VAT"
 
-#: app/models.py:971
+#: app/models.py:975
 msgid "Pendiente"
 msgstr "Pending"
 
-#: app/models.py:972
+#: app/models.py:976
 msgid "Pagada"
 msgstr "Paid"
 
-#: app/models.py:973
+#: app/models.py:977
 msgid "Anulada"
 msgstr "Void"
 
-#: app/models.py:1077
+#: app/models.py:1081
 msgid "Entrada de mercancía"
 msgstr "Goods received"
 
-#: app/models.py:1078
+#: app/models.py:1082
 msgid "Salida por envío de pedido"
 msgstr "Order shipment"
 
-#: app/models.py:1079
+#: app/models.py:1083
 msgid "Anulación de envío"
 msgstr "Shipment reversal"
 
-#: app/models.py:1080
+#: app/models.py:1084
 msgid "Ajuste manual"
 msgstr "Manual adjustment"
 
-#: app/models.py:1081
+#: app/models.py:1085
 msgid "Apertura de kit"
 msgstr "Kit opening"
 
-#: app/models.py:1444
+#: app/models.py:1448
 msgid "Logos y marca"
 msgstr "Logos and brand"
 
-#: app/models.py:1445
+#: app/models.py:1449
 msgid "Plantillas"
 msgstr "Templates"
 
-#: app/models.py:1446
+#: app/models.py:1450
 msgid "Protocolos"
 msgstr "Protocols"
 
-#: app/models.py:1447
+#: app/models.py:1451
 msgid "Fichas técnicas"
 msgstr "Technical sheets"
 
-#: app/models.py:1448
+#: app/models.py:1452
 msgid "Formación"
 msgstr "Training"
 
-#: app/models.py:1449
+#: app/models.py:1453
 msgid "Otros"
 msgstr "Other"
 
-#: app/models.py:1511
+#: app/models.py:1515
 msgid "Acceso / inicio de sesión"
 msgstr "Access / login"
 
-#: app/models.py:1512
+#: app/models.py:1516
 msgid "Carga de datos / muestras"
 msgstr "Data / sample upload"
 
-#: app/models.py:1513
+#: app/models.py:1517
 msgid "Análisis CNV / aneuploidías"
 msgstr "CNV / aneuploidy analysis"
 
-#: app/models.py:1514
+#: app/models.py:1518
 msgid "SNP / haplotipado"
 msgstr "SNP / haplotyping"
 
-#: app/models.py:1515
+#: app/models.py:1519
 msgid "Informes y resultados"
 msgstr "Reports and results"
 
-#: app/models.py:1516
+#: app/models.py:1520
 msgid "Lentitud o errores de la web"
 msgstr "Slowness or website errors"
 
-#: app/models.py:1517
+#: app/models.py:1521
 msgid "Consulta / cómo se hace"
 msgstr "Question / how-to"
 
-#: app/models.py:1521
+#: app/models.py:1525
 msgid "Baja"
 msgstr "Low"
 
-#: app/models.py:1522
+#: app/models.py:1526
 msgid "Normal"
 msgstr "Normal"
 
-#: app/models.py:1523
+#: app/models.py:1527
 msgid "Alta"
 msgstr "High"
 
-#: app/models.py:1524
+#: app/models.py:1528
 msgid "Urgente"
 msgstr "Urgent"
 
-#: app/models.py:1528
+#: app/models.py:1532
 msgid "Una duda o mejora; no me bloquea."
 msgstr "A question or improvement; it doesn't block me."
 
-#: app/models.py:1529
+#: app/models.py:1533
 msgid "Algo no funciona, pero puedo seguir trabajando."
 msgstr "Something doesn't work, but I can keep working."
 
-#: app/models.py:1530
+#: app/models.py:1534
 msgid "No puedo terminar un análisis o un informe."
 msgstr "I can't finish an analysis or a report."
 
-#: app/models.py:1531
+#: app/models.py:1535
 msgid "No puedo trabajar con ChromGo / resultados urgentes de paciente."
 msgstr "I can't work with ChromGo / urgent patient results."
 
-#: app/models.py:1534 app/templates/soporte/detalle.html:103
+#: app/models.py:1538 app/templates/soporte/detalle.html:103
 msgid "Abierto"
 msgstr "Open"
 
-#: app/models.py:1535
+#: app/models.py:1539
 msgid "En curso"
 msgstr "In progress"
 
-#: app/models.py:1536 app/pedidos/pendientes.py:64
+#: app/models.py:1540 app/pedidos/pendientes.py:64
 #: app/pedidos/pendientes.py:214 app/templates/soporte/lista.html:27
 msgid "Esperando al cliente"
 msgstr "Waiting for client"
 
-#: app/models.py:1537 app/templates/soporte/detalle.html:105
+#: app/models.py:1541 app/templates/soporte/detalle.html:105
 msgid "Resuelto"
 msgstr "Resolved"
 
-#: app/models.py:1538
+#: app/models.py:1542
 msgid "Cerrado"
 msgstr "Closed"
 
@@ -1657,39 +1658,44 @@ msgstr "Trace a lot"
 msgid "Clientes y facturas"
 msgstr "Clients and invoices"
 
-#: app/navegacion.py:79 app/permisos.py:28 app/soporte/routes.py:99
+#: app/clientes/routes.py:153 app/navegacion.py:77
+#: app/templates/clientes/mapa.html:6 app/templates/clientes/mapa.html:26
+msgid "Mapa de clientes"
+msgstr "Client map"
+
+#: app/navegacion.py:82 app/permisos.py:28 app/soporte/routes.py:99
 #: app/templates/admin/usuario_form.html:35
 #: app/templates/soporte/detalle.html:12 app/templates/soporte/lista.html:11
 #: app/templates/soporte/nuevo.html:9
 msgid "Soporte ChromGo"
 msgstr "ChromGo Support"
 
-#: app/navegacion.py:81
+#: app/navegacion.py:84
 msgid "Tickets con novedades"
 msgstr "Tickets with updates"
 
-#: app/navegacion.py:83
+#: app/navegacion.py:86
 msgid "Equipo Yikon"
 msgstr "Yikon team"
 
-#: app/admin/routes.py:185 app/navegacion.py:92
+#: app/admin/routes.py:185 app/navegacion.py:95
 #: app/templates/admin/auditoria.html:6
 msgid "Auditoría"
 msgstr "Audit log"
 
-#: app/admin/correos_estado.py:67 app/navegacion.py:94
+#: app/admin/correos_estado.py:67 app/navegacion.py:97
 #: app/templates/admin/correo.html:4 app/templates/admin/correos.html:10
 msgid "Correos enviados"
 msgstr "Sent emails"
 
 #: app/clientes/exportar.py:67 app/facturas/forms.py:21
-#: app/facturas/routes.py:91 app/inventario/routes.py:259 app/navegacion.py:96
+#: app/facturas/routes.py:91 app/inventario/routes.py:259 app/navegacion.py:99
 #: app/pedidos/forms.py:347 app/pedidos/pdf.py:73 app/pedidos/routes.py:196
 #: app/soporte/forms.py:55 app/templates/admin/correos.html:19
 #: app/templates/admin/correos.html:38 app/templates/admin/usuarios.html:25
 #: app/templates/admin/usuarios.html:37 app/templates/clientes/detalle.html:67
 #: app/templates/clientes/detalle.html:97
-#: app/templates/clientes/detalle.html:262 app/templates/clientes/lista.html:17
+#: app/templates/clientes/detalle.html:262 app/templates/clientes/lista.html:19
 #: app/templates/facturas/lista.html:23 app/templates/facturas/mias.html:9
 #: app/templates/facturas/por_facturar.html:10
 #: app/templates/inventario/rastreo.html:91
@@ -1819,7 +1825,7 @@ msgstr "Saved. Everyone will see it this way from their next page."
 
 #: app/admin/ajustes_apartados.py:35 app/admin/ajustes_mas.py:29
 #: app/admin/ajustes_mas.py:113 app/admin/routes.py:218
-#: app/clientes/routes.py:411 app/clientes/routes.py:468
+#: app/clientes/routes.py:487 app/clientes/routes.py:544
 msgid "No has cambiado nada."
 msgstr "You have not changed anything."
 
@@ -1958,16 +1964,16 @@ msgstr "Email prepared. Review it before confirming the resend."
 msgid "Estado de la plataforma"
 msgstr "Platform status"
 
-#: app/admin/forms.py:13 app/clientes/forms.py:109 app/productos/forms.py:18
+#: app/admin/forms.py:13 app/clientes/forms.py:122 app/productos/forms.py:18
 #: app/productos/forms.py:67 app/templates/admin/usuarios.html:37
-#: app/templates/clientes/detalle.html:262 app/templates/clientes/lista.html:42
+#: app/templates/clientes/detalle.html:262 app/templates/clientes/lista.html:44
 #: app/templates/productos/catalogo.html:29
 #: app/templates/productos/kits.html:18 app/templates/productos/lista.html:14
 msgid "Nombre"
 msgstr "Name"
 
-#: app/admin/forms.py:14 app/auth/forms.py:8 app/clientes/forms.py:24
-#: app/clientes/forms.py:110 app/inventario/routes.py:261
+#: app/admin/forms.py:14 app/auth/forms.py:8 app/clientes/forms.py:25
+#: app/clientes/forms.py:123 app/inventario/routes.py:261
 #: app/templates/admin/usuarios.html:37 app/templates/clientes/detalle.html:39
 #: app/templates/clientes/detalle.html:262
 #: app/templates/clientes/mi_empresa.html:11
@@ -2000,21 +2006,22 @@ msgstr ""
 "Client role only: besides their orders, they can open and see their "
 "company's ChromGo tickets. (ChromGo Client and Support always have it.)"
 
-#: app/admin/forms.py:21 app/clientes/forms.py:52 app/clientes/forms.py:114
+#: app/admin/forms.py:21 app/clientes/forms.py:57 app/clientes/forms.py:127
 #: app/productos/forms.py:28 app/productos/forms.py:80
 #: app/templates/admin/usuarios.html:41 app/templates/clientes/detalle.html:265
+#: app/templates/clientes/mapa.html:65
 msgid "Activo"
 msgstr "Active"
 
-#: app/admin/forms.py:22 app/clientes/forms.py:111
+#: app/admin/forms.py:22 app/clientes/forms.py:124
 msgid "Idioma"
 msgstr "Language"
 
-#: app/admin/forms.py:22 app/clientes/forms.py:111
+#: app/admin/forms.py:22 app/clientes/forms.py:124
 msgid "Automático (el de su navegador)"
 msgstr "Automatic (their browser language)"
 
-#: app/admin/forms.py:24 app/clientes/forms.py:113
+#: app/admin/forms.py:24 app/clientes/forms.py:126
 msgid "Idioma de la web y de los emails que recibe."
 msgstr "Language of the website and of the emails they receive."
 
@@ -2034,7 +2041,7 @@ msgstr ""
 "Optional if you send the invitation. When editing, leave it blank to keep"
 " the current one."
 
-#: app/admin/forms.py:31 app/clientes/forms.py:53 app/clientes/forms.py:116
+#: app/admin/forms.py:31 app/clientes/forms.py:58 app/clientes/forms.py:129
 #: app/documentos/forms.py:28 app/facturas/forms.py:28
 #: app/inventario/forms.py:98 app/inventario/forms.py:126
 #: app/productos/forms.py:31 app/productos/forms.py:81
@@ -2067,7 +2074,7 @@ msgstr "— None —"
 msgid "Un usuario cliente debe pertenecer a una empresa."
 msgstr "A client user must belong to a company."
 
-#: app/admin/forms.py:58 app/clientes/forms.py:126
+#: app/admin/forms.py:58 app/clientes/forms.py:139
 msgid "Ya existe un usuario con ese email."
 msgstr "A user with that email already exists."
 
@@ -2075,14 +2082,14 @@ msgstr "A user with that email already exists."
 msgid "Pon una contraseña o marca «Enviarle una invitación»."
 msgstr "Enter a password or tick \"Send them an email invitation\"."
 
-#: app/admin/routes.py:73 app/clientes/routes.py:307
+#: app/admin/routes.py:73 app/clientes/routes.py:383
 #, python-format
 msgid ""
 "Usuario %(email)s creado. La invitación está pendiente de revisar y "
 "enviar."
 msgstr "User %(email)s created. The invitation is pending review and sending."
 
-#: app/admin/routes.py:74 app/clientes/routes.py:308
+#: app/admin/routes.py:74 app/clientes/routes.py:384
 #, python-format
 msgid "Usuario %(email)s creado."
 msgstr "User %(email)s created."
@@ -2095,22 +2102,22 @@ msgstr "New user"
 msgid "No puedes quitarte el rol de admin ni desactivarte a ti mismo."
 msgstr "You can't remove your own admin role or deactivate yourself."
 
-#: app/admin/routes.py:110 app/clientes/routes.py:329
+#: app/admin/routes.py:110 app/clientes/routes.py:405
 msgid "Usuario actualizado."
 msgstr "User updated."
 
-#: app/admin/routes.py:112 app/clientes/routes.py:269
-#: app/clientes/routes.py:331
+#: app/admin/routes.py:112 app/clientes/routes.py:345
+#: app/clientes/routes.py:407
 #, python-format
 msgid "Editar %(nombre)s"
 msgstr "Edit %(nombre)s"
 
-#: app/admin/routes.py:133 app/clientes/routes.py:351
+#: app/admin/routes.py:133 app/clientes/routes.py:427
 #, python-format
 msgid "Invitación preparada para %(email)s. Revisa el correo antes de enviarlo."
 msgstr "Invitation prepared for %(email)s. Review the email before sending it."
 
-#: app/admin/routes.py:135 app/clientes/routes.py:353
+#: app/admin/routes.py:135 app/clientes/routes.py:429
 msgid "No se envía: el usuario ya ha entrado alguna vez o está desactivado."
 msgstr "Not sent: the user has already signed in or is deactivated."
 
@@ -2310,16 +2317,16 @@ msgstr "Issues"
 msgid "%(n)s pedidos"
 msgstr "%(n)s orders"
 
-#: app/clientes/forms.py:16 app/templates/clientes/_datos_empresa.html:10
+#: app/clientes/forms.py:17 app/templates/clientes/_datos_empresa.html:10
 msgid "CIF / NIF"
 msgstr "Tax ID (CIF / NIF)"
 
-#: app/clientes/forms.py:20 app/templates/clientes/detalle.html:27
+#: app/clientes/forms.py:21 app/templates/clientes/detalle.html:27
 #: app/templates/clientes/detalle.html:37
 msgid "Prefijo de pedidos"
 msgstr "Order prefix"
 
-#: app/clientes/forms.py:21
+#: app/clientes/forms.py:22
 msgid ""
 "Para las referencias internas (DiNA → DiNA_001). Si lo dejas vacío se "
 "toma la primera palabra del nombre."
@@ -2327,116 +2334,125 @@ msgstr ""
 "Used for internal references (DiNA → DiNA_001). If left blank, the first "
 "word of the name is used."
 
-#: app/clientes/forms.py:26 app/inventario/routes.py:261
+#: app/clientes/forms.py:27 app/inventario/routes.py:261
 #: app/templates/clientes/mi_empresa.html:10
 msgid "Persona de contacto"
 msgstr "Contact person"
 
-#: app/clientes/forms.py:28 app/clientes/forms.py:42
-#: app/templates/clientes/lista.html:43
+#: app/clientes/forms.py:29 app/clientes/forms.py:43
+#: app/templates/clientes/lista.html:45
 msgid "Ciudad"
 msgstr "City"
 
-#: app/clientes/forms.py:29 app/clientes/forms.py:41
+#: app/clientes/forms.py:30 app/clientes/forms.py:42
 msgid "Código postal"
 msgstr "Postcode"
 
-#: app/clientes/forms.py:30 app/clientes/forms.py:43
+#: app/clientes/forms.py:31 app/clientes/forms.py:44
 msgid "Provincia"
 msgstr "Province / state"
 
-#: app/clientes/forms.py:33
+#: app/clientes/forms.py:34
 msgid "Se envía a la dirección de facturación"
 msgstr "Ship to the billing address"
 
-#: app/clientes/forms.py:34
+#: app/clientes/forms.py:35
 msgid "Destinatario / centro"
 msgstr "Recipient / site"
 
-#: app/clientes/forms.py:35
+#: app/clientes/forms.py:36
 msgid "Vacío: la razón social."
 msgstr "Empty: the company name."
 
-#: app/clientes/forms.py:36
+#: app/clientes/forms.py:37
 msgid "Persona que recibe"
 msgstr "Person receiving"
 
-#: app/clientes/forms.py:37
+#: app/clientes/forms.py:38
 msgid "Vacío: la persona de contacto."
 msgstr "Empty: the contact person."
 
-#: app/clientes/forms.py:38
+#: app/clientes/forms.py:39
 msgid "Teléfono de entrega"
 msgstr "Delivery phone"
 
-#: app/clientes/forms.py:39
+#: app/clientes/forms.py:40
 msgid "Vacío: el teléfono de la empresa."
 msgstr "Empty: the company's phone."
 
-#: app/clientes/forms.py:40
+#: app/clientes/forms.py:41
 msgid "Dirección de envío"
 msgstr "Shipping address"
 
-#: app/clientes/forms.py:45 app/pedidos/albaran.py:214
+#: app/clientes/forms.py:46 app/pedidos/albaran.py:214
 #: app/templates/clientes/_datos_empresa.html:20
 msgid "Instrucciones de entrega"
 msgstr "Delivery instructions"
 
-#: app/clientes/forms.py:46
+#: app/clientes/forms.py:47
 msgid "Horario, planta, muelle… Sale en el albarán."
 msgstr "Opening hours, floor, loading dock… Printed on the delivery note."
 
-#: app/clientes/forms.py:48
+#: app/clientes/forms.py:53
 #, python-format
 msgid "%(rol)s: personas asignadas"
 msgstr "%(rol)s: assigned people"
 
-#: app/clientes/forms.py:49
+#: app/clientes/forms.py:54
 msgid "Ctrl + clic para seleccionar varios."
 msgstr "Ctrl + click to select several."
 
-#: app/clientes/forms.py:51 app/facturas/forms.py:24 app/proformas/pdf.py:157
+#: app/clientes/forms.py:56 app/facturas/forms.py:24 app/proformas/pdf.py:157
 #: app/templates/clientes/detalle.html:47
 msgid "Notas"
 msgstr "Notes"
 
-#: app/clientes/forms.py:70
+#: app/clientes/forms.py:75
 msgid "De 2 a 10 letras o números, sin espacios ni tildes."
 msgstr "2 to 10 letters or digits, no spaces or accents."
 
-#: app/clientes/forms.py:75
+#: app/clientes/forms.py:80
 #, python-format
 msgid "Ese prefijo ya lo usa %(nombre)s. Escribe otro."
 msgstr "That prefix is already used by %(nombre)s. Choose another one."
 
-#: app/clientes/forms.py:76
+#: app/clientes/forms.py:81
 msgid "Ese prefijo ya lo usa otro cliente. Escribe otro."
 msgstr "That prefix is already used by another client. Type another one."
 
-#: app/clientes/forms.py:87
+#: app/clientes/forms.py:92
 msgid "Ese prefijo ya se usó en pedidos de otra empresa. Escribe otro."
 msgstr ""
 "That prefix was already used in another company's orders. Choose another "
 "one."
 
-#: app/clientes/forms.py:97
+#: app/clientes/forms.py:110
 #, python-format
 msgid "Ese CIF ya está registrado (%(nombre)s)."
 msgstr "That tax ID is already registered (%(nombre)s)."
 
-#: app/clientes/forms.py:98
+#: app/clientes/forms.py:111
 msgid "Ese CIF ya está registrado en otro cliente."
 msgstr "That tax ID is already registered for another client."
 
-#: app/clientes/forms.py:115
+#: app/clientes/forms.py:128
 msgid "Desactivado no puede entrar (sus pedidos y mensajes se quedan)."
 msgstr "If deactivated, they cannot log in (their orders and messages stay)."
 
-#: app/clientes/routes.py:97 app/templates/layout.html:236
+#: app/clientes/routes.py:43
+#, python-format
+msgid ""
+"No he encontrado «%(lugar)s» en el mapa: sitúalo a mano en «Editar» (haz "
+"clic en el mapa)."
+msgstr ""
+"I couldn't find “%(lugar)s” on the map: place it by hand in “Edit” (click"
+" on the map)."
+
+#: app/clientes/routes.py:165 app/templates/layout.html:236
 msgid "Mi empresa"
 msgstr "My company"
 
-#: app/clientes/routes.py:117
+#: app/clientes/routes.py:188
 #, python-format
 msgid ""
 "Cliente «%(nombre)s» creado. Ahora añade sus usuarios: les llegará la "
@@ -2445,89 +2461,89 @@ msgstr ""
 "Client “%(nombre)s” created. Now add their users: they will get the "
 "invitation."
 
-#: app/clientes/routes.py:120
+#: app/clientes/routes.py:191
 #, python-format
 msgid "Cliente «%(nombre)s» creado."
 msgstr "Client \"%(nombre)s\" created."
 
-#: app/clientes/routes.py:122
+#: app/clientes/routes.py:193
 msgid "Nuevo cliente"
 msgstr "New client"
 
-#: app/clientes/routes.py:186 app/clientes/routes.py:223
+#: app/clientes/routes.py:257 app/clientes/routes.py:294
 msgid "Escribe un precio válido (p. ej. 1850 o 1850,50)."
 msgstr "Enter a valid price (e.g. 1850 or 1850.50)."
 
-#: app/clientes/routes.py:196
+#: app/clientes/routes.py:267
 #, python-format
 msgid "Precio especial de %(kit)s guardado."
 msgstr "Special price for %(kit)s saved."
 
-#: app/clientes/routes.py:210
+#: app/clientes/routes.py:281
 #, python-format
 msgid "Ahora %(kit)s vuelve a su precio estándar para este cliente."
 msgstr "%(kit)s is back to its standard price for this client."
 
-#: app/clientes/routes.py:233
+#: app/clientes/routes.py:304
 #, python-format
 msgid "Precio especial de %(producto)s guardado."
 msgstr "Special price for %(producto)s saved."
 
-#: app/clientes/routes.py:247
+#: app/clientes/routes.py:318
 #, python-format
 msgid "Ahora %(producto)s vuelve a su precio estándar para este cliente."
 msgstr "%(producto)s is back to its standard price for this client."
 
-#: app/clientes/routes.py:267
+#: app/clientes/routes.py:341
 msgid "Cliente actualizado."
 msgstr "Client updated."
 
-#: app/clientes/routes.py:310
+#: app/clientes/routes.py:386
 #, python-format
 msgid "Nuevo usuario de %(cliente)s"
 msgstr "New user for %(cliente)s"
 
-#: app/clientes/routes.py:365
+#: app/clientes/routes.py:441
 #, python-format
 msgid "%(cliente)s ahora ve los precios."
 msgstr "%(cliente)s can now see prices."
 
-#: app/clientes/routes.py:366
+#: app/clientes/routes.py:442
 #, python-format
 msgid "%(cliente)s ya no ve los precios."
 msgstr "%(cliente)s can no longer see prices."
 
-#: app/clientes/routes.py:396
+#: app/clientes/routes.py:472
 #, python-format
 msgid "«%(email)s» no es un email válido."
 msgstr "\"%(email)s\" is not a valid email."
 
-#: app/clientes/routes.py:399
+#: app/clientes/routes.py:475
 #, python-format
 msgid "%(email)s ya es un usuario de este cliente: marca sus avisos en su fila."
 msgstr ""
 "%(email)s is already a user of this client: tick their notifications in "
 "their row."
 
-#: app/clientes/routes.py:403
+#: app/clientes/routes.py:479
 #, python-format
 msgid "Como mucho %(n)s emails en copia."
 msgstr "At most %(n)s copied emails."
 
-#: app/clientes/routes.py:409
+#: app/clientes/routes.py:485
 msgid "Avisos guardados."
 msgstr "Notifications saved."
 
-#: app/clientes/routes.py:459
+#: app/clientes/routes.py:535
 #, python-format
 msgid "Copiado el catálogo de %(otro)s."
 msgstr "Catalogue copied from %(otro)s."
 
-#: app/clientes/routes.py:472
+#: app/clientes/routes.py:548
 msgid "Catálogo guardado."
 msgstr "Catalogue saved."
 
-#: app/clientes/routes.py:474
+#: app/clientes/routes.py:550
 #, python-format
 msgid ""
 "Ojo: tiene proformas abiertas con kits que ya no están en su catálogo: "
@@ -3398,8 +3414,8 @@ msgstr "Home"
 #: app/main/routes.py:194 app/templates/admin/auditoria.html:22
 #: app/templates/admin/auditoria.html:26 app/templates/admin/correos.html:15
 #: app/templates/admin/correos.html:18 app/templates/admin/usuarios.html:10
-#: app/templates/admin/usuarios.html:13 app/templates/clientes/lista.html:12
-#: app/templates/clientes/lista.html:16 app/templates/documentos/lista.html:44
+#: app/templates/admin/usuarios.html:13 app/templates/clientes/lista.html:14
+#: app/templates/clientes/lista.html:18 app/templates/documentos/lista.html:44
 #: app/templates/documentos/lista.html:45
 #: app/templates/inventario/lista.html:101
 #: app/templates/inventario/movimientos.html:13
@@ -4491,6 +4507,7 @@ msgid "Editar %(ref)s"
 msgstr "Edit %(ref)s"
 
 #: app/productos/routes.py:142 app/productos/routes.py:286
+#: app/templates/clientes/mapa.html:66
 msgid "pedidos"
 msgstr "orders"
 
@@ -4647,7 +4664,7 @@ msgid "Su referencia"
 msgstr "Your reference"
 
 #: app/proformas/pdf.py:103 app/templates/clientes/detalle.html:29
-#: app/templates/clientes/detalle.html:38 app/templates/clientes/lista.html:43
+#: app/templates/clientes/detalle.html:38 app/templates/clientes/lista.html:45
 #: app/templates/inventario/rastreo.html:47
 msgid "Contacto"
 msgstr "Contact"
@@ -4847,7 +4864,7 @@ msgstr "New ChromGo ticket"
 msgid "— Nadie —"
 msgstr "— Nobody —"
 
-#: app/soporte/routes.py:148 app/templates/clientes/lista.html:27
+#: app/soporte/routes.py:148 app/templates/clientes/lista.html:29
 msgid "(desactivado)"
 msgstr "(deactivated)"
 
@@ -5799,6 +5816,7 @@ msgid "Qué"
 msgstr "What"
 
 #: app/templates/admin/auditoria.html:29 app/templates/clientes/detalle.html:59
+#: app/templates/clientes/mapa.html:10
 msgid "Todo"
 msgstr "All"
 
@@ -5819,8 +5837,8 @@ msgstr "Who"
 
 #: app/templates/admin/auditoria.html:39 app/templates/admin/correos.html:21
 #: app/templates/admin/correos.html:25 app/templates/admin/usuarios.html:16
-#: app/templates/admin/usuarios.html:27 app/templates/clientes/lista.html:21
-#: app/templates/clientes/lista.html:32 app/templates/inventario/lista.html:91
+#: app/templates/admin/usuarios.html:27 app/templates/clientes/lista.html:23
+#: app/templates/clientes/lista.html:34 app/templates/inventario/lista.html:91
 #: app/templates/main/actividad.html:12 app/templates/mensajes/lista.html:23
 #: app/templates/pedidos/lista.html:31 app/templates/pedidos/lista.html:35
 #: app/templates/pedidos/lista.html:39 app/templates/pedidos/lista.html:43
@@ -5830,7 +5848,7 @@ msgid "Todos"
 msgstr "All"
 
 #: app/templates/admin/auditoria.html:43 app/templates/admin/correos.html:33
-#: app/templates/admin/usuarios.html:32 app/templates/clientes/lista.html:36
+#: app/templates/admin/usuarios.html:32 app/templates/clientes/lista.html:38
 #: app/templates/main/actividad.html:21
 msgid "Quitar filtros"
 msgstr "Clear filters"
@@ -6077,7 +6095,7 @@ msgstr[1] "%(num)s errors"
 msgid "Ninguna página ha fallado por un error nuestro."
 msgstr "No page has failed because of an error on our side."
 
-#: app/templates/admin/usuario_form.html:14 app/templates/clientes/form.html:42
+#: app/templates/admin/usuario_form.html:14 app/templates/clientes/form.html:54
 #: app/templates/clientes/usuario_form.html:17
 #: app/templates/documentos/lista.html:103 app/templates/facturas/form.html:21
 #: app/templates/inventario/lista.html:173
@@ -6188,7 +6206,7 @@ msgstr "Name or email"
 msgid "Sus usuarios y quien la lleva (%(rol)s)"
 msgstr "Its users and who handles it (%(rol)s)"
 
-#: app/templates/admin/usuarios.html:28 app/templates/clientes/lista.html:19
+#: app/templates/admin/usuarios.html:28 app/templates/clientes/lista.html:21
 msgid "Activos"
 msgstr "Active"
 
@@ -6200,7 +6218,7 @@ msgstr "Invitation pending"
 msgid "Desactivados"
 msgstr "Deactivated"
 
-#: app/templates/admin/usuarios.html:35 app/templates/clientes/lista.html:40
+#: app/templates/admin/usuarios.html:35 app/templates/clientes/lista.html:42
 msgid "con los filtros aplicados"
 msgstr "with the filters applied"
 
@@ -6270,7 +6288,7 @@ msgid "Datos de facturación"
 msgstr "Billing details"
 
 #: app/templates/clientes/_datos_empresa.html:15
-#: app/templates/clientes/form.html:23 app/templates/pedidos/detalle.html:600
+#: app/templates/clientes/form.html:35 app/templates/pedidos/detalle.html:600
 msgid "Datos de envío"
 msgstr "Shipping details"
 
@@ -6302,17 +6320,18 @@ msgstr "Click so they can see prices"
 
 #: app/templates/clientes/_interruptor_precios.html:11
 #: app/templates/clientes/_interruptor_precios.html:13
-#: app/templates/clientes/detalle.html:44 app/templates/clientes/lista.html:33
+#: app/templates/clientes/detalle.html:44 app/templates/clientes/lista.html:35
 msgid "Sí"
 msgstr "Yes"
 
 #: app/templates/clientes/_interruptor_precios.html:11
 #: app/templates/clientes/_interruptor_precios.html:13
-#: app/templates/clientes/detalle.html:44 app/templates/clientes/lista.html:34
+#: app/templates/clientes/detalle.html:44 app/templates/clientes/lista.html:36
 msgid "No"
 msgstr "No"
 
-#: app/templates/clientes/detalle.html:5
+#: app/templates/clientes/detalle.html:5 app/templates/clientes/mapa.html:31
+#: app/templates/clientes/mapa.html:66
 msgid "Inactivo"
 msgstr "Inactive"
 
@@ -6532,7 +6551,7 @@ msgstr "Untick all"
 msgid "Precio para él"
 msgstr "Their price"
 
-#: app/templates/clientes/detalle.html:215
+#: app/templates/clientes/detalle.html:215 app/templates/clientes/mapa.html:64
 msgid "Último pedido"
 msgstr "Last order"
 
@@ -6670,35 +6689,59 @@ msgstr ""
 "The emails contain links to the platform: people without a user won't be "
 "able to open them."
 
-#: app/templates/clientes/form.html:24
+#: app/templates/clientes/form.html:26
+msgid "En el mapa de clientes"
+msgstr "On the client map"
+
+#: app/templates/clientes/form.html:28
+msgid "Mapa para situar el cliente"
+msgstr "Map to place the client"
+
+#: app/templates/clientes/form.html:30
+msgid ""
+"Se sitúa solo con la ciudad y el país al guardar. Si no queda bien, haz "
+"clic en el mapa donde está (rueda para acercarte)."
+msgstr ""
+"It is placed automatically from the city and country when saving. If it's"
+" not right, click on the map where it is (scroll to zoom in)."
+
+#: app/templates/clientes/form.html:31
+msgid "Quitar del mapa"
+msgstr "Remove from the map"
+
+#: app/templates/clientes/form.html:36
 msgid "salen en el albarán"
 msgstr "printed on the delivery note"
 
 #: app/templates/clientes/lista.html:7
+msgid "Mapa"
+msgstr "Map"
+
+#: app/templates/clientes/lista.html:9
 msgid "+ Nuevo cliente"
 msgstr "+ New client"
 
-#: app/templates/clientes/lista.html:15
+#: app/templates/clientes/lista.html:17
 msgid "Nombre, CIF, ciudad, contacto, email o prefijo"
 msgstr "Name, VAT no., city, contact, email or prefix"
 
-#: app/templates/clientes/lista.html:20
+#: app/templates/clientes/lista.html:22
 msgid "Inactivos"
 msgstr "Inactive"
 
-#: app/templates/clientes/lista.html:25 app/templates/soporte/lista.html:54
+#: app/templates/clientes/lista.html:27 app/templates/soporte/lista.html:54
 msgid "Cualquiera"
 msgstr "Anyone"
 
-#: app/templates/clientes/lista.html:26 app/templates/soporte/lista.html:24
+#: app/templates/clientes/lista.html:28 app/templates/soporte/lista.html:24
 msgid "Sin asignar"
 msgstr "Unassigned"
 
-#: app/templates/clientes/lista.html:30 app/templates/clientes/lista.html:44
+#: app/templates/clientes/lista.html:32 app/templates/clientes/lista.html:46
 msgid "Ve precios"
 msgstr "Sees prices"
 
-#: app/templates/clientes/lista.html:40
+#: app/templates/clientes/lista.html:42
 #: app/templates/inventario/rastreo.html:44
 #, python-format
 msgid "%(num)s cliente"
@@ -6706,13 +6749,110 @@ msgid_plural "%(num)s clientes"
 msgstr[0] "%(num)s client"
 msgstr[1] "%(num)s clients"
 
-#: app/templates/clientes/lista.html:50
+#: app/templates/clientes/lista.html:52
 msgid "No hay clientes con estos filtros."
 msgstr "No clients match these filters."
 
-#: app/templates/clientes/lista.html:50
+#: app/templates/clientes/lista.html:52
 msgid "No hay clientes."
 msgstr "No clients."
+
+#: app/templates/clientes/mapa.html:7
+msgid "Dónde están nuestros clientes en Europa y Latinoamérica"
+msgstr "Where our clients are in Europe and Latin America"
+
+#: app/templates/clientes/mapa.html:9
+msgid "Zona"
+msgstr "Area"
+
+#: app/templates/clientes/mapa.html:11 app/templates/clientes/mapa.html:68
+msgid "Europa"
+msgstr "Europe"
+
+#: app/templates/clientes/mapa.html:12 app/templates/clientes/mapa.html:68
+msgid "Latinoamérica"
+msgstr "Latin America"
+
+#: app/templates/clientes/mapa.html:16
+#, python-format
+msgid "Todo %(rol)s"
+msgstr "All %(rol)s"
+
+#: app/templates/clientes/mapa.html:20
+msgid "Lista"
+msgstr "List"
+
+#: app/templates/clientes/mapa.html:27
+msgid "Acercar"
+msgstr "Zoom in"
+
+#: app/templates/clientes/mapa.html:27
+msgid "Alejar"
+msgstr "Zoom out"
+
+#: app/templates/clientes/mapa.html:29
+msgid "Con pedidos"
+msgstr "With orders"
+
+#: app/templates/clientes/mapa.html:30 app/templates/clientes/mapa.html:65
+msgid "Aún sin pedidos"
+msgstr "No orders yet"
+
+#: app/templates/clientes/mapa.html:34
+msgid "Cargando el mapa…"
+msgstr "Loading the map…"
+
+#: app/templates/clientes/mapa.html:40
+msgid "Países"
+msgstr "Countries"
+
+#: app/templates/clientes/mapa.html:41 app/templates/clientes/mapa.html:64
+#, python-format
+msgid "Pedidos %(anio)s"
+msgstr "Orders %(anio)s"
+
+#: app/templates/clientes/mapa.html:44
+msgid "Elige un cliente en el mapa (o un país en la lista) para ver su resumen."
+msgstr "Pick a client on the map (or a country in the list) to see their summary."
+
+#: app/templates/clientes/mapa.html:47
+msgid "Por país"
+msgstr "By country"
+
+#: app/templates/clientes/mapa.html:52
+#, python-format
+msgid "%(num)s cliente sin situar"
+msgid_plural "%(num)s clientes sin situar"
+msgstr[0] "%(num)s client not placed"
+msgstr[1] "%(num)s clients not placed"
+
+#: app/templates/clientes/mapa.html:53
+msgid ""
+"No sale en el mapa: falta su ciudad o no se ha encontrado. Se sitúa en "
+"«Editar», haciendo clic en el mapa."
+msgstr ""
+"Not on the map: the city is missing or wasn't found. Place it in “Edit” "
+"by clicking on the map."
+
+#: app/templates/clientes/mapa.html:65
+msgid "Ver ficha del cliente"
+msgstr "View client page"
+
+#: app/templates/clientes/mapa.html:66
+msgid "Sin país"
+msgstr "No country"
+
+#: app/templates/clientes/mapa.html:67
+msgid "cliente"
+msgstr "client"
+
+#: app/templates/clientes/mapa.html:67
+msgid "clientes"
+msgstr "clients"
+
+#: app/templates/clientes/mapa.html:67
+msgid "Pedidos por mes (últimos 12 meses)"
+msgstr "Orders per month (last 12 months)"
 
 #: app/templates/clientes/mi_empresa.html:5
 msgid ""

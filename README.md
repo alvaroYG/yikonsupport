@@ -116,6 +116,7 @@ asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y
 | Reservar lotes | ✓ | ✓ | ✓ (aceptados) | sus clientes | |
 | Preparar, hacer fotos y enviar | ✓ | | ✓ | | |
 | Albarán (PDF) para el paquete | ✓ | | ✓ | | |
+| Mapa de clientes | todos | todos | | sus clientes | |
 | Datos de facturación y envío de la empresa | editar | editar | | editar (sus clientes) | ver los suyos («Mi empresa») |
 | Validar las fotos (o devolver a preparación) | ✓ (suple) | | | sus clientes | |
 | Marcar recibido | ✓ | | ✓ (en su nombre) | | ✓ |

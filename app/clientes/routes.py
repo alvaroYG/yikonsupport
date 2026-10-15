@@ -1,5 +1,5 @@
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 
@@ -18,6 +18,30 @@ CAMPOS = ["nombre", "razon_social", "cif", "prefijo", "email", "telefono", "pers
           "direccion", "ciudad", "codigo_postal", "provincia", "pais", "notas", "activo",
           "envio_igual", "envio_destinatario", "envio_contacto", "envio_telefono", "envio_direccion",
           "envio_codigo_postal", "envio_ciudad", "envio_provincia", "envio_pais", "envio_instrucciones"]
+
+
+def _situar(form, cliente, lugar_antes):
+    """Dónde sale en el mapa. Si lo han puesto a mano en el mapita, eso; si no, cuando cambia la
+    dirección (o aún no lo tenía), se busca su ciudad (app/geocodificar.py). Devuelve un aviso o None."""
+    from app import geocodificar
+    punto = form.punto()
+    if form.ubicacion_manual.data == "quitar":
+        cliente.latitud = cliente.longitud = None
+        return None
+    if form.ubicacion_manual.data == "1" and punto:
+        cliente.latitud, cliente.longitud = punto
+        return None
+    lugar_ahora = tuple(getattr(cliente, c) for c in geocodificar.CAMPOS_LUGAR)
+    if cliente.latitud is not None and lugar_ahora == lugar_antes:
+        return None
+    if not (cliente.ciudad or cliente.codigo_postal):
+        cliente.latitud = cliente.longitud = None
+        return None
+    if geocodificar.situar(cliente):
+        return None
+    cliente.latitud = cliente.longitud = None
+    return _("No he encontrado «%(lugar)s» en el mapa: sitúalo a mano en «Editar» (haz clic en el mapa).",
+             lugar=", ".join(x for x in (cliente.ciudad, cliente.pais) if x))
 
 
 def _guardar(form, cliente):
@@ -86,6 +110,50 @@ def lista():
                            estado=estado, fas=fas, lista_fas=lista_fas, precios=precios, hay_filtros=hay_filtros)
 
 
+@bp.route("/mapa")
+@requiere_permiso("clientes.ver")
+def mapa():
+    """Mapa de clientes (Europa y Latinoamérica): un punto por cliente, con su resumen al elegirlo.
+    Cada uno ve los clientes que ve en la lista (Soporte de cliente: los suyos). El dibujo lo hace
+    js/mapa_clientes.js con el mapa del mundo que va en static/vendor (sin servicios de fuera)."""
+    from datetime import date
+
+    hoy = date.today()
+    clientes = db.session.scalars(filtrar_clientes(db.select(Cliente)).order_by(Cliente.nombre)).all()
+    ids = [c.id for c in clientes]
+    # Pedidos de los últimos 12 meses (sin los cancelados), para el resumen y la gráfica por meses
+    desde = date(hoy.year - 1, hoy.month, 1)
+    meses = [((hoy.year * 12 + hoy.month - 1 - i) // 12, (hoy.year * 12 + hoy.month - 1 - i) % 12 + 1)
+             for i in range(11, -1, -1)]
+    filas = db.session.execute(db.select(Pedido.cliente_id, Pedido.fecha).where(
+        Pedido.cliente_id.in_(ids), Pedido.estado != "cancelado", Pedido.fecha >= desde)).all() if ids else []
+    ultimos = dict(db.session.execute(db.select(Pedido.cliente_id, db.func.max(Pedido.fecha)).where(
+        Pedido.cliente_id.in_(ids), Pedido.estado != "cancelado").group_by(Pedido.cliente_id)).all()) if ids else {}
+    por_cliente = {}
+    for cid, fecha in filas:
+        por_cliente.setdefault(cid, []).append(fecha)
+    datos, sin_situar = [], []
+    for c in clientes:
+        fechas = por_cliente.get(c.id, [])
+        if c.latitud is None or c.longitud is None:
+            sin_situar.append(c)
+            continue
+        ultimo = ultimos.get(c.id)
+        datos.append({
+            "id": c.id, "nombre": c.nombre, "ciudad": c.ciudad or "", "pais": c.pais or "",
+            "lat": c.latitud, "lon": c.longitud,
+            "estado": "inactivo" if not c.activo else ("con_pedidos" if ultimo else "nuevo"),
+            "pedidos_anio": sum(1 for f in fechas if f.year == hoy.year),
+            "ultimo": ultimo.strftime("%d/%m/%Y") if ultimo else "",
+            "soporte": ", ".join(u.nombre for u in c.logisticos),
+            "serie": [sum(1 for f in fechas if (f.year, f.month) == m) for m in meses],
+            "url": url_for("clientes.detalle", id=c.id),
+        })
+    soportes = sorted({u.nombre for c in clientes for u in c.logisticos}) if current_user.puede("clientes.editar") else []
+    return render_template("clientes/mapa.html", title=_("Mapa de clientes"), clientes=datos, sin_situar=sin_situar,
+                           soportes=soportes, anio=hoy.year, meses=meses)
+
+
 @bp.route("/mi-empresa")
 @requiere_permiso("clientes.mi_empresa")
 def mi_empresa():
@@ -104,6 +172,7 @@ def nuevo():
     if form.validate_on_submit():
         cliente = Cliente()
         _guardar(form, cliente)
+        aviso_mapa = _situar(form, cliente, None)
         # Soporte de cliente: el cliente que da de alta es suyo (si no, ni lo vería)
         if current_user.rol == "fas" and current_user not in cliente.logisticos:
             cliente.logisticos.append(current_user)
@@ -113,6 +182,8 @@ def nuevo():
         from app import avisos_internos
         avisos_internos.alta_cliente(cliente, current_user)
         db.session.commit()
+        if aviso_mapa and current_app.config.get("GEOCODIFICAR"):
+            flash(aviso_mapa, "warning")
         if current_user.puede("clientes.usuarios"):
             flash(_("Cliente «%(nombre)s» creado. Ahora añade sus usuarios: les llegará la invitación.",
                     nombre=cliente.nombre), "success")
@@ -258,13 +329,18 @@ def editar(id):
     if form.validate_on_submit():
         detalle = cambios(cliente, form, CAMPOS)
         antes = sorted(u.nombre for u in cliente.logisticos)
+        from app.geocodificar import CAMPOS_LUGAR
+        lugar_antes = tuple(getattr(cliente, c) for c in CAMPOS_LUGAR)
         _guardar(form, cliente)
+        aviso_mapa = _situar(form, cliente, lugar_antes)
         despues = sorted(u.nombre for u in cliente.logisticos)
         if antes != despues:
             detalle = "; ".join(filter(None, [detalle, f"asignados: {antes} → {despues}"]))
         registrar("editar", cliente, detalle)
         db.session.commit()
         flash(_("Cliente actualizado."), "success")
+        if aviso_mapa and current_app.config.get("GEOCODIFICAR"):
+            flash(aviso_mapa, "warning")
         return redirect(url_for("clientes.detalle", id=cliente.id))
     return render_template("clientes/form.html", title=_("Editar %(nombre)s", nombre=cliente.nombre), form=form)
 

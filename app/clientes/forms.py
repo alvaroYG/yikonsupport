@@ -2,7 +2,8 @@ import re
 
 from flask_babel import gettext as _, lazy_gettext as _l
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, EmailField, SelectField, SelectMultipleField, StringField, SubmitField, TextAreaField
+from wtforms import (BooleanField, EmailField, HiddenField, SelectField, SelectMultipleField, StringField, SubmitField,
+                     TextAreaField)
 from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError
 from flask import render_template, request
 from app.extensions import db
@@ -44,6 +45,10 @@ class ClienteForm(FlaskForm):
     envio_pais = StringField(_l("País"), validators=[Optional(), Length(max=80)], default="España")
     envio_instrucciones = TextAreaField(_l("Instrucciones de entrega"), validators=[Optional(), Length(max=1000)],
                                         description=_l("Horario, planta, muelle… Sale en el albarán."))
+    # Mapa de clientes: el punto lo pone el mapita del formulario al hacer clic (si no, se busca la ciudad)
+    latitud = HiddenField()
+    longitud = HiddenField()
+    ubicacion_manual = HiddenField()
     logisticos = SelectMultipleField(
         _l("%(rol)s: personas asignadas", rol=NOMBRE_FAS), coerce=int,
         description=_l("Ctrl + clic para seleccionar varios."),
@@ -85,6 +90,14 @@ class ClienteForm(FlaskForm):
             usado = usado.where(Pedido.cliente_id != self._cliente.id)
         if db.session.scalar(usado.limit(1)):
             raise ValidationError(_("Ese prefijo ya se usó en pedidos de otra empresa. Escribe otro."))
+
+    def punto(self):
+        """(latitud, longitud) que viene del mapita, o None si no hay o no es válido."""
+        try:
+            lat, lon = float(self.latitud.data), float(self.longitud.data)
+        except (TypeError, ValueError):
+            return None
+        return (lat, lon) if -90 <= lat <= 90 and -180 <= lon <= 180 else None
 
     def validate_cif(self, campo):
         if not campo.data:

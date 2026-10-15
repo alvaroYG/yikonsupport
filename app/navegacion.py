@@ -72,7 +72,10 @@ SECCIONES = [
                lambda e, bp: e.startswith("inventario.rastrear_lote")),
     ]),
     Seccion("clientes", _l("Clientes y facturas"), "fa-building", [
-        Enlace("clientes.ver", "clientes.lista", _l("Clientes"), "fa-building", _blueprint("clientes")),
+        Enlace("clientes.ver", "clientes.lista", _l("Clientes"), "fa-building",
+               lambda e, bp: bp == "clientes" and e != "clientes.mapa"),
+        Enlace("clientes.ver", "clientes.mapa", _l("Mapa de clientes"), "fa-map-marked-alt",
+               lambda e, bp: e == "clientes.mapa"),
         Enlace("facturas.ver", "facturas.lista", _l("Facturas"), "fa-file-invoice-dollar", _blueprint("facturas")),
         Enlace("facturas.ver_propias", "facturas.mias", _l("Facturas"), "fa-file-invoice-dollar", _blueprint("facturas")),
     ]),

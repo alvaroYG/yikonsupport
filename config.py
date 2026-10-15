@@ -24,6 +24,10 @@ class Config:
     # navegando (el recordatorio diario de recepción: `flask recordar-recepcion`, desde el temporizador diario)
     URL_PLATAFORMA = os.environ.get("URL_PLATAFORMA", "https://yikonsupport.com")
 
+    # Mapa de clientes: al guardar un cliente se busca su ciudad en OpenStreetMap (Nominatim) para
+    # situarlo en el mapa (app/geocodificar.py). GEOCODIFICAR=0 lo apaga (entonces se sitúa a mano).
+    GEOCODIFICAR = os.environ.get("GEOCODIFICAR", "1") == "1"
+
     # Inventario: avisar de los lotes que caducan en los próximos N días
     DIAS_AVISO_CADUCIDAD = 7
 
@@ -131,6 +135,7 @@ class TestConfig(Config):
     UPLOAD_FOLDER = os.path.join(__import__("tempfile").gettempdir(), "tests_fotos_pedidos")
     DOCUMENTOS_FOLDER = os.path.join(__import__("tempfile").gettempdir(), "tests_documentos_pedidos")
     MAIL_BACKEND = "memoria"        # los tests miran los emails en una lista, no se envía nada
+    GEOCODIFICAR = False            # sin salir a internet (test_mapa_clientes.py lo simula)
     PASSWORD_HASH_METHOD = "pbkdf2:sha256:1000"  # rápido, SOLO para tests
 
 

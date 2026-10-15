@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{# Mapa de clientes (Europa y Latinoamérica). Un punto por cliente; al elegirlo, su resumen a la derecha.
+   Lo dibuja js/mapa_clientes.js con d3 y el mapa del mundo de static/vendor/mapa (nada de fuera). #}
+{% block contenido %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+  <div><h1 class="h3 mb-0">{{ _('Mapa de clientes') }}</h1>
+    <div class="text-muted small">{{ _('Dónde están nuestros clientes en Europa y Latinoamérica') }}</div></div>
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    <div class="segmento-mapa" role="group" aria-label="{{ _('Zona') }}">
+      <button type="button" class="activo" data-zona="todo" aria-pressed="true">{{ _('Todo') }}</button>
+      <button type="button" data-zona="europa" aria-pressed="false">{{ _('Europa') }}</button>
+      <button type="button" data-zona="latam" aria-pressed="false">{{ _('Latinoamérica') }}</button>
+    </div>
+    {% if soportes %}
+    <select class="form-select form-select-sm w-auto" id="filtro-soporte" aria-label="{{ rol_fas }}">
+      <option value="">{{ _('Todo %(rol)s', rol=rol_fas) }}</option>
+      {% for s in soportes %}<option>{{ s }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <a href="{{ url_for('clientes.lista') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-list me-1" aria-hidden="true"></i>{{ _('Lista') }}</a>
+  </div>
+</div>
+
+<div class="mapa-rejilla">
+  <div class="card mapa-clientes" id="mapa-clientes" data-mundo="{{ url_for('static', filename='vendor/mapa/countries-110m.json') }}">
+    <svg role="img" aria-label="{{ _('Mapa de clientes') }}"></svg>
+    <div class="mapa-zoom"><button type="button" data-zoom="1.6" aria-label="{{ _('Acercar') }}">+</button><button type="button" data-zoom="0.625" aria-label="{{ _('Alejar') }}">−</button></div>
+    <div class="mapa-leyenda">
+      <span><i class="mapa-ley con_pedidos"></i>{{ _('Con pedidos') }}</span>
+      <span><i class="mapa-ley nuevo"></i>{{ _('Aún sin pedidos') }}</span>
+      <span><i class="mapa-ley inactivo"></i>{{ _('Inactivo') }}</span>
+    </div>
+    <div class="mapa-tooltip" aria-hidden="true"></div>
+    <p class="mapa-cargando text-muted small">{{ _('Cargando el mapa…') }}</p>
+  </div>
+
+  <div class="mapa-lateral">
+    <div class="card"><div class="card-body mapa-kpis">
+      <div><strong data-kpi="clientes">0</strong><span>{{ _('Clientes') }}</span></div>
+      <div><strong data-kpi="paises">0</strong><span>{{ _('Países') }}</span></div>
+      <div><strong data-kpi="pedidos">0</strong><span>{{ _('Pedidos %(anio)s', anio=anio) }}</span></div>
+    </div></div>
+    <div class="card"><div class="card-body" id="mapa-ficha" aria-live="polite">
+      <p class="text-muted small mb-0">{{ _('Elige un cliente en el mapa (o un país en la lista) para ver su resumen.') }}</p>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <h2 class="mapa-titulo">{{ _('Por país') }}</h2>
+      <ul class="mapa-paises" id="mapa-paises"></ul>
+    </div></div>
+    {% if sin_situar %}
+    <div class="card"><div class="card-body">
+      <h2 class="mapa-titulo">{{ ngettext('%(num)s cliente sin situar', '%(num)s clientes sin situar', sin_situar|length) }}</h2>
+      <p class="small text-muted mb-2">{{ _('No sale en el mapa: falta su ciudad o no se ha encontrado. Se sitúa en «Editar», haciendo clic en el mapa.') }}</p>
+      <ul class="list-unstyled small mb-0">{% for c in sin_situar %}
+        <li><a href="{{ url_for('clientes.editar', id=c.id) if current_user.puede('clientes.datos') else url_for('clientes.detalle', id=c.id) }}">{{ c.nombre }}</a>{{ ' · ' ~ c.ciudad if c.ciudad }}</li>{% endfor %}</ul>
+    </div></div>
+    {% endif %}
+  </div>
+</div>
+
+{# Los datos y los textos para js/mapa_clientes.js #}
+<script type="application/json" id="mapa-datos">{{ clientes|tojson }}</script>
+<script type="application/json" id="mapa-textos">{{ {
+  "pedidos_anio": _('Pedidos %(anio)s', anio=anio), "ultimo": _('Último pedido'), "soporte": rol_fas,
+  "ver_ficha": _('Ver ficha del cliente'), "con_pedidos": _('Activo'), "nuevo": _('Aún sin pedidos'),
+  "inactivo": _('Inactivo'), "pedidos": _('pedidos'), "sin_pais": _('Sin país'),
+  "cliente": _('cliente'), "clientes": _('clientes'), "por_mes": _('Pedidos por mes (últimos 12 meses)'),
+  "europa": _('Europa'), "latam": _('Latinoamérica'), "meses": meses|map('last')|list
+}|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/mapa/d3.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/mapa/topojson-client.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mapa_clientes.js') }}"></script>
+{% endblock %}

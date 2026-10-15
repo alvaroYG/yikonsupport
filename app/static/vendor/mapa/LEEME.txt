@@ -1,0 +1,4 @@
+Mapa de clientes (Clientes → Mapa, js/mapa_clientes.js). Se sirven desde aquí para no depender de nadie.
+  d3.min.js               d3 7.9.0            (licencia ISC, https://d3js.org)
+  topojson-client.min.js  topojson-client 3.1.0 (licencia ISC)
+  countries-110m.json     world-atlas 2.0.2   (licencia ISC; datos de Natural Earth, dominio público)

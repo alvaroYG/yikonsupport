@@ -296,6 +296,19 @@ Lo que ha hecho cada día: `sudo journalctl -u yikonpo-recordatorios`. Si el ser
 
 Los enlaces de esos correos salen con `URL_PLATAFORMA` del `.env` (si no está, `https://yikonsupport.com`).
 
+### Mapa de clientes (situar los clientes que ya había)
+
+Al guardar un cliente, la plataforma busca su ciudad en OpenStreetMap (Nominatim) para ponerlo en
+Clientes → Mapa. Los clientes que ya existían antes del mapa (15/10/2026) se sitúan una vez con:
+
+```bash
+sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && .venv/bin/flask --app run situar-clientes"
+```
+
+Dice cuáles ha situado y cuáles no (sin ciudad o no encontrados): esos se sitúan a mano en «Editar»
+haciendo clic en el mapa. Si el servidor no pudiera salir a internet, pon `GEOCODIFICAR=0` en el
+`.env` y se sitúan todos a mano.
+
 ### Restaurar una copia
 
 En una base de datos de prueba (no toca la real):

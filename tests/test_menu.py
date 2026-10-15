@@ -15,7 +15,7 @@ def test_cada_rol_ve_sus_secciones(app):
     assert list(_menu("ofi")) == ["pedidos", "catalogo", "equipo"]          # Almacén: sin clientes ni facturas
     assert [e["endpoint"] for e in _menu("ofi")["pedidos"]["enlaces"]] == ["pedidos.lista", "pedidos.preparar", "mensajes.lista"]
     assert list(_menu("fac")) == ["pedidos", "catalogo", "clientes", "equipo", "admin"]
-    assert [e["endpoint"] for e in _menu("fac")["clientes"]["enlaces"]] == ["clientes.lista", "facturas.lista"]
+    assert [e["endpoint"] for e in _menu("fac")["clientes"]["enlaces"]] == ["clientes.lista", "clientes.mapa", "facturas.lista"]
     assert [e["endpoint"] for e in _menu("fac")["admin"]["enlaces"]] == ["main.estadisticas", "admin.correos"]
     assert "pedidos.preparar" not in [e["endpoint"] for e in _menu("fac")["pedidos"]["enlaces"]]
     assert "inventario.lista" not in [e["endpoint"] for e in _menu("loga")["catalogo"]["enlaces"]]

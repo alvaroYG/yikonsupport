@@ -143,6 +143,40 @@ def registrar_comandos(app):
         click.echo(f"Recordatorios de recepción: {len(avisados)}"
                    + (" (" + ", ".join(p.referencia_interna or f"#{p.id}" for p in avisados) + ")" if avisados else ""))
 
+    @app.cli.command("situar-clientes")
+    @click.option("--todos", is_flag=True, help="También los que ya están en el mapa (vuelve a buscarlos).")
+    def situar_clientes_cmd(todos):
+        """Sitúa en el mapa de clientes a los que aún no salen (busca su ciudad en OpenStreetMap).
+
+        Para los clientes que ya existían antes del mapa (15/10/2026): una vez basta. Espera un segundo
+        entre cliente y cliente (norma de uso de Nominatim). Los que no encuentre, se sitúan a mano en
+        «Editar» haciendo clic en el mapa."""
+        import time
+
+        from app import geocodificar
+        from app.models import Cliente
+        if not app.config.get("GEOCODIFICAR"):
+            click.echo("GEOCODIFICAR=0 en el .env: no se busca nada.")
+            return
+        consulta = db.select(Cliente).order_by(Cliente.nombre)
+        if not todos:
+            consulta = consulta.where(Cliente.latitud.is_(None))
+        encontrados, sin = 0, []
+        for cliente in db.session.scalars(consulta).all():
+            if not (cliente.ciudad or cliente.codigo_postal):
+                sin.append(f"{cliente.nombre} (sin ciudad)")
+                continue
+            if geocodificar.situar(cliente):
+                encontrados += 1
+                click.echo(f"  ✓ {cliente.nombre}: {cliente.ciudad} ({cliente.latitud:.3f}, {cliente.longitud:.3f})")
+            else:
+                sin.append(f"{cliente.nombre} ({cliente.ciudad})")
+            db.session.commit()
+            time.sleep(1.1)
+        click.echo(f"Situados: {encontrados}")
+        if sin:
+            click.echo("Sin situar (hazlo a mano en «Editar»): " + "; ".join(sin))
+
     @app.cli.command("datos-demo")
     def datos_demo():
         """Rellena la base de datos con datos FICTICIOS para probar (solo desarrollo)."""
@@ -178,13 +212,13 @@ def registrar_comandos(app):
                                     controlar_stock=(cat != "Servicios")))
 
         clientes = [
-            Cliente(nombre="Clínica Ficticia Norte", cif="B00000001", ciudad="Bilbao", prefijo="NORTE",
+            Cliente(nombre="Clínica Ficticia Norte", cif="B00000001", ciudad="Bilbao", pais="España", latitud=43.263, longitud=-2.935, prefijo="NORTE",
                     logisticos=[laura]),
-            Cliente(nombre="Centro Reproducción Ejemplo", cif="B00000002", ciudad="Valencia",
-                    prefijo="CRE",
+            Cliente(nombre="Centro Reproducción Ejemplo", cif="B00000002", ciudad="Valencia", pais="España",
+                    latitud=39.47, longitud=-0.376, prefijo="CRE",
                     logisticos=[laura, pablo]),  # un cliente con dos FAS
-            Cliente(nombre="Instituto Demo de Fertilidad", cif="B00000003", ciudad="Madrid",
-                    prefijo="IDF",
+            Cliente(nombre="Instituto Demo de Fertilidad", cif="B00000003", ciudad="Madrid", pais="España",
+                    latitud=40.417, longitud=-3.704, prefijo="IDF",
                     logisticos=[pablo]),
         ]
         db.session.add_all(clientes)

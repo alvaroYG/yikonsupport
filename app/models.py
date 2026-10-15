@@ -174,6 +174,10 @@ class Cliente(db.Model):
     envio_provincia = db.Column(db.String(100))
     envio_pais = db.Column(db.String(80))
     envio_instrucciones = db.Column(db.Text)       # horario, planta, muelle…
+    # Dónde sale en el mapa de clientes (Clientes → Mapa): se busca sola con la ciudad y el país de
+    # facturación al guardar (app/geocodificar.py) o se pone a mano haciendo clic en el mapa.
+    latitud = db.Column(db.Float)
+    longitud = db.Column(db.Float)
 
     # Referencias internas de pedido: YK-<año>-<prefijo>-<número>, p. ej. YK-2026-DiNA-1.
     # El número es de cada cliente y vuelve a 1 cada año: contador_pedidos cuenta los pedidos
