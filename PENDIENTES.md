@@ -613,6 +613,13 @@ pruebas automáticas con navegador.
   uno solo con el número; al pasar el ratón, sus nombres; al hacer clic, si están en sitios distintos el mapa
   se acerca y se separan, y si están en la misma ciudad su lista sale a la derecha (y desde cada uno, «← volver»).
   Se reagrupan al cambiar el zoom. Solo `js/mapa_clientes.js` y `main.css`.
+  **El país, de una lista** (15/10): en el formulario del cliente (facturación y envío) el país es un desplegable
+  en el idioma de quien lo usa y se guarda su código ISO (ES, MX…; `app/paises.py`, nombres de Babel). Así
+  «España» y «Spain» son el mismo país en el mapa, «Por país» y el albarán, y la búsqueda de la ciudad va con el
+  código (`countrycodes`: «Córdoba» de Argentina no se confunde con la de España). La ciudad sigue siendo texto
+  libre en cualquier idioma (OpenStreetMap conoce los nombres en todos). Migración `c7f2a9d4e318`: pasa lo escrito
+  a mano a su código (en es, en, pt, fr, de, it, nl, ca, pl, el); lo que no reconoce se queda y el formulario lo
+  marca «revísalo». Test: `test_mapa_clientes.py`.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

@@ -3,6 +3,7 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 from flask_babel import gettext as _
 from flask_login import current_user
 
+from app import paises
 from app.alcance import cliente_o_404, filtrar_clientes
 from app.auditoria import cambios, registrar
 from app.clientes.forms import ClienteForm
@@ -41,7 +42,7 @@ def _situar(form, cliente, lugar_antes):
         return None
     cliente.latitud = cliente.longitud = None
     return _("No he encontrado «%(lugar)s» en el mapa: sitúalo a mano en «Editar» (haz clic en el mapa).",
-             lugar=", ".join(x for x in (cliente.ciudad, cliente.pais) if x))
+             lugar=", ".join(x for x in (cliente.ciudad, paises.nombre(cliente.pais)) if x))
 
 
 def _guardar(form, cliente):
@@ -140,7 +141,7 @@ def mapa():
             continue
         ultimo = ultimos.get(c.id)
         datos.append({
-            "id": c.id, "nombre": c.nombre, "ciudad": c.ciudad or "", "pais": c.pais or "",
+            "id": c.id, "nombre": c.nombre, "ciudad": c.ciudad or "", "pais": paises.nombre(c.pais),
             "lat": c.latitud, "lon": c.longitud,
             "estado": "inactivo" if not c.activo else ("con_pedidos" if ultimo else "nuevo"),
             "pedidos_anio": sum(1 for f in fechas if f.year == hoy.year),

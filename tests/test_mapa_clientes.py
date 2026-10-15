@@ -9,7 +9,7 @@ from app.extensions import db
 from app.models import Cliente
 from tests.conftest import login, pedido_cliente
 
-DATOS = {"nombre": "Clínica A", "prefijo": "CLA", "cif": "B11111111", "ciudad": "Bilbao", "pais": "España",
+DATOS = {"nombre": "Clínica A", "prefijo": "CLA", "cif": "B11111111", "ciudad": "Bilbao", "pais": "ES",
          "activo": "y", "envio_igual": "y"}
 
 
@@ -77,7 +77,7 @@ def test_al_guardar_se_busca_la_ciudad_solo_si_cambia(app, client, monkeypatch):
     assert (c.latitud, c.longitud) == (43.263, -2.935) and len(llamadas) == 1
     client.post("/clientes/1/editar", data={**DATOS, "notas": "otra cosa", "latitud": "43.263", "longitud": "-2.935"})
     assert len(llamadas) == 1                                      # la dirección no ha cambiado: no se busca
-    client.post("/clientes/1/editar", data={**DATOS, "ciudad": "Bogotá", "pais": "Colombia"})
+    client.post("/clientes/1/editar", data={**DATOS, "ciudad": "Bogotá", "pais": "CO"})
     assert len(llamadas) == 2 and llamadas[-1][0] == "Bogotá"
 
 
@@ -131,3 +131,45 @@ def test_comando_situar_clientes(app, monkeypatch):
     salida = app.test_cli_runner().invoke(args=["situar-clientes"]).output
     assert "Situados: 1" in salida and "Clínica B (sin ciudad)" in salida
     assert db.session.get(Cliente, 1).latitud == 10.0
+
+
+def test_el_pais_es_un_codigo_y_se_ve_en_cada_idioma(app, client):
+    """15/10/2026 · El país se elige de una lista y se guarda su código: «España» y «Spain» son el mismo."""
+    from app import paises
+    assert paises.codigo_de("Spain") == paises.codigo_de("España") == paises.codigo_de("espagne") == "ES"
+    assert paises.codigo_de("Deutschland") == "DE" and paises.codigo_de("Catalunya") is None
+    login(client, "fac")
+    client.post("/clientes/1/editar", data={**DATOS, "pais": "AR", "ciudad": "Córdoba"})
+    assert db.session.get(Cliente, 1).pais == "AR"
+    assert "Córdoba" in client.get("/clientes/1").get_data(as_text=True)
+    with app.test_request_context():
+        from flask_babel import force_locale
+        with force_locale("en"):
+            assert db.session.get(Cliente, 1).datos_facturacion()["pais"] == "Argentina"
+            assert paises.nombre("DE") == "Germany"
+        with force_locale("es"):
+            assert paises.nombre("DE") == "Alemania"
+    # Uno de antes, escrito a mano y sin reconocer: se ve tal cual y el formulario pide revisarlo
+    c = db.session.get(Cliente, 1)
+    c.pais = "Catalunya"
+    db.session.commit()
+    html = client.get("/clientes/1/editar").get_data(as_text=True)
+    assert "Catalunya (revísalo: elige el país de la lista)" in html
+    assert client.post("/clientes/1/editar", data={**DATOS, "pais": "XX"}).status_code == 200    # inventado: no
+
+
+def test_la_busqueda_va_con_el_codigo_del_pais(app, monkeypatch):
+    import io
+    import urllib.request
+
+    from app import geocodificar
+    pedidas = []
+
+    def falsa(peticion, timeout=None):
+        pedidas.append(peticion.full_url)
+        return io.BytesIO(b'[{"lat": "-31.4", "lon": "-64.18"}]')
+    monkeypatch.setattr(urllib.request, "urlopen", falsa)
+    app.config["GEOCODIFICAR"] = True
+    with app.test_request_context():
+        assert geocodificar.buscar("Córdoba", "AR") == (-31.4, -64.18)
+    assert "countrycodes=ar" in pedidas[0] and "country=" not in pedidas[0]

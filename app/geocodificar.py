@@ -24,10 +24,17 @@ def buscar(ciudad=None, pais=None, codigo_postal=None, provincia=None):
     """(latitud, longitud) o None. Busca la CIUDAD (no la calle): para el mapa basta y falla menos."""
     if not current_app.config.get("GEOCODIFICAR") or not (ciudad or codigo_postal):
         return None
+    from app import paises
     consulta = {"format": "json", "limit": "1"}
-    for clave, valor in (("city", ciudad), ("postalcode", codigo_postal), ("state", provincia), ("country", pais)):
+    for clave, valor in (("city", ciudad), ("postalcode", codigo_postal), ("state", provincia)):
         if valor:
             consulta[clave] = valor.strip()
+    # El país, por su código (ES, AR…): así «Córdoba» de Argentina no se confunde con la de España.
+    # La ciudad puede estar escrita en cualquier idioma: OpenStreetMap conoce sus nombres en todos.
+    if paises.es_codigo(pais):
+        consulta["countrycodes"] = pais.lower()
+    elif pais:
+        consulta["country"] = pais.strip()
     peticion = urllib.request.Request(URL + "?" + urllib.parse.urlencode(consulta), headers={
         "User-Agent": f"YikonGenomicsPO/1.0 ({current_app.config.get('URL_PLATAFORMA', '')})",
         "Accept-Language": "es,en"})

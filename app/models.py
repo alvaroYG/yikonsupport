@@ -10,6 +10,7 @@ from sqlalchemy.orm import validates
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app import paises
 from app.extensions import db, login_manager
 from app import apartados
 from app.permisos import (PERMISOS_SEGUN_EMPRESA, PERMISOS_SEGUN_USUARIO, ROLES, ROLES_CLIENTE,
@@ -161,7 +162,7 @@ class Cliente(db.Model):
     # Datos de facturación: razón social, CIF, dirección y ciudad (arriba) y además:
     codigo_postal = db.Column(db.String(12))
     provincia = db.Column(db.String(100))
-    pais = db.Column(db.String(80))
+    pais = db.Column(db.String(80))                # código ISO de 2 letras (ES, MX…): app/paises.py
     # Datos de envío (salen en el albarán). envio_igual = se envía a la dirección de facturación.
     # Destinatario, contacto y teléfono vacíos = los de la empresa (razón social, contacto, teléfono).
     envio_igual = db.Column(db.Boolean, nullable=False, default=True, server_default=db.true())
@@ -216,7 +217,7 @@ class Cliente(db.Model):
         ciudad, provincia, pais} (vacíos = "")."""
         return {"razon_social": self.razon_social or self.nombre, "cif": self.cif or "",
                 "direccion": self.direccion or "", "codigo_postal": self.codigo_postal or "",
-                "ciudad": self.ciudad or "", "provincia": self.provincia or "", "pais": self.pais or ""}
+                "ciudad": self.ciudad or "", "provincia": self.provincia or "", "pais": paises.nombre(self.pais)}
 
     def datos_envio(self) -> dict:
         """A dónde se le envía: la dirección de facturación (envio_igual) o la suya; destinatario,
@@ -231,6 +232,7 @@ class Cliente(db.Model):
                  "contacto": self.envio_contacto or self.persona_contacto,
                  "telefono": self.envio_telefono or self.telefono,
                  "instrucciones": self.envio_instrucciones, **lugar}
+        datos["pais"] = paises.nombre(datos["pais"])         # el código (ES) → «España» / «Spain»
         return {k: v or "" for k, v in datos.items()}
 
     @property

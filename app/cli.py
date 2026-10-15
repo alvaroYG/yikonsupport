@@ -212,12 +212,12 @@ def registrar_comandos(app):
                                     controlar_stock=(cat != "Servicios")))
 
         clientes = [
-            Cliente(nombre="Clínica Ficticia Norte", cif="B00000001", ciudad="Bilbao", pais="España", latitud=43.263, longitud=-2.935, prefijo="NORTE",
+            Cliente(nombre="Clínica Ficticia Norte", cif="B00000001", ciudad="Bilbao", pais="ES", latitud=43.263, longitud=-2.935, prefijo="NORTE",
                     logisticos=[laura]),
-            Cliente(nombre="Centro Reproducción Ejemplo", cif="B00000002", ciudad="Valencia", pais="España",
+            Cliente(nombre="Centro Reproducción Ejemplo", cif="B00000002", ciudad="Valencia", pais="ES",
                     latitud=39.47, longitud=-0.376, prefijo="CRE",
                     logisticos=[laura, pablo]),  # un cliente con dos FAS
-            Cliente(nombre="Instituto Demo de Fertilidad", cif="B00000003", ciudad="Madrid", pais="España",
+            Cliente(nombre="Instituto Demo de Fertilidad", cif="B00000003", ciudad="Madrid", pais="ES",
                     latitud=40.417, longitud=-3.704, prefijo="IDF",
                     logisticos=[pablo]),
         ]

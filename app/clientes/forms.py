@@ -29,7 +29,7 @@ class ClienteForm(FlaskForm):
     ciudad = StringField(_l("Ciudad"), validators=[Optional(), Length(max=100)])
     codigo_postal = StringField(_l("Código postal"), validators=[Optional(), Length(max=12)])
     provincia = StringField(_l("Provincia"), validators=[Optional(), Length(max=100)])
-    pais = StringField(_l("País"), validators=[Optional(), Length(max=80)], default="España")
+    pais = SelectField(_l("País"), default="ES")       # código ISO (app/paises.py): opciones en __init__
     # Datos de envío (salen en el albarán)
     envio_igual = BooleanField(_l("Se envía a la dirección de facturación"), default=True)
     envio_destinatario = StringField(_l("Destinatario / centro"), validators=[Optional(), Length(max=200)],
@@ -42,7 +42,7 @@ class ClienteForm(FlaskForm):
     envio_codigo_postal = StringField(_l("Código postal"), validators=[Optional(), Length(max=12)])
     envio_ciudad = StringField(_l("Ciudad"), validators=[Optional(), Length(max=100)])
     envio_provincia = StringField(_l("Provincia"), validators=[Optional(), Length(max=100)])
-    envio_pais = StringField(_l("País"), validators=[Optional(), Length(max=80)], default="España")
+    envio_pais = SelectField(_l("País"), default="ES")
     envio_instrucciones = TextAreaField(_l("Instrucciones de entrega"), validators=[Optional(), Length(max=1000)],
                                         description=_l("Horario, planta, muelle… Sale en el albarán."))
     # Mapa de clientes: el punto lo pone el mapita del formulario al hacer clic (si no, se busca la ciudad)
@@ -64,6 +64,17 @@ class ClienteForm(FlaskForm):
             db.select(User).filter_by(rol="fas", activo=True).order_by(User.nombre)
         ).all()
         self.logisticos.choices = [(u.id, u.nombre) for u in logisticos]
+        # Países: el desplegable en el idioma de quien lo usa. Si el cliente tenía uno escrito a mano que
+        # no se reconoció (antes era texto libre), sale también, marcado «revisar», para no perderlo.
+        from app import paises
+        for campo in (self.pais, self.envio_pais):
+            campo.choices = [("", _("— Sin indicar —"))] + paises.opciones()
+            if campo.data is None:                     # (sin país guardado ni enviado: «sin indicar»)
+                campo.data = ""
+            # (lo GUARDADO en el cliente, no lo que llega en el formulario: no se cuela un país inventado)
+            guardado = getattr(cliente, campo.name, None) if cliente is not None else None
+            if guardado and not paises.es_codigo(guardado):
+                campo.choices.insert(1, (guardado, _("%(pais)s (revísalo: elige el país de la lista)", pais=guardado)))
         # Quién es su Soporte de cliente decide quién ve sus pedidos y su conversación: solo admin
         from flask_login import current_user
         if not current_user.puede("clientes.asignar_soporte"):

@@ -9,7 +9,7 @@ from tests.conftest import llevar_a_validado, login, pedido_cliente
 
 DIRECCION = {"nombre": "Clínica A", "prefijo": "CLA", "cif": "B11111111", "razon_social": "Clínica A S.L.",
              "direccion": "Calle Mayor 1", "codigo_postal": "28001", "ciudad": "Madrid", "provincia": "Madrid",
-             "pais": "España", "activo": "y"}
+             "pais": "ES", "activo": "y"}
 
 
 def _salir(client):
@@ -35,7 +35,7 @@ def _pedido(client):
 def test_facturacion_guarda_los_datos_de_facturacion_y_envio(app, client):
     login(client, "admin")
     html = client.get("/clientes/nuevo").get_data(as_text=True)
-    assert 'name="envio_igual"' in html and 'value="España"' in html and 'id="envio-direccion"' in html
+    assert 'name="envio_igual"' in html and '<option selected value="ES">España</option>' in html and 'id="envio-direccion"' in html
     _salir(client)
     login(client, "fac")
     assert 'name="envio_instrucciones"' in client.get("/clientes/1/editar").get_data(as_text=True)
