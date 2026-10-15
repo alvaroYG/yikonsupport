@@ -262,10 +262,10 @@ def excel_para_facturar(datos, empresa) -> bytes:
             celda.alignment = Alignment(**alineado)
         return celda
 
-    # 1. Logo (el de la plantilla, a su tamaño: sin escalar se ve nítido) y «INVOICE»
+    # 1. Logo (el de la plantilla, ya reducido en el archivo: Excel no lo escala y se ve nítido) y «INVOICE»
     for f in range(1, 6):
-        ws.row_dimensions[f].height = 18
-    ws.row_dimensions[3].height = 28
+        ws.row_dimensions[f].height = 14
+    ws.row_dimensions[3].height = 26
     _imagen(ws, "factura-logo.png", "B1", None)
     escribir(3, ultima, "INVOICE", Font(size=18, bold=True, color="A61C92"), horizontal="right", vertical="center")
 
