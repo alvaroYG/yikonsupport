@@ -635,6 +635,7 @@ pruebas automáticas con navegador.
   Retoques (15/10): el logo es el de la plantilla (`static/img/factura-logo.png`) a su tamaño, sin escalar (se
   veía mal); «INVOICE» en una fila alta (salía cortado); «CP Ciudad, Provincia» en una línea y sin repetir la
   provincia si es la ciudad; las líneas de dirección que no caben en su bloque se parten en dos.
+  Y centrada en la página al imprimir (sobraba hueco a la derecha); con todo a 0 € el IVA sale con su tipo, no «mixed».
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

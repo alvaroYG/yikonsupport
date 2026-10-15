@@ -352,3 +352,14 @@ def test_direccion_compacta_y_lineas_largas_partidas(app, client):
     textos = [v for v in celdas.values() if isinstance(v, str)]
     assert "Calle Doctor Gadea 12, bajo izquierda, puerta del muelle de carga del edificio" not in textos
     assert any(t.startswith("Calle Doctor Gadea 12") for t in textos) and any(t.endswith("del edificio") for t in textos)
+
+
+def test_centrada_en_la_pagina_y_sin_mixed_si_todo_es_cero(app, client):
+    p = _enviado(client, cantidad=1)
+    for k in p.kits:
+        k.precio_unitario = 0
+    db.session.commit()
+    assert totales(p)["iva_pct"] == 21                            # (antes salía «mixed»)
+    login(client, "fac")
+    ws = _excel(client, p)[1]
+    assert ws.print_options.horizontalCentered

@@ -96,6 +96,8 @@ def totales(pedido, regimen="es", envio=None) -> dict:
     descuento = ((1 - neto / bruto) * 100).quantize(Decimal("0.01")) if bruto else Decimal("0")
     envio = Decimal(envio or 0).quantize(Decimal("0.01"))
     tipos = {Decimal(x.iva_pct) for x in [*pedido.kits, *pedido.lineas_sueltas] if x.subtotal}
+    if not tipos:          # (todo a 0 €: el tipo de sus líneas, no «mixed»)
+        tipos = {Decimal(x.iva_pct) for x in [*pedido.kits, *pedido.lineas_sueltas]}
     iva_pct = tipos.pop() if len(tipos) == 1 else None
     con_iva = regimen == "es"
     iva = Decimal("0.00")
@@ -446,6 +448,8 @@ def excel_para_facturar(datos, empresa) -> bytes:
     # (con pocas líneas, entera en una página; con muchas, a lo ancho y las páginas que hagan falta)
     ws.page_setup.fitToWidth, ws.page_setup.fitToHeight = 1, (1 if len(datos["filas"]) <= 15 else 0)
     ws.page_margins.left = ws.page_margins.right = 0.4
+    # Centrada en la página: al encajarla entera en una hoja se encoge y, sin esto, sobraba hueco a la derecha
+    ws.print_options.horizontalCentered = True
 
     salida = BytesIO()
     libro.save(salida)
