@@ -587,8 +587,8 @@ pruebas automáticas con navegador.
   «cristal» de las tarjetas, que dejaba un recuadro blanco sin margen. «Kits / Productos sueltos» y «Todo el
   catálogo / Solo lo que se marque» con los colores de la marca (la opción elegida lleva ✓). Solo `main.css`.
 - **Soporte de cliente da de alta clientes y sus usuarios** (15/10, decisión de Álvaro: «delegamos en ellos toda
-  la responsabilidad; admin solo vigila, no acepta nada»). Permisos nuevos (`permisos.py`): `clientes.crear` y
-  `clientes.datos` (Facturación, admin y Soporte de cliente: los suyos) y `clientes.usuarios` (admin y Soporte de
+  la responsabilidad; admin solo vigila, no acepta nada»). Permisos nuevos (`permisos.py`): `clientes.crear` (admin y Soporte de
+  cliente; Facturación ya no da de alta clientes), `clientes.datos` (admin, Facturación y Soporte de cliente: los suyos) y `clientes.usuarios` (admin y Soporte de
   cliente). El cliente que da de alta un Soporte queda asignado a él. En la ficha, la pestaña «Usuarios y avisos»:
   lista de usuarios de la empresa con «Añadir usuario» (siempre rol Cliente; se le prepara la invitación, que
   revisa y envía quien la hace), «Editar» (nombre, email, idioma, activo) y «Reenviar invitación». Precios

@@ -101,7 +101,7 @@ asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y
 
 | Permiso | Admin | Facturación | Almacén | Soporte de cliente | Cliente |
 |---|:-:|:-:|:-:|:-:|:-:|
-| Ver clientes / darlos de alta y cambiar sus datos | ✓ / ✓ | ✓ / ✓ | — | sus clientes / ✓ (quedan suyos) | — |
+| Ver clientes / darlos de alta / cambiar sus datos | ✓ / ✓ / ✓ | ✓ / — / ✓ | — | sus clientes / ✓ (quedan suyos) / sus clientes | — |
 | Usuarios de cada empresa cliente (alta con invitación, editar, desactivar) | ✓ | | | sus clientes | |
 | Precios especiales del cliente | ✓ | ✓ | | | |
 | Asignar el Soporte de cliente de una empresa | ✓ | | | | |

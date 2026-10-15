@@ -51,7 +51,7 @@ PERMISOS = {
     # Soporte de cliente lleva sus clientes de punta a punta (15/10/2026): los da de alta (quedan
     # asignados a él), cambia sus datos y crea/edita los usuarios de esas empresas. Admin solo vigila
     # (le llega el aviso «Alta de cliente o usuario» y lo tiene todo en la auditoría); no aprueba nada.
-    "clientes.crear": OFICINA | {"fas"},
+    "clientes.crear": {"admin", "fas"},                 # (Facturación no: decisión de Álvaro, 15/10)
     "clientes.datos": OFICINA | {"fas"},               # «Editar»: datos, facturación y envío (FAS: los suyos)
     "clientes.usuarios": {"admin", "fas"},             # los usuarios de la empresa (FAS: de sus clientes)
     "clientes.asignar_soporte": {"admin"},             # quién es su Soporte de cliente (decide quién ve qué)

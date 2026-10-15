@@ -81,7 +81,7 @@ AVISOS = {
         "facturas.editar", posibles={"admin", "facturacion"}, de_fabrica={"facturacion"}),
     "alta_cliente": Aviso(
         _l("Alta de un cliente o de un usuario de un cliente"),
-        _l("Los dan de alta Soporte de cliente (los suyos) y Facturación; admin solo vigila: no tiene que aprobar nada."),
+        _l("Los da de alta Soporte de cliente (los suyos); admin solo vigila: no tiene que aprobar nada."),
         "clientes.ver", posibles={"admin", "facturacion"}, de_fabrica={"admin"}),
 }
 

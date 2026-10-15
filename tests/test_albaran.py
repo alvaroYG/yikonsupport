@@ -33,9 +33,11 @@ def _pedido(client):
 
 
 def test_facturacion_guarda_los_datos_de_facturacion_y_envio(app, client):
-    login(client, "fac")
+    login(client, "admin")
     html = client.get("/clientes/nuevo").get_data(as_text=True)
     assert 'name="envio_igual"' in html and 'value="España"' in html and 'id="envio-direccion"' in html
+    _salir(client)
+    login(client, "fac")
     assert 'name="envio_instrucciones"' in client.get("/clientes/1/editar").get_data(as_text=True)
     _salir(client)
     assert _guardar_cliente(client, envio_igual="y", envio_contacto="Ana", envio_telefono="600111222",

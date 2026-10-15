@@ -95,10 +95,14 @@ def test_solo_usuarios_de_sus_clientes(app, client):
     assert client.get(f"/clientes/1/usuarios/{loga.id}").status_code == 404          # no es de un cliente
     assert client.get("/admin/usuarios").status_code == 403                          # la gestión general, no
     _salir(client)
-    for quien in ("fac", "ofi", "cliA"):                   # Facturación crea clientes, pero no sus usuarios
+    for quien in ("fac", "ofi", "cliA"):                   # Facturación: ni clientes ni usuarios (sí sus datos)
         login(client, quien)
         assert client.get("/clientes/1/usuarios/nuevo").status_code == 403, quien
+        assert client.get("/clientes/nuevo").status_code == 403, quien
         _salir(client)
+    login(client, "fac")
+    assert 'href="/clientes/nuevo"' not in client.get("/clientes/").get_data(as_text=True)
+    assert client.get("/clientes/1/editar").status_code == 200
 
 
 def test_admin_tambien_y_no_tiene_que_aprobar_nada(app, client):

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-15 12:12+0000\n"
+"POT-Creation-Date: 2026-10-15 12:21+0000\n"
 "PO-Revision-Date: 2026-09-28 11:10+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -565,11 +565,11 @@ msgstr "New client or new client user"
 
 #: app/avisos_internos.py:84
 msgid ""
-"Los dan de alta Soporte de cliente (los suyos) y Facturación; admin solo "
-"vigila: no tiene que aprobar nada."
+"Los da de alta Soporte de cliente (los suyos); admin solo vigila: no "
+"tiene que aprobar nada."
 msgstr ""
-"Created by Customer support (their own) and Invoicing; admin only "
-"oversees: nothing to approve."
+"Created by Customer support (their own); admin only oversees: nothing to "
+"approve."
 
 #: app/avisos_internos.py:188
 #, python-format
@@ -10672,4 +10672,14 @@ msgstr "whether it always happens or only sometimes, and since when."
 
 #~ msgid "Pide a Facturación que la complete."
 #~ msgstr "Ask Invoicing to complete it."
+
+#~ msgid ""
+#~ "Los dan de alta Soporte de cliente"
+#~ " (los suyos) y Facturación; admin "
+#~ "solo vigila: no tiene que aprobar "
+#~ "nada."
+#~ msgstr ""
+#~ "Created by Customer support (their own)"
+#~ " and Invoicing; admin only oversees: "
+#~ "nothing to approve."
 
