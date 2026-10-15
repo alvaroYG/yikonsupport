@@ -113,6 +113,8 @@ asignados; el nombre visible está en `permisos.NOMBRE_FAS`) · **Cliente** · y
 | Indicar el uso del pedido (RUO / IVD / indiferente) y observaciones | opcional | opcional | — | opcional | ✓ (uso obligatorio) |
 | Reservar lotes | ✓ | ✓ | ✓ (aceptados) | sus clientes | |
 | Preparar, hacer fotos y enviar | ✓ | | ✓ | | |
+| Albarán (PDF) para el paquete | ✓ | | ✓ | | |
+| Datos de facturación y envío de la empresa | editar | editar | | ver (sus clientes) | ver los suyos («Mi empresa») |
 | Validar las fotos (o devolver a preparación) | ✓ (suple) | | | sus clientes | |
 | Marcar recibido | ✓ | | ✓ (en su nombre) | | ✓ |
 | Saltarse el flujo (queda en auditoría) | ✓ | | | | |

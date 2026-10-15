@@ -53,6 +53,7 @@ PERMISOS = {
     "clientes.avisos": GESTION,                        # qué avisos por email recibe cada usuario del cliente
     "clientes.catalogo": GESTION,                      # su catálogo: qué kits puede pedir y qué productos ve
     "clientes.exportar": {"admin"},                    # descargar todo lo de un cliente en un ZIP
+    "clientes.mi_empresa": {"cliente"},                # el cliente ve los datos de SU empresa (sin cambiarlos)
     # Catálogo de productos
     "productos.ver": YIKON_PEDIDOS,
     "productos.editar": OFICINA,                 # (Almacén cambia el stock mínimo desde Inventario)
@@ -73,6 +74,7 @@ PERMISOS = {
     "pedidos.fotos.subir": ALMACEN,              # ...lo prepara y hace las fotos
     "pedidos.validar": {"fas", "admin"},         # el FAS del cliente las valida (admin puede suplirle)
     "pedidos.enviar": ALMACEN,                   # Almacén lo envía (y puede marcarlo recibido por el cliente)
+    "pedidos.albaran": ALMACEN,                  # el albarán (PDF) que va dentro del paquete; el cliente no lo ve
     "pedidos.recibir": {"cliente"},              # el cliente marca que ha recibido el pedido
     "pedidos.forzar_estado": {"admin"},          # admin puede saltarse el flujo (queda en auditoría)
     # Proforma antes del pedido

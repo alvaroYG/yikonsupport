@@ -158,6 +158,22 @@ class Cliente(db.Model):
     notas = db.Column(db.Text)
     activo = db.Column(db.Boolean, nullable=False, default=True)
     creado = db.Column(db.DateTime(timezone=True), default=ahora)
+    # Datos de facturación: razón social, CIF, dirección y ciudad (arriba) y además:
+    codigo_postal = db.Column(db.String(12))
+    provincia = db.Column(db.String(100))
+    pais = db.Column(db.String(80))
+    # Datos de envío (salen en el albarán). envio_igual = se envía a la dirección de facturación.
+    # Destinatario, contacto y teléfono vacíos = los de la empresa (razón social, contacto, teléfono).
+    envio_igual = db.Column(db.Boolean, nullable=False, default=True, server_default=db.true())
+    envio_destinatario = db.Column(db.String(200))
+    envio_contacto = db.Column(db.String(120))
+    envio_telefono = db.Column(db.String(30))
+    envio_direccion = db.Column(db.String(250))
+    envio_codigo_postal = db.Column(db.String(12))
+    envio_ciudad = db.Column(db.String(100))
+    envio_provincia = db.Column(db.String(100))
+    envio_pais = db.Column(db.String(80))
+    envio_instrucciones = db.Column(db.Text)       # horario, planta, muelle…
 
     # Referencias internas de pedido: YK-<año>-<prefijo>-<número>, p. ej. YK-2026-DiNA-1.
     # El número es de cada cliente y vuelve a 1 cada año: contador_pedidos cuenta los pedidos
@@ -190,6 +206,34 @@ class Cliente(db.Model):
 
     pedidos = db.relationship("Pedido", back_populates="cliente", lazy="dynamic")
     facturas = db.relationship("Factura", back_populates="cliente", lazy="dynamic")
+
+    def datos_facturacion(self) -> dict:
+        """Para el albarán y la página de la empresa: {razon_social, cif, direccion, codigo_postal,
+        ciudad, provincia, pais} (vacíos = "")."""
+        return {"razon_social": self.razon_social or self.nombre, "cif": self.cif or "",
+                "direccion": self.direccion or "", "codigo_postal": self.codigo_postal or "",
+                "ciudad": self.ciudad or "", "provincia": self.provincia or "", "pais": self.pais or ""}
+
+    def datos_envio(self) -> dict:
+        """A dónde se le envía: la dirección de facturación (envio_igual) o la suya; destinatario,
+        contacto y teléfono, los de envío o, si están vacíos, los de la empresa."""
+        if self.envio_igual:
+            lugar = {"direccion": self.direccion, "codigo_postal": self.codigo_postal, "ciudad": self.ciudad,
+                     "provincia": self.provincia, "pais": self.pais}
+        else:
+            lugar = {"direccion": self.envio_direccion, "codigo_postal": self.envio_codigo_postal,
+                     "ciudad": self.envio_ciudad, "provincia": self.envio_provincia, "pais": self.envio_pais}
+        datos = {"destinatario": self.envio_destinatario or self.razon_social or self.nombre,
+                 "contacto": self.envio_contacto or self.persona_contacto,
+                 "telefono": self.envio_telefono or self.telefono,
+                 "instrucciones": self.envio_instrucciones, **lugar}
+        return {k: v or "" for k, v in datos.items()}
+
+    @property
+    def envio_completo(self) -> bool:
+        """¿Hay a dónde enviarle? (dirección y, al menos, ciudad o código postal)"""
+        d = self.datos_envio()
+        return bool(d["direccion"] and (d["ciudad"] or d["codigo_postal"]))
 
     def _proximo_numero(self, anio) -> int:
         """El número que le toca al próximo pedido en ese año (vuelve a 1 al cambiar de año)."""
@@ -529,6 +573,10 @@ class Pedido(db.Model):
     # Cuándo se mandó el recordatorio «¿Ha recibido el pedido?» (notificaciones.recordar_recepcion):
     # una vez por envío; se vuelve a poner a None si cambia la fecha estimada o se envía otra vez.
     recordatorio_recibido_el = db.Column(db.DateTime(timezone=True))
+    # Al pasar a «Enviado» se copian aquí los datos de envío y facturación del cliente (para el
+    # albarán): si luego cambian en su ficha, el albarán de lo ya enviado no cambia.
+    # {"envio": {...}, "facturacion": {...}} (Cliente.datos_envio / datos_facturacion)
+    datos_albaran = db.Column(db.JSON)
     creado = db.Column(db.DateTime(timezone=True), default=ahora)
     # ¿Va por proforma? (los pedidos que hace el cliente). Si se cancela y se reabre, o hay
     # que cambiarlo después de aceptar la proforma, vuelve a "proforma solicitada".
@@ -602,6 +650,17 @@ class Pedido(db.Model):
     def uso_nombre(self):
         """«RUO (solo investigación)», «IVD (…)», «Indiferente» o None si no se indicó."""
         return USOS_PEDIDO.get(self.uso) if self.uso else None
+
+    def congelar_datos_albaran(self):
+        """Al enviarlo: copia los datos de envío y facturación del cliente tal como están ahora."""
+        self.datos_albaran = {"envio": self.cliente.datos_envio(), "facturacion": self.cliente.datos_facturacion()}
+
+    @property
+    def datos_para_albaran(self) -> dict:
+        """Los copiados al enviarlo o, si aún no ha salido, los de la ficha del cliente."""
+        if self.datos_albaran and self.estado in ("enviado", "entregado"):
+            return self.datos_albaran
+        return {"envio": self.cliente.datos_envio(), "facturacion": self.cliente.datos_facturacion()}
 
     @property
     def estado_cliente(self):

@@ -18,7 +18,12 @@
       <h1 class="h4 mb-0">{{ pedido.referencia_interna or '#' ~ pedido.id }}</h1>
       <div class="text-muted">{{ pedido.cliente.nombre }}</div>
     </div>
-    <a href="{{ url_for('pedidos.detalle', id=pedido.id) }}" class="btn btn-sm btn-outline-secondary">{{ _('Ficha completa') }}</a>
+    <div class="d-flex flex-wrap gap-2 justify-content-end">
+      {# El albarán va dentro del paquete (sin precios, con lotes y caducidades) #}
+      {% if current_user.puede('pedidos.albaran') %}<a href="{{ url_for('pedidos.albaran', id=pedido.id, volver='preparar') }}" target="_blank" rel="noopener"
+         class="btn btn-sm btn-outline-primary"><i class="fas fa-file-pdf me-1" aria-hidden="true"></i>{{ _('Albarán (PDF)') }}</a>{% endif %}
+      <a href="{{ url_for('pedidos.detalle', id=pedido.id) }}" class="btn btn-sm btn-outline-secondary">{{ _('Ficha completa') }}</a>
+    </div>
   </div>
 
   {% if not en_preparacion %}
@@ -34,6 +39,12 @@
     {{ _('%(usuario)s lo ha devuelto:', usuario=pedido.ultima_revision.usuario.nombre if pedido.ultima_revision.usuario else '') }}
     <div class="mt-1 fst-italic">«{{ pedido.ultima_revision.comentario }}»</div>
   </div>
+  {% endif %}
+
+  {% if current_user.puede('pedidos.albaran') and not pedido.cliente.envio_completo and pedido.estado not in ('enviado', 'entregado') %}
+  <div class="alert alert-warning small"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>
+    {{ _('%(cliente)s no tiene dirección de envío: sin ella no se puede hacer el albarán.', cliente=pedido.cliente.nombre) }}
+    {% if current_user.puede('clientes.editar') %}<a href="{{ url_for('clientes.editar', id=pedido.cliente_id) }}">{{ _('Completarla') }}</a>{% else %}{{ _('Pide a Facturación que la complete.') }}{% endif %}</div>
   {% endif %}
 
   {# Lo que indicó el cliente (uso y observaciones) y la caducidad más próxima de sus lotes #}

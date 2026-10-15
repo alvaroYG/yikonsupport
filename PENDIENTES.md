@@ -567,6 +567,21 @@ pruebas automáticas con navegador.
   Sin ordenar: Total y Productos de Pedidos, Estado de Facturas (se calculan). Test: `test_ordenar.py`.
 - **Estado → copia de seguridad**: `copia_seguridad.sh` deja la hora en `/srv/yikonpo/ultima_copia.txt` y
   el `.env` del servidor lleva `COPIA_SEGURIDAD_MARCA` con esa ruta.
+- **Datos de facturación y envío + albarán** (15/10): en la ficha del cliente, pestaña «Facturación y envío»
+  (la editan admin y Facturación desde «Editar»): facturación = razón social, CIF, dirección, CP, ciudad,
+  provincia y país; envío = «Se envía a la dirección de facturación» u otra dirección, destinatario, persona
+  que recibe, teléfono e instrucciones de entrega (vacíos = los de la empresa). Migración `a3d8f2b6c914`.
+  Los usuarios del cliente los ven en **Mi empresa** (menú de su nombre), sin poder cambiarlos.
+  **Albarán (PDF)** (`app/pedidos/albaran.py`, permiso `pedidos.albaran`: admin y Almacén; el cliente no lo ve
+  ni se guarda en Documentos): botón en Preparar y sección «Albarán» de la ficha, desde «aceptado». Nº =
+  referencia interna; logo y datos de Yikon (Ajustes → Datos de Yikon); enviar a / facturar a; su nº de
+  pedido, fecha, uso y transporte; contenido sin precios; lotes y caducidades (reservados mientras se
+  prepara, los que salieron una vez enviado); observaciones, instrucciones y «Recibí conforme». Al pasar a
+  «Enviado» se copian los datos en el pedido (`Pedido.datos_albaran`): el albarán de lo enviado no cambia si
+  luego cambia la ficha. Sin dirección de envío no se genera: avisa (también en Preparar y en la pestaña del
+  cliente, «falta el envío»). Test: `test_albaran.py`. **Al desplegar**: `actualizar.sh` hace la migración;
+  hay que completar la dirección de los clientes de antes (se envía a la de facturación por defecto, pero
+  el CP, la provincia y el país están vacíos).
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

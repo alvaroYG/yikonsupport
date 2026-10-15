@@ -233,6 +233,7 @@
           <div class="dropdown-menu dropdown-menu-end shadow">
             <span class="dropdown-item-text d-lg-none small"><strong>{{ current_user.nombre }}</strong><br>{{ current_user.rol_nombre }}</span>
             <a class="dropdown-item" href="{{ url_for('auth.cuenta') }}"><i class="fas fa-user fa-fw me-2 text-muted"></i>{{ _('Mi cuenta') }}</a>
+            {% if current_user.puede('clientes.mi_empresa') and current_user.empresa %}<a class="dropdown-item" href="{{ url_for('clientes.mi_empresa') }}"><i class="fas fa-building fa-fw me-2 text-muted"></i>{{ _('Mi empresa') }}</a>{% endif %}
             {% include "_selector_idioma.html" %}
             <div class="dropdown-divider"></div>
             <form method="post" action="{{ url_for('auth.logout') }}">

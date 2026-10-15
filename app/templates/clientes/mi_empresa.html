@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{# «Mi empresa»: el usuario de un cliente ve los datos de su empresa, sin poder cambiarlos (los cambia Yikon) #}
+{% block contenido %}
+<h1 class="h3 mb-1">{{ cliente.nombre }}</h1>
+<p class="text-muted">{{ _('Los datos de su empresa en Yikon Genomics. Son los que usamos para facturarle y enviarle los pedidos.') }}</p>
+<div class="card mb-3" style="max-width:900px"><div class="card-body">
+  {% include "clientes/_datos_empresa.html" %}
+  <hr>
+  <dl class="mb-0 small row">
+    <dt class="col-sm-3">{{ _('Persona de contacto') }}</dt><dd class="col-sm-9">{{ cliente.persona_contacto or '—' }}</dd>
+    <dt class="col-sm-3">{{ _('Email') }}</dt><dd class="col-sm-9">{{ cliente.email or '—' }}</dd>
+    <dt class="col-sm-3">{{ _('Teléfono') }}</dt><dd class="col-sm-9">{{ cliente.telefono or '—' }}</dd>
+  </dl>
+</div></div>
+<p class="small text-muted"><i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+  {%- if current_user.puede('mensajes.general') %}
+  {{ _('¿Algo no está bien o ha cambiado?') }} <a href="{{ url_for('mensajes.conversacion', cliente_id=cliente.id) }}">{{ _('Escríbanos') }}</a> {{ _('y lo cambiamos.') }}
+  {%- else %}
+  {{ _('¿Algo no está bien o ha cambiado? Díganoslo y lo cambiamos.') }}
+  {%- endif %}</p>
+{% endblock %}

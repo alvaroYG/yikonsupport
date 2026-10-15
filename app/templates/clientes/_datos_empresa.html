@@ -1,0 +1,27 @@
+{# Datos de facturación y de envío del cliente (ficha del cliente para Yikon y «Mi empresa» para el
+   cliente, que solo los ve). Necesita: cliente. Lo que sale en el albarán (pedidos/albaran.py). #}
+{% set fac = cliente.datos_facturacion() %}{% set env = cliente.datos_envio() %}
+{% macro lugar(d) %}{{ d.direccion or '—' }}{% if d.codigo_postal or d.ciudad %}<br>{{ [d.codigo_postal, d.ciudad]|select|join(' ') }}{% endif
+  %}{% if d.provincia or d.pais %}<br>{{ [d.provincia, d.pais]|select|join(', ') }}{% endif %}{% endmacro %}
+<div class="row g-4 datos-empresa">
+  <div class="col-md-6">
+    <h3 class="h6"><i class="fas fa-file-invoice me-2 text-muted" aria-hidden="true"></i>{{ _('Datos de facturación') }}</h3>
+    <dl class="mb-0 small">
+      <dt>{{ _('Razón social') }}</dt><dd>{{ fac.razon_social }}</dd>
+      <dt>{{ _('CIF / NIF') }}</dt><dd>{{ fac.cif or '—' }}</dd>
+      <dt>{{ _('Dirección') }}</dt><dd>{{ lugar(fac) }}</dd>
+    </dl>
+  </div>
+  <div class="col-md-6">
+    <h3 class="h6"><i class="fas fa-truck me-2 text-muted" aria-hidden="true"></i>{{ _('Datos de envío') }}</h3>
+    <dl class="mb-0 small">
+      <dt>{{ _('Destinatario') }}</dt><dd>{{ env.destinatario }}</dd>
+      <dt>{{ _('Dirección') }}</dt><dd>{% if cliente.envio_igual %}<span class="text-muted">{{ _('La de facturación') }}</span><br>{% endif %}{{ lugar(env) }}</dd>
+      <dt>{{ _('Recibe') }}</dt><dd>{{ [env.contacto, env.telefono]|select|join(' · ') or '—' }}</dd>
+      {% if env.instrucciones %}<dt>{{ _('Instrucciones de entrega') }}</dt><dd style="white-space:pre-line">{{ env.instrucciones }}</dd>{% endif %}
+    </dl>
+    {% if not cliente.envio_completo and not current_user.es_cliente %}
+    <p class="small text-warning-emphasis mt-2 mb-0"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('Falta la dirección de envío: sin ella no se puede hacer el albarán.') }}</p>
+    {% endif %}
+  </div>
+</div>

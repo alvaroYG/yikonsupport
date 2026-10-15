@@ -26,6 +26,24 @@ class ClienteForm(FlaskForm):
     persona_contacto = StringField(_l("Persona de contacto"), validators=[Optional(), Length(max=120)])
     direccion = StringField(_l("Dirección"), validators=[Optional(), Length(max=250)])
     ciudad = StringField(_l("Ciudad"), validators=[Optional(), Length(max=100)])
+    codigo_postal = StringField(_l("Código postal"), validators=[Optional(), Length(max=12)])
+    provincia = StringField(_l("Provincia"), validators=[Optional(), Length(max=100)])
+    pais = StringField(_l("País"), validators=[Optional(), Length(max=80)], default="España")
+    # Datos de envío (salen en el albarán)
+    envio_igual = BooleanField(_l("Se envía a la dirección de facturación"), default=True)
+    envio_destinatario = StringField(_l("Destinatario / centro"), validators=[Optional(), Length(max=200)],
+                                     description=_l("Vacío: la razón social."))
+    envio_contacto = StringField(_l("Persona que recibe"), validators=[Optional(), Length(max=120)],
+                                 description=_l("Vacío: la persona de contacto."))
+    envio_telefono = StringField(_l("Teléfono de entrega"), validators=[Optional(), Length(max=30)],
+                                 description=_l("Vacío: el teléfono de la empresa."))
+    envio_direccion = StringField(_l("Dirección de envío"), validators=[Optional(), Length(max=250)])
+    envio_codigo_postal = StringField(_l("Código postal"), validators=[Optional(), Length(max=12)])
+    envio_ciudad = StringField(_l("Ciudad"), validators=[Optional(), Length(max=100)])
+    envio_provincia = StringField(_l("Provincia"), validators=[Optional(), Length(max=100)])
+    envio_pais = StringField(_l("País"), validators=[Optional(), Length(max=80)], default="España")
+    envio_instrucciones = TextAreaField(_l("Instrucciones de entrega"), validators=[Optional(), Length(max=1000)],
+                                        description=_l("Horario, planta, muelle… Sale en el albarán."))
     logisticos = SelectMultipleField(
         _l("%(rol)s: personas asignadas", rol=NOMBRE_FAS), coerce=int,
         description=_l("Ctrl + clic para seleccionar varios."),
@@ -75,10 +93,4 @@ class ClienteForm(FlaskForm):
         existente = db.session.scalar(db.select(Cliente).filter_by(cif=campo.data))
         if existente and existente is not self._cliente:
             raise ValidationError(_("Ese CIF ya está registrado (%(nombre)s).", nombre=existente.nombre))
-
-
-from flask import render_template, request
-from app.models import Cliente  # O el modelo que corresponda
-from app.extensions import db  # Asegúrate de importar tu instancia de db
-
 

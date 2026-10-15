@@ -574,6 +574,26 @@
   {% endif %}
 {% endcall %}
 
+{# ---------- Albarán (admin y Almacén): la hoja que va dentro del paquete. El cliente no lo ve ---------- #}
+{% if puede_albaran %}
+{% set env_albaran = pedido.datos_para_albaran.envio %}
+{% set albaran_ok = env_albaran.direccion and (env_albaran.ciudad or env_albaran.codigo_postal) %}
+{% set resumen_albaran %}{{ [env_albaran.codigo_postal, env_albaran.ciudad]|select|join(' ') if albaran_ok else _('Falta la dirección de envío') }}{% endset %}
+{% call seccion('albaran', _('Albarán'), 'fa-file-alt', resumen_albaran, abierta=false) %}
+  {% if albaran_ok %}
+  <div class="small mb-2"><span class="text-muted">{{ _('Enviar a') }}:</span> <strong>{{ env_albaran.destinatario }}</strong><br>
+    {{ env_albaran.direccion }}<br>{{ [env_albaran.codigo_postal, env_albaran.ciudad]|select|join(' ') }}{{ ', ' ~ env_albaran.provincia if env_albaran.provincia }}{{ ' (' ~ env_albaran.pais ~ ')' if env_albaran.pais }}
+    {% if env_albaran.contacto or env_albaran.telefono %}<br><span class="text-muted">{{ [env_albaran.contacto, env_albaran.telefono]|select|join(' · ') }}</span>{% endif %}</div>
+  <a href="{{ url_for('pedidos.albaran', id=pedido.id) }}" target="_blank" rel="noopener" class="btn btn-outline-primary w-100">
+    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>{{ _('Albarán (PDF)') }}</a>
+  <div class="form-text">{{ _('Para imprimirlo y meterlo en el paquete. Sin precios; con los lotes y caducidades.') }}
+    {% if pedido.estado in ('enviado', 'entregado') %}{{ _('Con la dirección que tenía al enviarlo.') }}{% endif %}</div>
+  {% else %}
+  <p class="small mb-0"><i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ _('%(cliente)s no tiene dirección de envío: sin ella no se puede hacer el albarán.', cliente=pedido.cliente.nombre) }}
+    {% if current_user.puede('clientes.editar') %}<a href="{{ url_for('clientes.editar', id=pedido.cliente_id) }}">{{ _('Completarla') }}</a>{% else %}{{ _('Pide a Facturación que la complete.') }}{% endif %}</p>
+  {% endif %}
+{% endcall %}
+{% endif %}
 
 {% if envio_form %}
 {% set resumen_envio %}{{ [pedido.transportista, pedido.numero_seguimiento]|select|join(' · ') or _('Sin datos') }}{% endset %}

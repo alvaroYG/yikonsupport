@@ -15,7 +15,9 @@ from app.utils import leer_precio, ordenar, paginar
 bp = Blueprint("clientes", __name__)
 
 CAMPOS = ["nombre", "razon_social", "cif", "prefijo", "email", "telefono", "persona_contacto",
-          "direccion", "ciudad", "notas", "activo"]
+          "direccion", "ciudad", "codigo_postal", "provincia", "pais", "notas", "activo",
+          "envio_igual", "envio_destinatario", "envio_contacto", "envio_telefono", "envio_direccion",
+          "envio_codigo_postal", "envio_ciudad", "envio_provincia", "envio_pais", "envio_instrucciones"]
 
 
 def _guardar(form, cliente):
@@ -82,6 +84,17 @@ def lista():
     }, desempate=Cliente.id)
     return render_template("clientes/lista.html", title=_("Clientes"), pagina=paginar(select), q=q, orden=orden,
                            estado=estado, fas=fas, lista_fas=lista_fas, precios=precios, hay_filtros=hay_filtros)
+
+
+@bp.route("/mi-empresa")
+@requiere_permiso("clientes.mi_empresa")
+def mi_empresa():
+    """El usuario de una empresa cliente ve los datos de SU empresa (facturación y envío), sin poder
+    cambiarlos: los cambia Yikon (si algo no está bien, nos escribe)."""
+    cliente = current_user.empresa
+    if cliente is None:
+        abort(404)
+    return render_template("clientes/mi_empresa.html", title=_("Mi empresa"), cliente=cliente)
 
 
 @bp.route("/nuevo", methods=["GET", "POST"])

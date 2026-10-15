@@ -5,14 +5,51 @@
 <div class="card" style="max-width:800px"><div class="card-body">
 <form method="post" novalidate>{{ form.hidden_tag() }}
   <div class="row">
-    <div class="col-md-6">{{ campo(form.nombre) }}</div><div class="col-md-6">{{ campo(form.razon_social) }}</div>
-    <div class="col-md-4">{{ campo(form.cif) }}</div><div class="col-md-8">{{ campo(form.prefijo) }}</div>
+    <div class="col-md-6">{{ campo(form.nombre) }}</div><div class="col-md-6">{{ campo(form.prefijo) }}</div>
     <div class="col-md-6">{{ campo(form.email) }}</div><div class="col-md-6">{{ campo(form.telefono) }}</div>
     <div class="col-md-6">{{ campo(form.persona_contacto) }}</div><div class="col-md-6">{% if form.logisticos %}{{ campo(form.logisticos, size=4) }}{% endif %}</div>
-    <div class="col-md-8">{{ campo(form.direccion) }}</div><div class="col-md-4">{{ campo(form.ciudad) }}</div>
+  </div>
+
+  {# Datos de facturación y de envío: salen en el albarán (pedidos/albaran.py) y el cliente los ve en «Mi empresa» #}
+  <h2 class="h6 mt-2 mb-3 pt-3 border-top"><i class="fas fa-file-invoice me-2 text-muted" aria-hidden="true"></i>{{ _('Datos de facturación') }}</h2>
+  <div class="row">
+    <div class="col-md-8">{{ campo(form.razon_social) }}</div><div class="col-md-4">{{ campo(form.cif) }}</div>
+    <div class="col-12">{{ campo(form.direccion) }}</div>
+    <div class="col-md-3">{{ campo(form.codigo_postal) }}</div><div class="col-md-5">{{ campo(form.ciudad) }}</div>
+    <div class="col-md-4">{{ campo(form.provincia) }}</div>
+    <div class="col-md-4">{{ campo(form.pais) }}</div>
+  </div>
+
+  <h2 class="h6 mt-2 mb-3 pt-3 border-top"><i class="fas fa-truck me-2 text-muted" aria-hidden="true"></i>{{ _('Datos de envío') }}
+    <span class="small text-muted fw-normal">· {{ _('salen en el albarán') }}</span></h2>
+  {{ campo(form.envio_igual, **{"data-envio-igual": ""}) }}
+  <div class="row" id="envio-direccion">
+    <div class="col-12">{{ campo(form.envio_direccion) }}</div>
+    <div class="col-md-3">{{ campo(form.envio_codigo_postal) }}</div><div class="col-md-5">{{ campo(form.envio_ciudad) }}</div>
+    <div class="col-md-4">{{ campo(form.envio_provincia) }}</div>
+    <div class="col-md-4">{{ campo(form.envio_pais) }}</div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">{{ campo(form.envio_destinatario) }}</div>
+    <div class="col-md-6">{{ campo(form.envio_contacto) }}</div><div class="col-md-6">{{ campo(form.envio_telefono) }}</div>
+    <div class="col-12">{{ campo(form.envio_instrucciones, rows=2) }}</div>
+  </div>
+
+  <div class="row pt-3 border-top">
     <div class="col-12">{{ campo(form.notas, rows=3) }}</div><div class="col-12">{{ campo(form.activo) }}</div>
   </div>
   {{ form.submit(id=False, class_="btn btn-primary") }}
   <a href="{{ url_for('clientes.lista') }}" class="btn btn-link">{{ _('Cancelar') }}</a>
 </form></div></div>
+<script>
+// «Se envía a la dirección de facturación»: marcada, no hace falta escribir otra dirección
+(function () {
+  const casilla = document.querySelector("[data-envio-igual]");
+  const bloque = document.getElementById("envio-direccion");
+  if (!casilla || !bloque) return;
+  const poner = function () { bloque.hidden = casilla.checked; };
+  casilla.addEventListener("change", poner);
+  poner();
+})();
+</script>
 {% endblock %}

@@ -558,6 +558,7 @@ def _cambiar_estado(pedido, destino, detalle="", avisar=True, motivo=None):
     pedido.estado = destino
     if destino == "enviado":
         pedido.recordatorio_recibido_el = None          # cada envío, su recordatorio de recepción
+        pedido.congelar_datos_albaran()                 # el albarán ya no cambia aunque cambie su ficha
     if destino == "cancelado":
         # Una proforma pendiente de un pedido cancelado ya no se puede aceptar
         for proforma in pedido.proformas:
@@ -614,6 +615,7 @@ def detalle(id):
         problemas_lotes=reservas.plan_reservado(pedido, faltan=False)[1] if ve_lotes else [],
         hoy=date.today(), dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"],
         lotes_enviados=lotes_enviados(pedido) if current_user.puede("pedidos.ver_lotes") else [],
+        puede_albaran=current_user.puede("pedidos.albaran") and pedido.estado in ESTADOS_CON_ALBARAN,
         historial=historial_pedido(pedido, current_user),
         repetir_json=(_contenido_para_repetir(pedido, sueltos=True, productos_permitidos=_productos_del_cliente(pedido))
                       if current_user.puede("pedidos.crear") else None),
@@ -1086,6 +1088,33 @@ def preparar_pedido(id):
                            pedido=pedido, en_preparacion=en_preparacion, lotes=lotes, faltan=faltan,
                            fotos_form=FotosForm(formdata=None) if pedido.estado == "en_preparacion" else None,
                            hoy=date.today(), dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
+
+
+ESTADOS_CON_ALBARAN = ("aceptado", "en_preparacion", "en_validacion", "validado", "enviado", "entregado")
+
+
+@bp.route("/<int:id>/albaran.pdf")
+@requiere_permiso("pedidos.albaran")
+def albaran(id):
+    """El albarán que va dentro del paquete (admin y Almacén; el cliente no lo ve). pedidos/albaran.py"""
+    from app.pedidos.albaran import generar_albaran
+    pedido = pedido_o_404(id)
+    volver = request.args.get("volver")
+    destino = (url_for("pedidos.preparar_pedido", id=id) if volver == "preparar"
+               else url_for("pedidos.detalle", id=id) + "#albaran")
+    if pedido.estado not in ESTADOS_CON_ALBARAN:
+        flash(_("El albarán se hace cuando el cliente ha aceptado el pedido."), "warning")
+        return redirect(destino)
+    datos = pedido.datos_para_albaran["envio"]
+    if not (datos.get("direccion") and (datos.get("ciudad") or datos.get("codigo_postal"))):
+        flash(_("%(cliente)s no tiene dirección de envío: complétala en su ficha (Clientes → Facturación y envío) "
+                "o pide a Facturación que lo haga.", cliente=pedido.cliente.nombre), "warning")
+        return redirect(destino)
+    referencia = pedido.referencia_interna or str(pedido.id)
+    nombre = "Albaran_" + "".join(c if c.isalnum() or c in "-_" else "_" for c in referencia) + ".pdf"
+    return Response(generar_albaran(pedido), mimetype="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{nombre}"',
+                             "Cache-Control": "private, no-store"})
 
 
 @bp.route("/<int:id>/fotos", methods=["POST"])
