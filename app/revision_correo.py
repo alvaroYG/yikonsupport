@@ -11,33 +11,13 @@ from app.extensions import db
 from app.models import Cliente, CorreoBorrador, User, ahora
 
 bp = Blueprint("revision_correo", __name__)
-EQUIPO = {"admin", "facturacion", "logistica", "fas", "soporte"}
+EQUIPO = {"admin", "logistica", "fas", "soporte"}
 
 
-def solo_para_el_equipo(msg):
-    """True si TODOS los destinatarios son usuarios activos del equipo de Yikon (un aviso entre
-    compañeros: factura para revisar, nota interna, «Compartir con…», correo de prueba…).
-    Basta un destinatario de fuera (un cliente, un email en copia) para que no lo sea."""
-    from email.utils import getaddresses
-    direcciones = {d.strip().lower() for _, d in getaddresses([str(msg.get("To") or "")]) if d.strip()}
-    if not direcciones:
-        return False
-    del_equipo = db.session.scalars(db.select(db.func.lower(User.email)).where(
-        db.func.lower(User.email).in_(direcciones), User.rol.in_(EQUIPO), User.activo.is_(True))).all()
-    return set(del_equipo) == direcciones
-
-
-def autor_revision(msg, reenvio=False):
-    """Quién tiene que revisar este correo antes de que salga (None: sale solo).
-    Salen solos: el cambio de contraseña, lo que nace de un cliente y los avisos entre compañeros
-    del equipo. Las invitaciones y los reenvíos del registro se revisan siempre (aunque vayan a
-    alguien del equipo: la invitación lleva un enlace privado)."""
+def autor_revision(msg):
     if has_request_context() and g.get("solo_lectura"):
         return None
-    tipo = (getattr(msg, "meta", None) or {}).get("tipo")
-    if tipo == "restablecer":
-        return None
-    if not reenvio and tipo != "invitacion" and solo_para_el_equipo(msg):
+    if (getattr(msg, "meta", None) or {}).get("tipo") == "restablecer":
         return None
     # El aviso aplazado de un mensaje conserva al autor, no al visitante de la página.
     autor_id = (getattr(msg, "meta", None) or {}).get("revision_autor_id")
@@ -129,6 +109,11 @@ def resolver(id):
         return jsonify(error="Acción no válida."), 400
     if b.estado not in {"pendiente", "fallido"} or b.caduca.replace(tzinfo=None) < ahora().replace(tzinfo=None):
         return jsonify(error="Este correo ya no está pendiente o ha caducado. Actualiza la lista."), 409
+    tipo = (b.meta or {}).get("tipo", "")
+    if accion == "enviar" and tipo.startswith("cliente."):
+        from app.correos_cliente import aviso_activado
+        if not aviso_activado(tipo.partition(".")[2]):
+            return jsonify(error="Este aviso está desactivado en Ajustes. Puedes descartar el borrador o guardarlo para después."), 409
     msg = mensaje_de(b)
     if accion != "descartar":
         asunto, texto = data.get("asunto"), data.get("texto")
@@ -166,9 +151,6 @@ def resolver(id):
         # Mantener el tipo que espera el backend de pruebas y el registro.
         msg = BytesParser(policy=policy.default, _class=Correo).parsebytes(bytes(msg))
         msg.meta = meta
-        if msg["Date"]:                                  # la fecha de cuando sale, no de cuando se preparó
-            from email.utils import formatdate
-            msg.replace_header("Date", formatdate(localtime=True))
         error = _entregar(msg, reenvio_de=reenvio, revisado=True)
         db.session.execute(db.update(CorreoBorrador).where(CorreoBorrador.id == id).values(
             estado="fallido" if error else "enviado", mensaje=bytes(msg) if error else None))

@@ -113,7 +113,7 @@ CASOS = {
         _l("Pedido registrado"), _l("Un pedido sin proforma queda aceptado."), _asunto_estado,
         lambda: _cambio_de_estado(_("Hemos registrado su pedido. Le avisaremos cuando empecemos a prepararlo."))),
     "preparacion": Caso(
-        _l("En preparación"), _l("Almacén empieza a preparar el pedido."), _asunto_estado,
+        _l("En preparación"), _l("Logística empieza a preparar el pedido."), _asunto_estado,
         lambda: _cambio_de_estado(_("Estamos preparando su pedido."))),
     "enviado": Caso(
         _l("Enviado"), _l("El pedido sale de la oficina."), _asunto_estado,
@@ -440,3 +440,14 @@ def caducidad(clave) -> str:
         return ngettext("%(num)s hora", "%(num)s horas", horas)
     dias = seguridad.valor("invitacion_dias")
     return ngettext("%(num)s día", "%(num)s días", dias)
+
+
+def aviso_activado(clave):
+    """Activación global, independiente del idioma y de las preferencias del destinatario."""
+    return clave in CASOS_ACCESO or _ajuste("correo.aviso." + clave, "1") == "1"
+
+
+def configurar_avisos(activados):
+    for clave in CASOS:
+        if clave not in CASOS_ACCESO:
+            _poner_ajuste("correo.aviso." + clave, "1" if clave in activados else "0")

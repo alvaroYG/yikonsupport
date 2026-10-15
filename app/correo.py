@@ -17,7 +17,7 @@ import re
 import smtplib
 from datetime import datetime
 from email.message import EmailMessage
-from email.utils import formatdate, make_msgid, parseaddr
+from email.utils import make_msgid
 
 from flask import current_app, g, has_request_context
 from sqlalchemy import event
@@ -49,14 +49,7 @@ def _cabeceras(destinatarios, asunto):
     msg["Subject"] = asunto
     msg["From"] = current_app.config["MAIL_FROM"]
     msg["To"] = ", ".join(destinatarios)
-    # Fecha e identificador con el dominio real del remitente (yikonsupport.com): un Message-ID con un
-    # dominio inventado o un correo sin fecha suman puntos de spam en Gmail, Outlook…
-    msg["Date"] = formatdate(localtime=True)
-    dominio = parseaddr(current_app.config["MAIL_FROM"])[1].rpartition("@")[2] or "localhost"
-    msg["Message-ID"] = make_msgid(domain=dominio)
-    # A dónde van las respuestas (MAIL_REPLY_TO del .env): un buzón que alguien lea
-    if current_app.config.get("MAIL_REPLY_TO"):
-        msg["Reply-To"] = current_app.config["MAIL_REPLY_TO"]
+    msg["Message-ID"] = make_msgid(domain="plataforma")
     return msg
 
 
@@ -94,8 +87,7 @@ def _entregar(msg, reenvio_de=None, *, revisado=False):
         current_app.logger.info("Correo no enviado (ver como, solo lectura): %s", msg["Subject"])
         return
     from app.revision_correo import autor_revision, guardar_borrador
-    autor = (None if revisado or getattr(msg, "revision_resuelta", False)
-             else autor_revision(msg, reenvio=reenvio_de is not None))
+    autor = None if revisado or getattr(msg, "revision_resuelta", False) else autor_revision(msg)
     if autor:
         guardar_borrador(msg, autor, reenvio_de, independiente=True)
         return None
@@ -203,7 +195,9 @@ def enviar_tras_guardar(destinatarios, asunto, plantilla, meta=None, **contexto)
 
 def enviar_al_cliente_tras_guardar(destinatarios, clave, idioma, valores, meta=None):
     """Igual, para los correos al cliente con texto editable (app/correos_cliente.py)."""
-    from app.correos_cliente import componer
+    from app.correos_cliente import componer, aviso_activado
+    if not aviso_activado(clave):
+        return
     _a_la_cola(construir_compuesto(destinatarios, componer(clave, idioma, valores)),
                {"tipo": f"cliente.{clave}", **(meta or {})})
 

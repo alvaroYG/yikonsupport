@@ -43,7 +43,7 @@ def ajustes_correos():
     """Lista de los correos al cliente, con lo que se ha cambiado en cada idioma, y el logo."""
     from app.avisos_cliente import TIPOS
     filas = [{"clave": clave, "caso": caso, "tipo": TIPOS.get(cc.TIPO_DE_CASO.get(clave)),
-              "idiomas": {i: cc.texto(clave, i)["cambiado"] for i in cc.IDIOMAS}}
+              "activado": cc.aviso_activado(clave), "idiomas": {i: cc.texto(clave, i)["cambiado"] for i in cc.IDIOMAS}}
              for clave, caso in cc.CASOS.items()]
     # Dos grupos: los avisos de los pedidos (cada usuario del cliente elige cuáles recibe, en la ficha
     # del cliente) y los de acceso a la plataforma (invitación y cambiar la contraseña: llegan siempre)
@@ -169,4 +169,19 @@ def ajustes_correo_guardar_logo():
     if sobra:
         archivos.borrar(sobra)
     flash(_("Logo guardado."), "success")
+    return redirect(url_for("admin.ajustes_correos"))
+
+
+@bp.route("/ajustes/correos/avisos-activos", methods=["POST"])
+@requiere_permiso("ajustes.editar")
+def guardar_avisos_activos():
+    if not FlaskForm().validate_on_submit():
+        abort(400)
+    activados = set(request.form.getlist("avisos"))
+    if not activados.issubset(set(cc.CASOS) - set(cc.CASOS_ACCESO)):
+        abort(400)
+    cc.configurar_avisos(activados)
+    _auditar("avisos por correo activados: " + ", ".join(sorted(activados)))
+    db.session.commit()
+    flash(_("Avisos actualizados. Los desactivados no se enviarán a ningún cliente."), "success")
     return redirect(url_for("admin.ajustes_correos"))
