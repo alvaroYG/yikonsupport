@@ -1,0 +1,17 @@
+<div class="card mt-3" style="max-width: 44rem" id="mantenimiento">
+  <div class="card-header"><h2 class="h5"><i class="fas fa-tools me-2 text-marca" aria-hidden="true"></i>{{ _('Modo mantenimiento') }}</h2></div>
+  <div class="card-body">
+    <p class="text-muted small">{{ _('Mientras está activado solo entra admin; los demás ven un aviso de que estáis actualizando la plataforma, aunque ya tuvieran la sesión abierta. Úsalo al aplicar cambios en el servidor.') }}</p>
+    <form method="post" action="{{ url_for('admin.ajustes_mantenimiento') }}" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" role="switch" id="mant-activo" name="activado" value="1" {{ 'checked' if mantenimiento[0] }}>
+        <label class="form-check-label fw-semibold" for="mant-activo">{{ _('Activado') }}</label>
+      </div>
+      <label class="form-label small" for="mant-mensaje">{{ _('Mensaje (opcional)') }}</label>
+      <textarea class="form-control" id="mant-mensaje" name="mensaje" rows="2" maxlength="500"
+                placeholder="{{ _('Volvemos en un rato. Gracias por la paciencia.') }}">{{ mantenimiento[1] }}</textarea>
+      <button class="btn btn-primary mt-3">{{ _('Guardar') }}</button>
+    </form>
+  </div>
+</div>

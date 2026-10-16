@@ -1,0 +1,22 @@
+{# El aviso global anterior se conserva, con los mismos campos y las mismas claves. #}
+<details class="mb-3"><summary>{{ _('Aviso global existente') }} · {{ estado_aviso }}</summary>
+{% include 'admin/_aviso_legacy.html' %}</details>
+<div class="table-responsive"><table class="table table-sm"><thead><tr><th>{{ _('Aviso') }}</th><th>{{ _('Destinatarios') }}</th><th>{{ _('Estado') }}</th><th>{{ _('Fechas') }}</th><th>{{ _('Acciones') }}</th></tr></thead><tbody>
+{% for a in anuncios %}<tr><td>{{ a.titulo }}</td><td>{% if not a.clientes %}{{ _('Todos los clientes') }}{% else %}{% for c in clientes if c.id in a.clientes %}{{ c.nombre }}{{ ', ' if not loop.last }}{% endfor %}{% endif %}</td><td>{{ estado_anuncio(a) }}</td><td>{{ a.desde or '—' }} → {{ a.hasta or '—' }}</td><td><a href="{{ url_for('admin.ajustes_panel', tema='comunicaciones', seccion='anuncios', editar=a.id, _anchor='editor-aviso') }}">{{ _('Editar') }}</a>
+{% if a.publicado %}<form class="d-inline" method="post" action="{{ url_for('admin.guardar_anuncio') }}">{{ form.hidden_tag() }}<input type="hidden" name="id" value="{{ a.id }}"><button class="btn btn-sm btn-outline-secondary" name="accion" value="retirar">{{ _('Retirar') }}</button></form>{% endif %}</td></tr>{% else %}<tr><td colspan="5">{{ _('No hay avisos adicionales.') }}</td></tr>{% endfor %}</tbody></table></div>
+<details id="editor-aviso" {{ 'open' if elegido }}><summary>{{ _('Editar aviso') if elegido else _('Crear aviso') }}</summary>
+<form method="post" action="{{ url_for('admin.guardar_anuncio') }}" class="mt-3">{{ form.hidden_tag() }}
+<input type="hidden" name="id" value="{{ elegido.get('id', '') }}">
+<label for="anuncio-titulo" class="form-label">{{ _('Título interno') }}</label><input class="form-control mb-3" id="anuncio-titulo" name="titulo" maxlength="120" value="{{ elegido.get('titulo', '') }}" required>
+<label class="form-label" for="anuncio-destinatarios">{{ _('Destinatarios') }}</label><select class="form-select" id="anuncio-destinatarios" name="destinatarios"><option value="todos">{{ _('Todos los clientes') }}</option><option value="seleccion" {{ 'selected' if elegido.get('clientes') }}>{{ _('Empresas seleccionadas') }}</option></select>
+<label class="form-label mt-2" for="anuncio-clientes">{{ _('Empresas (solo si eliges destinatarios concretos)') }}</label><select multiple class="form-select" id="anuncio-clientes" name="clientes" size="5">{% for c in clientes %}<option value="{{ c.id }}" {{ 'selected' if c.id in elegido.get('clientes', []) }}>{{ c.nombre }}</option>{% endfor %}</select>
+<div class="row g-3 mt-1">{% for idioma, nombre in [('es', 'Español'), ('en', 'English')] %}<div class="col-md-6"><label class="form-label" for="anuncio-{{ idioma }}">{{ nombre }}</label><textarea class="form-control" id="anuncio-{{ idioma }}" name="{{ idioma }}" rows="3" maxlength="600">{{ elegido.get(idioma, '') }}</textarea></div>{% endfor %}
+{% for campo, nombre in [('desde', _('Desde')), ('hasta', _('Hasta'))] %}<div class="col-md-6"><label class="form-label" for="anuncio-{{ campo }}">{{ nombre }}</label><input class="form-control" type="date" id="anuncio-{{ campo }}" name="{{ campo }}" value="{{ elegido.get(campo, '') }}"></div>{% endfor %}</div>
+<p class="form-text">{{ _('Si falta un idioma, se utiliza el otro. Las fechas son opcionales.') }}</p>
+<label class="form-check mt-3"><input type="checkbox" class="form-check-input" name="publicado" value="1" {{ 'checked' if elegido.get('publicado') }}><span class="form-check-label">{{ _('Publicar en las fechas indicadas (desmarcado: borrador)') }}</span></label>
+<details class="my-3"><summary>{{ _('Vista previa') }}</summary><div class="alert alert-info mt-2" id="preview-aviso" style="white-space:pre-wrap"></div></details>
+<button class="btn btn-primary">{{ _('Guardar aviso') }}</button> {% if elegido %}<a href="{{ url_for('admin.ajustes_panel', tema='comunicaciones', seccion='anuncios') }}">{{ _('Crear otro aviso') }}</a>{% endif %}
+</form></details>
+<script>
+(function(){const es=document.getElementById('anuncio-es'),en=document.getElementById('anuncio-en'),preview=document.getElementById('preview-aviso');function mostrar(){preview.textContent=es.value||en.value;}es.addEventListener('input',mostrar);en.addEventListener('input',mostrar);mostrar();})();
+</script>

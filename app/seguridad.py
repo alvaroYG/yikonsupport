@@ -117,6 +117,14 @@ def duracion_recordarme():
 
 def registrar(app):
     @app.before_request
+    def _exigir_password():
+        if (current_user.is_authenticated and current_user.cambiar_password
+                and not session.get("ver_como")
+                and request.endpoint not in {"auth.cuenta", "auth.logout", "static", "salud", "main.cambiar_idioma"}):
+            flash(_("Debes cambiar tu contraseña antes de continuar."), "warning")
+            return redirect(url_for("auth.cuenta"))
+
+    @app.before_request
     def _cerrar_por_inactividad():
         if request.endpoint in LIBRES or request.endpoint is None or not current_user.is_authenticated:
             return None

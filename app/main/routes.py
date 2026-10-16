@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from urllib.parse import urlparse
 
-from flask import Blueprint, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 from sqlalchemy import func
@@ -73,6 +73,9 @@ def inicio():
 
         from app import aviso_clientes
         extra["aviso_clientes"] = aviso_clientes.para(current_user, str(get_locale() or "es"))
+        from app.control_admin import anuncios_para, bloqueo
+        extra["anuncios_clientes"] = anuncios_para(current_user, str(get_locale() or "es"))
+        extra["pedidos_pausados"] = bloqueo(current_user.cliente_id, str(get_locale() or "es"))
     if current_user.rol != "cliente":      # el mosaico de Yikon: app/main/inicio_yikon.py
         from app.main import inicio_yikon
         inicio_yikon.anotar_pendientes(pendientes)
@@ -89,7 +92,18 @@ def cerrar_aviso():
     from app.utils import es_url_segura
     huella = (request.form.get("huella") or "")[:20]
     if current_user.rol == "cliente" and huella:
-        current_user.aviso_cerrado = huella
+        anuncio_id = request.form.get("anuncio_id")
+        if anuncio_id:
+            from app.control_admin import anuncios_para, anuncios
+            from flask_babel import get_locale
+            visibles = anuncios_para(current_user, str(get_locale() or "es"))
+            if not any(a['id'] == anuncio_id and a['huella'] == huella for a in visibles):
+                abort(404)
+            ids = {a['id'] for a in anuncios()}
+            cerrados = {k: v for k, v in (current_user.anuncios_cerrados or {}).items() if k in ids}
+            current_user.anuncios_cerrados = dict(cerrados, **{anuncio_id: huella})
+        else:
+            current_user.aviso_cerrado = huella
         db.session.commit()
     if request.headers.get("X-Requested-With") == "fetch":
         return "", 204

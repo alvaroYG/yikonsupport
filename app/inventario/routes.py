@@ -6,6 +6,7 @@ from flask_babel import force_locale, gettext as _
 from flask_login import current_user
 
 from app.auditoria import registrar
+from app.control_admin import numero as numero_control
 from app.extensions import db
 from app.inventario import reservas
 from app.inventario.forms import AbrirKitForm, LoteEditForm, MovimientoEditForm, MovimientoForm
@@ -82,7 +83,7 @@ def lista():
     return render_template("inventario/lista.html", title=_("Inventario"), filas=filas, cerrados=cerrados, q=q, orden=orden,
                            kits=montados, form=form, abrir_form=abrir_form, lotes_por_articulo=lotes_por_articulo,
                            reservado_lote=reservado_lote, pedidos_con_reserva=len(reservas.pedidos_con_reserva()),
-                           hoy=date.today(), dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
+                           hoy=date.today(), dias_aviso=numero_control("caducidad"))
 
 
 def _coincide(articulo, q):
@@ -152,7 +153,7 @@ def lista_reservas():
     visibles = set(db.session.scalars(filtrar_pedidos(db.select(Pedido.id))))      # (Almacén: sin las proformas)
     return render_template("inventario/reservas.html", title=_("Lotes reservados"),
                            filas=[f for f in reservas.pedidos_con_reserva() if f["pedido"].id in visibles], hoy=date.today(),
-                           dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
+                           dias_aviso=numero_control("caducidad"))
 
 
 @bp.route("/reservas/<int:pedido_id>/liberar", methods=["POST"])
@@ -243,7 +244,7 @@ def rastrear_lote():
     rastros, clientes, hay_mas = rastrear(q)
     return render_template("inventario/rastreo.html", title=_("¿Dónde está este lote?"), q=q, rastros=rastros,
                            clientes=clientes, hay_mas=hay_mas, hoy=date.today(),
-                           dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
+                           dias_aviso=numero_control("caducidad"))
 
 
 @bp.route("/rastrear-lote.xlsx")
@@ -275,7 +276,7 @@ def rastrear_lote_excel():
 def caducidades():
     """Lotes con stock caducados o a punto de caducar."""
     return render_template("inventario/caducidades.html", title=_("Caducidades"),
-                           lotes_aviso=avisos_caducidad(), dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
+                           lotes_aviso=avisos_caducidad(), dias_aviso=numero_control("caducidad"))
 
 
 # --------------------------------------------------------------------------- #
@@ -311,7 +312,7 @@ def corregir(tipo, id):
         .order_by(MovimientoInventario.fecha.desc(), MovimientoInventario.id.desc()).limit(100)).all()
     return render_template("inventario/corregir.html", title=_("Corregir inventario · %(producto)s", producto=articulo.nombre),
                            producto=articulo, lotes=lotes, movimientos=movimientos,
-                           hoy=date.today(), dias_aviso=current_app.config["DIAS_AVISO_CADUCIDAD"])
+                           hoy=date.today(), dias_aviso=numero_control("caducidad"))
 
 
 def _errores(form):

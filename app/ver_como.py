@@ -50,7 +50,7 @@ def empezar(admin, usuario):
     # al volver a abrir el navegador se entraría como ese usuario, y ya sin solo lectura
     session["recordar"] = False
     session.pop("_remember", None)
-    session[CLAVE] = {"admin_id": admin.id, "usuario_id": usuario.id, "recordar": bool(recordar)}
+    session[CLAVE] = {"admin_id": admin.id, "usuario_id": usuario.id, "recordar": bool(recordar), "admin_version": admin.sesion_version}
 
 
 def terminar():
@@ -58,7 +58,7 @@ def terminar():
     from app.models import User
     datos = session.pop(CLAVE, None) or {}
     admin = db.session.get(User, datos.get("admin_id") or 0)
-    if admin is None or not admin.activo or admin.rol != "admin":
+    if admin is None or not admin.activo or admin.rol != "admin" or admin.sesion_version != datos.get("admin_version", 0):
         logout_user()
         session.clear()
         return False
@@ -139,7 +139,7 @@ def registrar(app):
         datos = session.get(CLAVE) or {}
         from app.models import User
         admin = db.session.get(User, datos.get("admin_id") or 0)
-        if admin is None or not admin.activo or admin.rol != "admin" or session.get("_user_id") != str(datos.get("usuario_id")):
+        if admin is None or not admin.activo or admin.rol != "admin" or str(session.get("_user_id", "")).split(":")[0] != str(datos.get("usuario_id")) or admin.sesion_version != datos.get("admin_version", 0):
             # Algo no cuadra (le han quitado el admin, la sesión es de otro…): fuera
             session.clear()
             logout_user()

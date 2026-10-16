@@ -10319,6 +10319,359 @@ msgstr "the exact error message (or a screenshot);"
 msgid "si le pasa siempre o solo a veces, y desde cuándo."
 msgstr "whether it always happens or only sometimes, and since when."
 
+#: app/control_admin.py:13
+msgid "Anticipación de caducidades"
+msgstr "Expiry warning lead time"
+
+#: app/control_admin.py:14
+msgid "Avisar sin copia reciente tras"
+msgstr "Warn when no recent backup exists after"
+
+#: app/control_admin.py:15
+msgid "Cuenta sin entrar durante"
+msgstr "Account without a login for"
+
+#: app/control_admin.py:16
+msgid "Revisar correos fallidos de las últimas"
+msgstr "Review failed emails from the last"
+
+#: app/control_admin.py:17
+msgid "Correo pendiente de revisión durante"
+msgstr "Email awaiting review for"
+
+#: app/control_admin.py:59
+msgid "Temporalmente no se aceptan nuevas solicitudes de pedido."
+msgstr "New order requests are temporarily paused."
+
+#: app/control_admin.py:77
+msgid "Borrador"
+msgstr "Draft"
+
+#: app/control_admin.py:81
+msgid "Finalizado"
+msgstr "Ended"
+
+#: app/control_admin.py:82
+msgid "Visible"
+msgstr "Visible"
+
+#: app/seguridad.py:124
+msgid "Debes cambiar tu contraseña antes de continuar."
+msgstr "You must change your password before continuing."
+
+#: app/admin/panel.py:18
+msgid "Operativa"
+msgstr "Operations"
+
+#: app/admin/panel.py:18
+msgid "Comunicaciones"
+msgstr "Communications"
+
+#: app/admin/panel.py:19
+msgid "Acceso y permisos"
+msgstr "Access and permissions"
+
+#: app/admin/panel.py:19
+msgid "Empresa y sistema"
+msgstr "Company and system"
+
+#: app/admin/panel.py:63
+msgid "Plazos de pedidos"
+msgstr "Order time limits"
+
+#: app/admin/panel.py:66 app/templates/clientes/detalle.html:4
+msgid "Nuevas solicitudes de pedido"
+msgstr "New order requests"
+
+#: app/admin/panel.py:67
+msgid "Avisos publicados para clientes"
+msgstr "Published customer notices"
+
+#: app/admin/panel.py:73
+msgid "Avisos de funcionamiento"
+msgstr "Operational alerts"
+
+#: app/admin/panel.py:100
+msgid "Revisa los límites de los valores introducidos."
+msgstr "Check the limits for the values entered."
+
+#: app/admin/panel.py:205
+msgid "Control de acceso actualizado."
+msgstr "Access control updated."
+
+#: app/admin/panel.py:225
+msgid "Los ajustes han cambiado. Revisa de nuevo la vista previa."
+msgstr "The settings have changed. Review the preview again."
+
+#: app/admin/panel.py:230
+msgid "Valores de fábrica restaurados para esta sección."
+msgstr "Default values restored for this section."
+
+#: app/admin/panel.py:249 app/templates/admin/ajustes_apartados.html:59
+#: app/templates/admin/ajustes_avisos.html:39
+#: app/templates/admin/ajustes_seguridad.html:27
+#: app/templates/admin/panel.html:8 app/templates/admin/restaurar.html:3
+msgid "Restaurar valores de fábrica"
+msgstr "Restore defaults"
+
+#: app/admin/routes.py:204 app/templates/admin/auditoria.html:68
+msgid "Valor anterior"
+msgstr "Previous value"
+
+#: app/admin/routes.py:204 app/templates/admin/auditoria.html:69
+msgid "Valor nuevo"
+msgstr "New value"
+
+#: app/auth/routes.py:105
+msgid "Elige una contraseña diferente a la actual."
+msgstr "Choose a password different from your current one."
+
+#: app/pedidos/forms.py:268 app/pedidos/forms.py:348
+#: app/templates/pedidos/detalle.html:734
+msgid "Motivo de la excepción"
+msgstr "Reason for the exception"
+
+#: app/pedidos/forms.py:269
+msgid ""
+"Si las nuevas solicitudes están pausadas, explica por qué creas este "
+"pedido."
+msgstr "If new requests are paused, explain why you are creating this order."
+
+#: app/pedidos/routes.py:234
+msgid "Las nuevas solicitudes están pausadas. Indica el motivo de la excepción."
+msgstr "New requests are paused. Enter the reason for the exception."
+
+#: app/pedidos/routes.py:488 app/templates/pedidos/pausado.html:2
+msgid "Nuevas solicitudes en pausa"
+msgstr "New requests paused"
+
+#: app/pedidos/routes.py:551
+msgid "Indica el motivo del cambio excepcional (máximo 1000 caracteres)."
+msgstr "Enter the reason for the exceptional change (maximum 1000 characters)."
+
+#: app/templates/admin/_ajustes_nav.html:4
+msgid "Ver cambios"
+msgstr "View changes"
+
+#: app/templates/admin/_anuncios.html:2
+msgid "Aviso global existente"
+msgstr "Existing global notice"
+
+#: app/templates/admin/_anuncios.html:4
+msgid "Fechas"
+msgstr "Dates"
+
+#: app/templates/admin/_anuncios.html:4
+msgid "Acciones"
+msgstr "Actions"
+
+#: app/templates/admin/_anuncios.html:5 app/templates/admin/_anuncios.html:11
+msgid "Todos los clientes"
+msgstr "All customers"
+
+#: app/templates/admin/_anuncios.html:6
+msgid "Retirar"
+msgstr "Withdraw"
+
+#: app/templates/admin/_anuncios.html:6
+msgid "No hay avisos adicionales."
+msgstr "There are no additional notices."
+
+#: app/templates/admin/_anuncios.html:7
+msgid "Editar aviso"
+msgstr "Edit notice"
+
+#: app/templates/admin/_anuncios.html:7
+msgid "Crear aviso"
+msgstr "Create notice"
+
+#: app/templates/admin/_anuncios.html:10
+msgid "Título interno"
+msgstr "Internal title"
+
+#: app/templates/admin/_anuncios.html:11
+msgid "Empresas seleccionadas"
+msgstr "Selected companies"
+
+#: app/templates/admin/_anuncios.html:12
+msgid "Empresas (solo si eliges destinatarios concretos)"
+msgstr "Companies (only when choosing specific recipients)"
+
+#: app/templates/admin/_anuncios.html:15
+msgid "Si falta un idioma, se utiliza el otro. Las fechas son opcionales."
+msgstr "If one language is missing, the other is used. Dates are optional."
+
+#: app/templates/admin/_anuncios.html:16
+msgid "Publicar en las fechas indicadas (desmarcado: borrador)"
+msgstr "Publish on the specified dates (unchecked: draft)"
+
+#: app/templates/admin/_anuncios.html:17
+msgid "Vista previa"
+msgstr "Preview"
+
+#: app/templates/admin/_anuncios.html:18
+msgid "Guardar aviso"
+msgstr "Save notice"
+
+#: app/templates/admin/_anuncios.html:18
+msgid "Crear otro aviso"
+msgstr "Create another notice"
+
+#: app/templates/admin/_controles.html:7
+msgid ""
+"Se aplica a los avisos del inicio y del inventario. Los lotes caducados "
+"siguen bloqueados."
+msgstr "Applies to home page and inventory alerts. Expired batches remain blocked."
+
+#: app/templates/admin/_controles.html:8
+msgid ""
+"Los avisos se muestran en Estado. Las cuentas inactivas no se desactivan "
+"automáticamente."
+msgstr "Alerts appear in Status. Inactive accounts are not automatically disabled."
+
+#: app/templates/admin/_pausa.html:3
+msgid "Pausar nuevas solicitudes de esta empresa"
+msgstr "Pause new requests from this company"
+
+#: app/templates/admin/_pausa.html:3
+msgid "Pausar nuevas solicitudes de todos los clientes"
+msgstr "Pause new requests from all customers"
+
+#: app/templates/admin/_pausa.html:4
+msgid ""
+"Los pedidos existentes, documentos y conversaciones siguen disponibles. "
+"El equipo interno puede crear un pedido durante la pausa indicando el "
+"motivo."
+msgstr ""
+"Existing orders, documents and conversations remain available. Internal "
+"staff can create an order during the pause by providing a reason."
+
+#: app/templates/admin/_pausa.html:5
+msgid "La pausa general también se aplica a esta empresa."
+msgstr "The global pause also applies to this company."
+
+#: app/templates/admin/_usuario_acceso.html:1
+msgid "Control de acceso"
+msgstr "Access control"
+
+#: app/templates/admin/_usuario_acceso.html:3
+msgid "Exigir cambio de contraseña antes de continuar"
+msgstr "Require a password change before continuing"
+
+#: app/templates/admin/_usuario_acceso.html:5
+msgid ""
+"El usuario tendrá que identificarse de nuevo en todos sus dispositivos, "
+"también si marcó «Recordarme»."
+msgstr ""
+"The user will need to sign in again on all devices, including those with "
+"“Remember me” enabled."
+
+#: app/templates/admin/_usuario_acceso.html:6
+msgid "¿Cerrar todas las sesiones de este usuario?"
+msgstr "Sign this user out of all sessions?"
+
+#: app/templates/admin/_usuario_acceso.html:6
+msgid "Cerrar todas sus sesiones"
+msgstr "Sign out all their sessions"
+
+#: app/templates/admin/auditoria.html:24
+msgid "Exportar resultados"
+msgstr "Export results"
+
+#: app/templates/admin/auditoria.html:67
+msgid "Ver valores anteriores y nuevos"
+msgstr "View previous and new values"
+
+#: app/templates/admin/auditoria.html:68 app/templates/admin/auditoria.html:69
+msgid "Sin personalizar (valor de fábrica)"
+msgstr "Not customised (default value)"
+
+#: app/templates/admin/estado.html:10
+msgid "Configurar avisos"
+msgstr "Configure alerts"
+
+#: app/templates/admin/estado.html:11
+msgid "Correos pendientes de revisión"
+msgstr "Emails awaiting review"
+
+#: app/templates/admin/estado.html:12
+#, python-format
+msgid "%(n)s correos llevan más de %(dias)s días pendientes."
+msgstr "%(n)s emails have been awaiting review for more than %(dias)s days."
+
+#: app/templates/admin/estado.html:13
+msgid "Responsables"
+msgstr "Responsible users"
+
+#: app/templates/admin/estado.html:14
+msgid ""
+"Cada autor revisa y envía sus propios correos desde la ventana de "
+"revisión."
+msgstr "Each author reviews and sends their own emails from the review window."
+
+#: app/templates/admin/estado.html:18
+#, python-format
+msgid "Hace más de %(n)s días"
+msgstr "More than %(n)s days ago"
+
+#: app/templates/admin/estado.html:24
+#, python-format
+msgid "Correos (%(n)s horas)"
+msgstr "Emails (%(n)s hours)"
+
+#: app/templates/admin/estado.html:43
+#, python-format
+msgid "Sin entrar hace más de %(n)s días"
+msgstr "No login for more than %(n)s days"
+
+#: app/templates/admin/panel.html:12
+msgid ""
+"El cierre de sesiones y el cambio obligatorio de contraseña se gestionan "
+"en la ficha de cada usuario."
+msgstr ""
+"Session revocation and required password changes are managed in each "
+"user’s profile."
+
+#: app/templates/admin/restaurar.html:4
+msgid "Solo se restaurará esta sección. Revisa los cambios antes de confirmar."
+msgstr "Only this section will be restored. Review the changes before confirming."
+
+#: app/templates/admin/restaurar.html:5
+msgid "Ajuste"
+msgstr "Setting"
+
+#: app/templates/admin/restaurar.html:5
+msgid "Valor actual"
+msgstr "Current value"
+
+#: app/templates/admin/restaurar.html:5
+msgid "Valor de fábrica"
+msgstr "Default value"
+
+#: app/templates/admin/restaurar.html:6
+msgid "Esta sección ya utiliza los valores de fábrica."
+msgstr "This section already uses the default values."
+
+#: app/templates/admin/restaurar.html:8
+msgid "Confirmar restauración"
+msgstr "Confirm restore"
+
+#: app/templates/admin/usuarios.html:29
+msgid "Sin actividad reciente"
+msgstr "No recent activity"
+
+#: app/templates/pedidos/detalle.html:736
+msgid ""
+"Obligatorio cuando el cambio está fuera del flujo normal. Queda en el "
+"historial y en la auditoría."
+msgstr ""
+"Required for changes outside the normal workflow. Recorded in the history"
+" and audit log."
+
+#: app/templates/pedidos/pausado.html:4
+msgid "Puedes seguir consultando tus pedidos, documentos y conversaciones."
+msgstr "You can still view your orders, documents and conversations."
+
 #~ msgid "Nota para el equipo de soporte…"
 #~ msgstr "Note for the support team…"
 

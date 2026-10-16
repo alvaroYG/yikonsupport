@@ -1,10 +1,10 @@
-{% extends "layout.html" %}
+{% extends "admin/_base_fragmento.html" if g.ajustes_embebidos else "layout.html" %}
 {# Ajustes → Proformas: lo que sale ya relleno al enviar una proforma. Lógica: app/ajustes.py (proformas) #}
 {% block contenido %}
 {% with activa='proformas' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
 <div class="card" style="max-width: 56rem"><div class="card-body">
   <p class="text-muted small">{{ _('Sale ya relleno en el formulario de «Enviar proforma» de cada pedido, y se puede cambiar en cada una. El plazo y las notas salen en el idioma del cliente (el que usan sus usuarios en la plataforma).') }}</p>
-  <form method="post" novalidate>
+  <form method="post" action="{{ url_for('admin.ajustes_proformas') }}" novalidate>
     {{ form.hidden_tag() }}
     <div class="mb-3" style="max-width: 14rem">
       <label class="form-label" for="validez">{{ _('Válida durante') }}</label>

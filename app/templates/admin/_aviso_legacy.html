@@ -1,0 +1,35 @@
+{# Aviso para clientes: una franja arriba del inicio de los clientes (app/aviso_clientes.py) #}
+<div class="card mt-3" style="max-width: 44rem" id="aviso-clientes">
+  <div class="card-header d-flex align-items-center justify-content-between gap-2">
+    <h2 class="h5"><i class="fas fa-bullhorn me-2 text-marca" aria-hidden="true"></i>{{ _('Aviso para clientes') }}</h2>
+    {% set etiquetas = {'sin_aviso': ('est-neutro', 'fa-minus', _('Sin aviso')), 'visible': ('est-ok', 'fa-eye', _('Se está viendo')),
+                        'programado': ('est-pendiente', 'fa-clock', _('Programado')), 'caducado': ('est-neutro', 'fa-calendar-times', _('Ya ha pasado'))} %}
+    {% set e = etiquetas[estado_aviso] %}
+    <span class="badge {{ e[0] }}"><i class="fas {{ e[1] }} me-1" aria-hidden="true"></i>{{ e[2] }}</span>
+  </div>
+  <div class="card-body">
+    <p class="text-muted small">{{ _('Sale arriba en el inicio de todos los clientes, en su idioma (si falta uno, sale el otro). Uno solo a la vez. El cliente lo puede cerrar; si cambias el texto, le vuelve a salir.') }}</p>
+    <form method="post" action="{{ url_for('admin.ajustes_aviso_clientes') }}" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="row g-2">
+        <div class="col-md-6"><label class="form-label small mb-1" for="aviso-es">{{ _('Español') }}</label>
+          <textarea class="form-control" id="aviso-es" name="aviso_es" rows="3" maxlength="{{ max_aviso }}"
+                    placeholder="{{ _('Del 24/12 al 6/01 los pedidos salen con 48 h de retraso.') }}">{{ aviso.texto.es }}</textarea></div>
+        <div class="col-md-6"><label class="form-label small mb-1" for="aviso-en">{{ _('Inglés') }}</label>
+          <textarea class="form-control" id="aviso-en" name="aviso_en" rows="3" maxlength="{{ max_aviso }}" lang="en"
+                    placeholder="Orders placed from 24/12 to 6/01 will ship 48 h later.">{{ aviso.texto.en }}</textarea></div>
+        <div class="col-6 col-md-3"><label class="form-label small mb-1" for="aviso-desde">{{ _('Desde (opcional)') }}</label>
+          <input type="date" class="form-control form-control-sm" id="aviso-desde" name="desde" value="{{ aviso.desde.isoformat() if aviso.desde else '' }}"></div>
+        <div class="col-6 col-md-3"><label class="form-label small mb-1" for="aviso-hasta">{{ _('Hasta (opcional)') }}</label>
+          <input type="date" class="form-control form-control-sm" id="aviso-hasta" name="hasta" value="{{ aviso.hasta.isoformat() if aviso.hasta else '' }}"></div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button class="btn btn-primary" name="accion" value="guardar">{{ _('Guardar') }}</button>
+        {% if estado_aviso != 'sin_aviso' %}
+        <button class="btn btn-outline-secondary ms-auto" name="accion" value="quitar"
+                onclick='return confirm({{ _("¿Quitar el aviso? Dejará de salir a los clientes.")|tojson }})'>{{ _('Quitar el aviso') }}</button>{% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+

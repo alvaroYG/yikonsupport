@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% block contenido %}
+{% include 'admin/_ajustes_nav.html' %}
+{% for clave, titulo, contenido in partes %}
+<details class="card mb-3 ajustes-seccion" id="{{ clave }}" {{ 'open' if clave == abierta }}>
+  <summary class="card-header py-3"><span class="h5 mb-0">{{ titulo }}</span></summary>
+  <div class="card-body">{{ contenido }}
+    {% if clave in restaurables %}<a class="btn btn-sm btn-outline-secondary mt-3" href="{{ url_for('admin.ajustes_restaurar', grupo=clave) }}">{{ _('Restaurar valores de fábrica') }}</a>{% endif %}
+  </div>
+</details>
+{% endfor %}
+{% if tema == 'acceso' %}<p class="text-muted">{{ _('El cierre de sesiones y el cambio obligatorio de contraseña se gestionan en la ficha de cada usuario.') }} <a href="{{ url_for('admin.usuarios') }}">{{ _('Usuarios') }}</a></p>{% endif %}
+{% endblock %}
+{% block scripts %}{{ super() }}
+<script>
+document.querySelectorAll('.ajustes-seccion').forEach(function (section) {
+  if (location.hash === '#' + section.id) section.open = true;
+});
+</script>
+{% endblock %}

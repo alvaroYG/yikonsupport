@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin/_base_fragmento.html" if g.ajustes_embebidos else "layout.html" %}
 {# Ajustes → Seguridad: caducidad de los enlaces, bloqueo tras fallos e inactividad. Lógica: app/seguridad.py #}
 {% block contenido %}
 {% with activa='seguridad' %}{% include "admin/_ajustes_nav.html" %}{% endwith %}
@@ -6,7 +6,7 @@
   <div class="card-header"><h2 class="h5"><i class="fas fa-shield-alt me-2 text-marca" aria-hidden="true"></i>{{ _('Acceso a la plataforma') }}</h2></div>
   <div class="card-body">
     <p class="text-muted small">{{ _('Afecta a todos los usuarios, de Yikon y de los clientes. Los cambios valen desde ya: un enlace que ya se envió caduca con el plazo nuevo.') }}</p>
-    <form method="post" novalidate>{{ form.hidden_tag() }}
+    <form method="post" action="{{ url_for('admin.ajustes_seguridad') }}" novalidate>{{ form.hidden_tag() }}
       {% for clave, c in campos.items() %}
       <div class="ajuste-fila ajuste-fila-ancha">
         <label for="seg-{{ clave }}">{{ c.texto }}
@@ -24,7 +24,7 @@
         <button class="btn btn-primary" name="accion" value="guardar">{{ _('Guardar') }}</button>
         <span class="text-muted small">{{ _('De fábrica: invitación %(inv)s días · enlace %(h)s h · %(f)s intentos en %(m)s min · inactividad %(i)s h',
             inv=fabrica.invitacion_dias, h=fabrica.reset_horas, f=fabrica.fallos, m=fabrica.ventana_minutos, i=fabrica.inactividad_horas) }}</span>
-        <button class="btn btn-outline-secondary ms-auto" name="accion" value="fabrica">{{ _('Dejarlo como venía') }}</button>
+        {% if not g.ajustes_embebidos %}<a class="btn btn-outline-secondary" href="{{ url_for('admin.ajustes_restaurar', grupo='seguridad') }}">{{ _('Restaurar valores de fábrica') }}</a>{% endif %}
       </div>
     </form>
   </div>

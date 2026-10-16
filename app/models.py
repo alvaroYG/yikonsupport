@@ -38,6 +38,8 @@ class User(db.Model, UserMixin):
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
+    sesion_version = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    cambiar_password = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
     rol = db.Column(db.String(20), nullable=False, default="cliente")
     activo = db.Column(db.Boolean, nullable=False, default=True)
     creado = db.Column(db.DateTime(timezone=True), default=ahora)
@@ -54,6 +56,7 @@ class User(db.Model, UserMixin):
     # El aviso para clientes (Ajustes → General) que cerró, por su "huella": si admin cambia el
     # texto, la huella cambia y le vuelve a salir (app/aviso_clientes.py).
     aviso_cerrado = db.Column(db.String(20))
+    anuncios_cerrados = db.Column(db.JSON, nullable=True)
 
     # Solo para usuarios de clientes: la empresa a la que pertenece el usuario
     cliente_id = db.Column(db.Integer, db.ForeignKey("clientes.id"))
@@ -70,9 +73,15 @@ class User(db.Model, UserMixin):
         return valor.strip().lower() if valor else valor
 
     def set_password(self, password: str):
+        self.cambiar_password = False
+        if self.password_hash:
+            self.sesion_version = (self.sesion_version or 0) + 1
         # scrypt de la librería estándar (hashlib): sin DLL externas
         self.password_hash = generate_password_hash(
             password, method=current_app.config.get("PASSWORD_HASH_METHOD", "scrypt"))
+
+    def get_id(self):
+        return str(self.id) if not self.sesion_version else f"{self.id}:{self.sesion_version}"
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
@@ -114,7 +123,15 @@ class User(db.Model, UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    try:
+        partes = str(user_id).split(":")
+        if len(partes) > 2:
+            return None
+        user = db.session.get(User, int(partes[0]))
+        version = int(partes[1]) if len(partes) == 2 else 0
+        return user if user and user.activo and user.sesion_version == version else None
+    except (ValueError, TypeError):
+        return None
 
 
 # --------------------------------------------------------------------------- #
@@ -1081,6 +1098,9 @@ class RegistroAuditoria(db.Model):
     # a simple vista y se sigue leyendo aunque luego lo renombren o lo borren (app/auditoria.py)
     objeto = db.Column(db.String(250))
     detalle = db.Column(db.Text)
+    ajuste_clave = db.Column(db.String(150))
+    valor_anterior = db.Column(db.Text)
+    valor_nuevo = db.Column(db.Text)
 
 
 # --------------------------------------------------------------------------- #

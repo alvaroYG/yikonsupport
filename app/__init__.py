@@ -66,6 +66,8 @@ def create_app(nombre_config: str = None):
     from app import seguridad, ver_como
     ver_como.registrar(app)
     seguridad.registrar(app)
+    from app.control_admin import registrar_auditoria
+    registrar_auditoria()
 
     _registrar_filtros(app)
     _registrar_contexto(app)

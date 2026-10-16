@@ -32,6 +32,7 @@ from flask import current_app
 from flask_babel import gettext as _
 from flask_login import current_user
 
+from app.control_admin import numero as numero_control
 from app.extensions import db
 from app.models import Kit, Lote, MovimientoInventario, Pedido, Producto
 
@@ -167,7 +168,7 @@ def avisos_caducidad(hoy=None) -> list:
     """Lotes con stock caducados o que caducan en los próximos DIAS_AVISO_CADUCIDAD días.
     [{lote, unidades, dias}, ...] (dias < 0 = ya caducado), los más urgentes primero."""
     hoy = hoy or date.today()
-    limite = hoy + timedelta(days=current_app.config.get("DIAS_AVISO_CADUCIDAD", 7))
+    limite = hoy + timedelta(days=numero_control("caducidad"))
     return [{"lote": lote, "unidades": n, "dias": lote.dias_para_caducar(hoy)}
             for lote, n in lotes_con_stock(hoy=hoy)
             if lote.caducidad is not None and lote.caducidad <= limite

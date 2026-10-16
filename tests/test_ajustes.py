@@ -28,7 +28,7 @@ def test_sin_tocar_nada_valen_los_de_fabrica_y_al_guardar_se_apunta(app, client)
     client.post("/admin/ajustes", data=_datos(proforma_enviada=10, enviado=0))
     assert ajustes.plazos()["proforma_enviada"] == 10 and ajustes.plazos()["enviado"] == 0
     assert db.session.scalar(db.select(db.func.count(Ajuste.clave))) == 2          # solo se guarda lo cambiado
-    registro = db.session.scalar(db.select(RegistroAuditoria).filter_by(entidad="Ajuste"))
+    registro = db.session.scalar(db.select(RegistroAuditoria).filter_by(entidad="Ajuste", ajuste_clave=None))
     assert "proforma_enviada 7→10" in registro.detalle and "enviado 7→0" in registro.detalle
 
 

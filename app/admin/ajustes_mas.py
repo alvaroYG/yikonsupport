@@ -83,7 +83,7 @@ def ajustes_aviso_clientes():
     from datetime import date
 
     from app import aviso_clientes
-    destino = redirect(url_for("admin.ajustes") + "#aviso-clientes")
+    destino = redirect(url_for("admin.ajustes_panel", tema="comunicaciones", seccion="anuncios") + "#aviso-clientes")
     if not FlaskForm().validate_on_submit():
         return destino
     if request.form.get("accion") == "quitar":

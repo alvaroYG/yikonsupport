@@ -40,6 +40,11 @@ def usuarios():
         select = select.filter_by(activo=True)
     elif estado == "desactivados":
         select = select.filter_by(activo=False)
+    elif estado == "inactivos":
+        from datetime import timedelta
+        from app.control_admin import numero
+        from app.models import ahora
+        select = select.where(User.activo.is_(True), User.ultimo_acceso < ahora() - timedelta(days=numero('inactivos')))
     elif estado == "pendientes":
         select = select.where(User.activo.is_(True), User.ultimo_acceso.is_(None))
     else:
@@ -173,6 +178,31 @@ def auditoria():
     if q:
         patron = f"%{q}%"
         select = select.where(RegistroAuditoria.objeto.ilike(patron) | RegistroAuditoria.detalle.ilike(patron))
+    from datetime import date, datetime, time, timedelta, timezone
+    from zoneinfo import ZoneInfo
+    desde, hasta = request.args.get('desde', ''), request.args.get('hasta', '')
+    try:
+        inicio = date.fromisoformat(desde) if desde else None
+        fin = date.fromisoformat(hasta) if hasta else None
+        if inicio and fin and inicio > fin:
+            raise ValueError
+    except ValueError:
+        from flask import abort
+        abort(400)
+    if inicio:
+        select = select.where(RegistroAuditoria.fecha >= datetime.combine(inicio, time.min, ZoneInfo('Europe/Madrid')).astimezone(timezone.utc))
+    if fin:
+        select = select.where(RegistroAuditoria.fecha < datetime.combine(fin + timedelta(days=1), time.min, ZoneInfo('Europe/Madrid')).astimezone(timezone.utc))
+    if request.args.get('exportar') == '1':
+        from flask import Response
+        from app.excel import generar_excel, Columna, MIMETYPE_XLSX
+        from app.utils import hora_local
+        registros = db.session.scalars(select).all()
+        filas = [[hora_local(r.fecha).strftime('%d/%m/%Y %H:%M'), r.usuario.nombre if r.usuario else '',
+                  r.accion, r.objeto or r.entidad, r.detalle, r.valor_anterior, r.valor_nuevo] for r in registros]
+        datos = generar_excel(_('Auditoría'), [Columna(x, 30) for x in
+            (_('Fecha'), _('Usuario'), _('Acción'), _('Objeto'), _('Detalle'), _('Valor anterior'), _('Valor nuevo'))], filas)
+        return Response(datos, mimetype=MIMETYPE_XLSX, headers={'Content-Disposition': 'attachment; filename="auditoria.xlsx"'})
     pagina = paginar(select)
     objetos = aud.describir(pagina.items)
     historial_de = None
@@ -186,7 +216,7 @@ def auditoria():
                            detalle_legible=aud.detalle_legible,
                            tipos=aud.TIPOS, acciones=aud.ACCIONES, usuarios=usuarios, tipo=tipo, objeto_id=objeto_id,
                            usuario_id=usuario_id, accion=accion, q=q, historial_de=historial_de,
-                           hay_filtros=bool(tipo or usuario_id or accion or q))
+                           desde=desde, hasta=hasta, hay_filtros=bool(tipo or usuario_id or accion or q or desde or hasta))
 
 
 @bp.route("/ajustes", methods=["GET", "POST"])
@@ -240,8 +270,8 @@ def ajustes_mantenimiento():
         activado, _mensaje = mantenimiento.estado()
         flash(_("Modo mantenimiento activado: solo entra admin.") if activado
               else _("Modo mantenimiento desactivado: ya entra todo el mundo."), "warning" if activado else "success")
-    return redirect(url_for("admin.ajustes") + "#mantenimiento")
+    return redirect(url_for("admin.ajustes_panel", tema="sistema", seccion="mantenimiento") + "#mantenimiento")
 
 
 # Las demás páginas de Ajustes van en sus propios archivos (mismo blueprint)
-from app.admin import ajustes_apartados, ajustes_correos, ajustes_mas, correos_estado  # noqa: E402,F401
+from app.admin import ajustes_apartados, ajustes_correos, ajustes_mas, correos_estado, panel  # noqa: E402,F401

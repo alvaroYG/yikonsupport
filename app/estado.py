@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 from flask import current_app
 
+from app.control_admin import numero
 from app.extensions import db
 from app.models import CorreoEnviado, ErrorWeb, IntentoLogin, User, ahora
 
@@ -45,12 +46,12 @@ def copia():
     except (OSError, ValueError):
         cuando = datetime.fromtimestamp(os.path.getmtime(ruta))
     cuando = cuando if cuando.tzinfo else cuando.astimezone()
-    vieja = datetime.now(timezone.utc) - cuando > timedelta(days=DIAS_SIN_COPIA)
+    vieja = datetime.now(timezone.utc) - cuando > timedelta(days=numero("copia"))
     return {"estado": "aviso" if vieja else "ok", "cuando": cuando}
 
 
 def correos():
-    desde = ahora() - timedelta(days=7)
+    desde = ahora() - timedelta(hours=numero("correos"))
     cuenta = dict(db.session.execute(db.select(CorreoEnviado.estado, db.func.count(CorreoEnviado.id))
                                      .where(CorreoEnviado.fecha >= desde).group_by(CorreoEnviado.estado)).all())
     return {"estado": "aviso" if cuenta.get("fallido") else "ok",
@@ -94,7 +95,7 @@ def usuarios():
     sin_usar = db.session.scalar(db.select(db.func.count(User.id)).where(
         User.activo.is_(True), User.ultimo_acceso.is_(None)))
     inactivos = db.session.scalar(db.select(db.func.count(User.id)).where(
-        User.activo.is_(True), User.ultimo_acceso < ahora() - timedelta(days=DIAS_INACTIVO)))
+        User.activo.is_(True), User.ultimo_acceso < ahora() - timedelta(days=numero("inactivos"))))
     fallidos = db.session.scalar(db.select(db.func.count(IntentoLogin.id)).where(
         IntentoLogin.exito.is_(False), IntentoLogin.fecha >= ahora() - timedelta(hours=24)))
     return {"estado": "aviso" if (sin_usar or inactivos) else "ok",
@@ -118,9 +119,20 @@ def errores():
     return {"estado": "aviso" if hoy else "ok", "hoy": hoy, "ultimos": ultimos}
 
 
+def revisiones():
+    from app.models import CorreoBorrador
+    filas = db.session.scalars(db.select(CorreoBorrador).where(
+        CorreoBorrador.estado == 'pendiente',
+        CorreoBorrador.fecha < ahora() - timedelta(days=numero('revision')),
+        CorreoBorrador.caduca > ahora()).order_by(CorreoBorrador.fecha)).all()
+    autores = {u.id: u.nombre for u in db.session.scalars(db.select(User))}
+    return {'cantidad': len(filas), 'autores': sorted({autores.get(f.autor_id, '—') for f in filas})}
+
+
 def todo():
     return {"copia": copia(), "correos": correos(), "espacio": espacio(), "usuarios": usuarios(),
-            "version": version(), "errores": errores()}
+            "version": version(), "errores": errores(), "revision": revisiones(),
+            "umbrales": {c: numero(c) for c in ("copia", "inactivos", "correos", "revision")}}
 
 
 def legible(bytes_):

@@ -26,6 +26,7 @@
       <select name="estado" id="f-estado" class="form-select form-select-sm" onchange="this.form.submit()">
         <option value="">{{ _('Todos') }}</option>
         <option value="activos" {{ 'selected' if estado == 'activos' }}>{{ _('Activos') }}</option>
+        <option value="inactivos" {{ 'selected' if estado == 'inactivos' }}>{{ _('Sin actividad reciente') }}</option>
         <option value="pendientes" {{ 'selected' if estado == 'pendientes' }}>{{ _('Invitación pendiente') }}</option>
         <option value="desactivados" {{ 'selected' if estado == 'desactivados' }}>{{ _('Desactivados') }}</option></select></div>
     {% if hay_filtros %}<div class="col-auto"><a href="{{ url_for('admin.usuarios') }}" class="btn btn-sm btn-outline-secondary">

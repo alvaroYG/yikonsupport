@@ -1,0 +1,7 @@
+<div class="card mt-3"><div class="card-header"><h2 class="h5">{{ _('Control de acceso') }}</h2></div><div class="card-body">
+<form method="post" action="{{ url_for('admin.usuario_acceso', id=usuario.id) }}">{{ form.hidden_tag() }}
+<label class="form-check"><input class="form-check-input" type="checkbox" name="exigir" value="1" {{ 'checked' if usuario.cambiar_password }}><span class="form-check-label">{{ _('Exigir cambio de contraseña antes de continuar') }}</span></label>
+<button class="btn btn-primary mt-2" name="accion" value="password">{{ _('Guardar') }}</button></form>
+<hr><p>{{ _('El usuario tendrá que identificarse de nuevo en todos sus dispositivos, también si marcó «Recordarme».') }}</p>
+<form method="post" action="{{ url_for('admin.usuario_acceso', id=usuario.id) }}" onsubmit='return confirm({{ _("¿Cerrar todas las sesiones de este usuario?")|tojson }})'>{{ form.hidden_tag() }}<button class="btn btn-outline-secondary" name="accion" value="cerrar">{{ _('Cerrar todas sus sesiones') }}</button></form>
+</div></div>

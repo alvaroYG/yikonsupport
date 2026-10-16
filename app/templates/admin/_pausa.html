@@ -1,0 +1,7 @@
+<form method="post" action="{{ url_for('admin.guardar_pausa') }}">
+{{ form.hidden_tag() }}{% if cliente_id %}<input type="hidden" name="cliente_id" value="{{ cliente_id }}">{% endif %}
+<label class="form-check mb-3"><input class="form-check-input" type="checkbox" name="pausada" value="1" {{ 'checked' if pausa.get('activa') }}><span class="form-check-label">{{ _('Pausar nuevas solicitudes de esta empresa') if cliente_id else _('Pausar nuevas solicitudes de todos los clientes') }}</span></label>
+<p class="text-muted small">{{ _('Los pedidos existentes, documentos y conversaciones siguen disponibles. El equipo interno puede crear un pedido durante la pausa indicando el motivo.') }}</p>
+{% if cliente_id %}<p class="small">{{ _('La pausa general también se aplica a esta empresa.') }}</p>{% endif %}
+<div class="row g-3">{% for idioma, nombre in [('es', 'Español'), ('en', 'English')] %}<div class="col-md-6"><label for="pausa-{{ cliente_id or 'global' }}-{{ idioma }}" class="form-label">{{ _('Mensaje') }} · {{ nombre }}</label><textarea class="form-control" id="pausa-{{ cliente_id or 'global' }}-{{ idioma }}" name="pausa_{{ idioma }}" rows="3" maxlength="600">{{ pausa.get(idioma, '') }}</textarea></div>{% endfor %}</div>
+<button class="btn btn-primary mt-3">{{ _('Guardar') }}</button></form>

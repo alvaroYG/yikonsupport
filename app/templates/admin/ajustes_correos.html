@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin/_base_fragmento.html" if g.ajustes_embebidos else "layout.html" %}
 {# Ajustes → Correos al cliente: la lista de avisos (con lo cambiado en cada idioma), la firma y el logo.
    Lo que hay detrás: app/correos_cliente.py (CASOS) y app/admin/ajustes_correos.py #}
 {% block contenido %}

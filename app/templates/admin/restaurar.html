@@ -1,0 +1,9 @@
+{% extends 'layout.html' %}{% block contenido %}
+{% include 'admin/_ajustes_nav.html' %}
+<h2 class="h4">{{ _('Restaurar valores de fábrica') }}</h2>
+<p>{{ _('Solo se restaurará esta sección. Revisa los cambios antes de confirmar.') }}</p>
+<div class="table-responsive"><table class="table"><thead><tr><th>{{ _('Ajuste') }}</th><th>{{ _('Valor actual') }}</th><th>{{ _('Valor de fábrica') }}</th></tr></thead><tbody>
+{% for fila in filas %}<tr><td>{{ fila.clave }}</td><td class="text-break" style="white-space:pre-wrap">{{ fila.valor }}</td><td>{{ fabrica(fila.clave) }}</td></tr>{% else %}<tr><td colspan="3">{{ _('Esta sección ya utiliza los valores de fábrica.') }}</td></tr>{% endfor %}
+</tbody></table></div>
+<form method="post">{{ form.hidden_tag() }}<input type="hidden" name="huella" value="{{ huella }}"><button class="btn btn-primary" {{ 'disabled' if not filas }}>{{ _('Confirmar restauración') }}</button> <a class="btn btn-outline-secondary" href="{{ url_for('admin.ajustes') }}">{{ _('Cancelar') }}</a></form>
+{% endblock %}

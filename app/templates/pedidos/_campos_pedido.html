@@ -85,4 +85,5 @@
   {{ _('rellénelo y adjúntelo aquí.') }}</p>
 {% endif %}
 {{ campo(form.observaciones, rows=2, maxlength=2000) }}
-{% if interno %}{{ campo(form.notas, rows=2) }}{% endif %}
+{% if interno %}{{ campo(form.notas, rows=2) }}
+{{ campo(form.motivo_excepcion, rows=2, maxlength=1000) }}{% endif %}

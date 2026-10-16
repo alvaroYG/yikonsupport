@@ -1,6 +1,14 @@
 {% extends "layout.html" %}
 {% from "_macros.html" import estado_pedido, estado_factura, lote_caducidad %}
 {% block contenido %}
+{% if pedidos_pausados %}<div class="alert alert-warning"><i class="fas fa-pause-circle me-2" aria-hidden="true"></i>{{ pedidos_pausados }}</div>{% endif %}
+{% for a in anuncios_clientes or [] %}
+<div class="aviso-clientes mb-3" role="status"><i class="fas fa-bullhorn aviso-clientes-icono" aria-hidden="true"></i>
+<div class="aviso-clientes-texto">{{ a.texto }}</div>
+<form method="post" action="{{ url_for('main.cerrar_aviso') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<input type="hidden" name="anuncio_id" value="{{ a.id }}"><input type="hidden" name="huella" value="{{ a.huella }}">
+<button class="btn btn-sm btn-outline-secondary" aria-label="{{ _('Cerrar') }}">×</button></form></div>
+{% endfor %}
 {# En el móvil, quien prepara los paquetes va directo a lo suyo #}
 {% if current_user.puede('pedidos.fotos.subir') %}
 <a href="{{ url_for('pedidos.preparar') }}" class="btn btn-primary btn-lg w-100 mb-3 d-md-none">

@@ -1,0 +1,6 @@
+{% extends 'layout.html' %}{% block contenido %}
+<h1 class="h3">{{ _('Nuevas solicitudes en pausa') }}</h1>
+<div class="alert alert-warning"><i class="fas fa-pause-circle me-2" aria-hidden="true"></i>{{ mensaje }}</div>
+<p>{{ _('Puedes seguir consultando tus pedidos, documentos y conversaciones.') }}</p>
+<a class="btn btn-primary" href="{{ url_for('pedidos.lista') }}">{{ _('Pedidos') }}</a>
+{% endblock %}

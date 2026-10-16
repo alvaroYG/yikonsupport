@@ -7,19 +7,24 @@
 {% endmacro %}
 {% block contenido %}
 <h1 class="h3 mb-3">{{ _('Estado de la plataforma') }}</h1>
+<a class="btn btn-sm btn-outline-secondary mb-3" href="{{ url_for('admin.ajustes_panel', tema='sistema', seccion='sistema') }}">{{ _('Configurar avisos') }}</a>
+<div class="card mb-3"><div class="card-body"><h2 class="h6">{{ _('Correos pendientes de revisión') }}</h2>
+<p>{{ _('%(n)s correos llevan más de %(dias)s días pendientes.', n=e.revision.cantidad, dias=e.umbrales.revision) }}</p>
+{% if e.revision.autores %}<p>{{ _('Responsables') }}: {{ e.revision.autores|join(', ') }}</p>{% endif %}
+<small>{{ _('Cada autor revisa y envía sus propios correos desde la ventana de revisión.') }}</small></div></div>
 <div class="tarjetas-estado">
   <div class="card"><div class="card-body">
     <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Copia de seguridad') }}</h2>
-      {{ marca(e.copia.estado, _('Al día'), _('Hace más de 2 días'), _('Sin configurar')) }}</div>
+      {{ marca(e.copia.estado, _('Al día'), _('Hace más de %(n)s días', n=e.umbrales.copia), _('Sin configurar')) }}</div>
     {% if e.copia.cuando %}<div class="fs-5 fw-bold">{{ e.copia.cuando|fecha_hora }}</div>
     <p class="small text-muted mb-0">{{ _('Última copia de la base de datos y los archivos.') }}</p>
     {% else %}<p class="small text-muted mb-0">{{ _('La copia la hace el servidor. Al configurarla, el script deja la hora de la última copia en el archivo de COPIA_SEGURIDAD_MARCA y aquí se ve.') }}</p>{% endif %}
   </div></div>
   <div class="card"><div class="card-body">
-    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Correos (7 días)') }}</h2>
+    <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Correos (%(n)s horas)', n=e.umbrales.correos) }}</h2>
       {{ marca(e.correos.estado, _('Sin fallos'), ngettext('%(num)s fallido', '%(num)s fallidos', e.correos.fallidos)) }}</div>
     <dl class="filas-estado"><dt>{{ _('Enviados') }}</dt><dd>{{ e.correos.enviados }}</dd><dt>{{ _('Fallidos') }}</dt><dd>{{ e.correos.fallidos }}</dd></dl>
-    <a class="small" href="{{ url_for('admin.correos', estado='fallido' if e.correos.fallidos else None, dias=7) }}">{{ _('Ver los fallidos →') if e.correos.fallidos else _('Ver los correos →') }}</a>
+    <a class="small" href="{{ url_for('admin.correos', estado='fallido' if e.correos.fallidos else None, horas=e.umbrales.correos) }}">{{ _('Ver los fallidos →') if e.correos.fallidos else _('Ver los correos →') }}</a>
   </div></div>
   <div class="card"><div class="card-body">
     <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Espacio') }}</h2>
@@ -35,9 +40,9 @@
     <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Usuarios') }}</h2>
       {{ marca(e.usuarios.estado, _('Todo en orden'), _('Revisar')) }}</div>
     <dl class="filas-estado"><dt>{{ _('Invitaciones sin usar') }}</dt><dd>{{ e.usuarios.invitaciones }}</dd>
-      <dt>{{ _('Sin entrar hace más de 90 días') }}</dt><dd>{{ e.usuarios.inactivos }}</dd>
+      <dt>{{ _('Sin entrar hace más de %(n)s días', n=e.umbrales.inactivos) }}</dt><dd>{{ e.usuarios.inactivos }}</dd>
       <dt>{{ _('Intentos fallidos de entrar (24 h)') }}</dt><dd>{{ e.usuarios.fallidos }}</dd></dl>
-    <a class="small" href="{{ url_for('admin.usuarios', estado='pendientes' if e.usuarios.invitaciones else None) }}">{{ _('Ver en Usuarios →') }}</a>
+    <a class="small" href="{{ url_for('admin.usuarios', estado='inactivos' if e.usuarios.inactivos else ('pendientes' if e.usuarios.invitaciones else None)) }}">{{ _('Ver en Usuarios →') }}</a>
   </div></div>
   <div class="card"><div class="card-body">
     <div class="d-flex justify-content-between gap-2 mb-2"><h2 class="h6 mb-0">{{ _('Versión') }}</h2>

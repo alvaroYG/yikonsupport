@@ -52,6 +52,10 @@ def correos():
     grupo = request.args.get("grupo") if request.args.get("grupo") in GRUPOS else ""
     dias = request.args.get("dias", 30, type=int)
     dias = dias if dias in (7, 30, 183) else 30
+    horas = request.args.get('horas', type=int)
+    if horas and 1 <= horas <= 8760:
+        select = select.where(CorreoEnviado.fecha >= ahora() - timedelta(hours=horas))
+        dias = 0
     if q:
         from app.models import Pedido
         patron = f"%{q}%"
@@ -63,7 +67,8 @@ def correos():
         select = select.where(~CorreoEnviado.tipo.like("cliente.%"), ~CorreoEnviado.tipo.like("interno.%"))
     elif grupo:
         select = select.where(CorreoEnviado.tipo.like(f"{grupo}.%"))
-    select = select.where(CorreoEnviado.fecha >= ahora() - timedelta(days=dias))
+    if dias:
+        select = select.where(CorreoEnviado.fecha >= ahora() - timedelta(days=dias))
     return render_template("admin/correos.html", title=_("Correos enviados"), pagina=paginar(select), q=q,
                            estado=estado, grupo=grupo, dias=dias, grupos=GRUPOS if current_user.rol != "fas"
                            else {}, estados=ESTADOS, nombre_tipo=nombre_tipo,

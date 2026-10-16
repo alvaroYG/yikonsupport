@@ -101,8 +101,11 @@ def cuenta():
     if form.validate_on_submit():
         if not current_user.check_password(form.actual.data):
             flash(_("La contraseña actual no es correcta."), "danger")
+        elif current_user.cambiar_password and current_user.check_password(form.nueva.data):
+            flash(_("Elige una contraseña diferente a la actual."), "danger")
         else:
             current_user.set_password(form.nueva.data)
+            login_user(current_user._get_current_object())
             registrar("editar", current_user, "cambio de contraseña")
             db.session.commit()
             flash(_("Contraseña actualizada."), "success")

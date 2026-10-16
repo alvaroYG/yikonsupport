@@ -17,7 +17,7 @@ def _guardar_aviso(client, es="", en="", desde="", hasta=""):
 def test_el_aviso_sale_al_cliente_en_su_idioma_y_lo_puede_cerrar(app, client):
     login(client, "admin")
     _guardar_aviso(client, es="Cerramos del 24 al 26.", en="We are closed from 24th to 26th.")
-    assert "Se está viendo" in client.get("/admin/ajustes").get_data(as_text=True)
+    assert "Se está viendo" in client.get("/admin/ajustes/panel/comunicaciones").get_data(as_text=True)
     client.post("/auth/logout")
     login(client, "cliA")
     html = client.get("/").get_data(as_text=True)
@@ -44,17 +44,17 @@ def test_el_aviso_respeta_las_fechas_y_no_sale_a_yikon(app, client):
     login(client, "admin")
     manana = date.today() + timedelta(days=1)
     _guardar_aviso(client, es="Aviso futuro", desde=manana.isoformat())
-    assert "Programado" in client.get("/admin/ajustes").get_data(as_text=True)
+    assert "Programado" in client.get("/admin/ajustes/panel/comunicaciones").get_data(as_text=True)
     assert 'class="aviso-clientes' not in client.get("/").get_data(as_text=True)     # (a Yikon no le sale)
     _guardar_aviso(client, es="Mal", desde=manana.isoformat(), hasta=date.today().isoformat())
-    assert "no puede ser anterior" in client.get("/admin/ajustes").get_data(as_text=True)
+    assert "no puede ser anterior" in client.get("/admin/ajustes/panel/comunicaciones").get_data(as_text=True)
     client.post("/auth/logout")
     login(client, "cliA")
     assert "Aviso futuro" not in client.get("/").get_data(as_text=True)
     client.post("/auth/logout")
     login(client, "admin")
     client.post("/admin/ajustes/aviso-clientes", data={"accion": "quitar"})
-    assert "Sin aviso" in client.get("/admin/ajustes").get_data(as_text=True)
+    assert "Sin aviso" in client.get("/admin/ajustes/panel/comunicaciones").get_data(as_text=True)
 
 
 # --------------------------------------------------------------------------- #

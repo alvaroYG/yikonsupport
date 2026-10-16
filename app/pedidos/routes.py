@@ -228,6 +228,12 @@ def nuevo():
         _rellenar_para_repetir(form)
     if form.validate_on_submit():
         cliente = cliente_o_404(form.cliente_id.data)  # FAS: solo sus clientes
+        from app.control_admin import bloqueo
+        pausa = bloqueo(cliente.id)
+        if pausa and not (form.motivo_excepcion.data or "").strip():
+            form.motivo_excepcion.errors = [_("Las nuevas solicitudes están pausadas. Indica el motivo de la excepción.")]
+            flash(pausa, "warning")
+            return render_template("pedidos/form.html", title=_("Nuevo pedido"), form=form), 400
         pedido = Pedido(cliente=cliente, fecha=form.fecha.data,
                         referencia=form.referencia.data, notas=form.notas.data or None,
                         estado="aceptado", creado_por=current_user,   # sin proforma: ya es un pedido
@@ -427,6 +433,8 @@ def _crear_pedido(pedido, form):
         reservas.reservar_automatico(pedido)
     if form.documento.data and form.documento.data.filename:
         db.session.add(docs.guardar_documento(form.documento.data, pedido))
+    if getattr(form, 'motivo_excepcion', None) and (form.motivo_excepcion.data or '').strip():
+        registrar("editar", pedido, "motivo de creación excepcional: " + form.motivo_excepcion.data.strip())
     registrar("crear", pedido,
               f"{pedido.referencia_interna} · {pedido.cliente.nombre} · {pedido.resumen_contenido(' · ')}"
               + (" · con documento" if pedido.documentos else ""))
@@ -473,6 +481,11 @@ def _nuevo_pedido_cliente():
     empresa = current_user.empresa
     if empresa is None or not empresa.activo:
         abort(403)
+    from app.control_admin import bloqueo
+    from flask_babel import get_locale
+    mensaje = bloqueo(empresa.id, str(get_locale() or "es"))
+    if mensaje:
+        return render_template("pedidos/pausado.html", title=_("Nuevas solicitudes en pausa"), mensaje=mensaje), 403
     form = PedidoClienteForm(cliente_id=empresa.id)
     if request.method == "GET":
         _rellenar_para_repetir(form)
@@ -533,6 +546,10 @@ def _cambiar_estado(pedido, destino, detalle="", avisar=True, motivo=None):
         if destino not in ESTADOS_PEDIDO or not current_user.puede("pedidos.forzar_estado"):
             abort(403)
         forzado = True
+        razon = (request.form.get("motivo_excepcion") or "").strip()
+        if not razon or len(razon) > 1000:
+            return _("Indica el motivo del cambio excepcional (máximo 1000 caracteres).")
+        detalle = (detalle + " · " if detalle else "") + "motivo: " + razon
     origen = pedido.estado
     # Al enviar salen los lotes RESERVADOS del pedido (los de la proforma): si falta alguno
     # por asignar, ha caducado o no está en la oficina, no se envía.

@@ -265,6 +265,8 @@ class PedidoInternoForm(_PedidoConLineasForm):
                              validators=[Optional(), Length(max=50)],
                              description=_l("Opcional: el nº de pedido del cliente, si lo tiene."))
     documento = FileField(_l("Documento del pedido"), description=TEXTO_DOCUMENTO)
+    motivo_excepcion = TextAreaField(_l("Motivo de la excepción"), validators=[Optional(), Length(max=1000)],
+        description=_l("Si las nuevas solicitudes están pausadas, explica por qué creas este pedido."))
     notas = TextAreaField(_l("Notas internas"), validators=[Optional()],
                           description=_l("Solo las ve el equipo de Yikon."))
     submit = SubmitField(_l("Crear pedido"))
@@ -343,6 +345,7 @@ class _CamposEnvio:
 
 
 class EstadoPedidoForm(_CamposEnvio, FlaskForm):
+    motivo_excepcion = TextAreaField(_l("Motivo de la excepción"), validators=[Optional(), Length(max=1000)])
     # Las opciones las pone la vista: solo los estados a los que ESTE usuario puede pasar
     estado = SelectField(_l("Estado"), choices=[])
     submit = SubmitField(_l("Cambiar estado"))

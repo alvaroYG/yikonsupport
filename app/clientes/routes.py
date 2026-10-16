@@ -236,7 +236,10 @@ def detalle(id):
     # Pestaña «Usuarios» (su Soporte de cliente y admin): los de la empresa, activos primero
     usuarios = (sorted(cliente.usuarios, key=lambda u: (not u.activo, u.nombre.lower()))
                 if current_user.puede("clientes.usuarios") else None)
-    return render_template("clientes/detalle.html", title=cliente.nombre, cliente=cliente, avisos=avisos, catalogo=catalogo,
+    from app.admin.panel import pausa_form
+    from markupsafe import Markup
+    pausa_html = Markup(pausa_form(cliente.id)) if current_user.puede("ajustes.editar") else ""
+    return render_template("clientes/detalle.html", pausa_html=pausa_html, title=cliente.nombre, cliente=cliente, avisos=avisos, catalogo=catalogo,
                            usuarios=usuarios,
                            pedidos=pedidos, facturas=facturas, precios=precios, precios_productos=precios_productos,
                            productos_sin_precio=productos_sin_precio,

@@ -730,6 +730,11 @@
         {{ estado_form.hidden_tag() }}
         <label class="form-label" for="{{ estado_form.estado.id }}">{{ _('Nuevo estado') }}</label>
         {{ estado_form.estado(class_="form-select") }}
+        {% if current_user.puede('pedidos.forzar_estado') %}
+        <label class="form-label mt-3" for="motivo-excepcion">{{ _('Motivo de la excepción') }}</label>
+        {{ estado_form.motivo_excepcion(id='motivo-excepcion', class_='form-control', rows=2, maxlength=1000) }}
+        <div class="form-text">{{ _('Obligatorio cuando el cambio está fuera del flujo normal. Queda en el historial y en la auditoría.') }}</div>
+        {% endif %}
         <input type="hidden" name="confirmar_stock" value="0">
         {% if current_user.puede('pedidos.forzar_estado') %}
         <p class="small text-muted mt-2 mb-0">{{ _('Como admin puedes elegir cualquier estado. Si te saltas el flujo normal (p. ej. enviar sin validar), quedará marcado en la auditoría. El stock se descuenta igualmente.') }}</p>
