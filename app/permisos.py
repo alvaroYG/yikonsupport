@@ -16,7 +16,7 @@ from app import apartados
 # El nombre VISIBLE del rol "fas" (FAS y business developers: quienes llevan clientes asignados).
 # Está solo aquí: los textos lo reciben como %(rol)s y las plantillas como {{ rol_fas }}.
 # Por dentro (base de datos, permisos, código) el rol sigue llamándose "fas".
-NOMBRE_FAS = _l("Soporte de cliente")
+NOMBRE_FAS = _l("Business Developer")
 
 ROLES = {
     "admin": _l("Administrador"),                # todo; da los accesos (usuarios y clientes)

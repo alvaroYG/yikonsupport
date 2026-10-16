@@ -32,6 +32,23 @@
       · <button type="button" class="btn btn-link btn-sm p-0 align-baseline" data-bs-toggle="collapse" data-bs-target="#datos-cliente"
                 aria-expanded="false" aria-controls="datos-cliente">{{ _('Ver datos completos') }}</button></div>
   </div>
+  {% if pausa_html %}
+<div class="collapse" id="pausa-pedidos">
+  <div class="pt-3 mt-3 border-top">
+    <h2 class="h6 mb-3">{{ _('Pedidos nuevos de esta empresa') }}</h2>
+
+    <div id="formulario-pausa-cliente">
+      {{ pausa_html }}
+    </div>
+
+    <button type="button"
+            class="btn btn-sm btn-link px-0 mt-2"
+            id="cancelar-pausa-cliente">
+      {{ _('Cancelar') }}
+    </button>
+  </div>
+</div>
+{% endif %}
   <div class="collapse" id="datos-cliente"><div class="pt-3 mt-3 border-top small">
     <dl class="mb-0">
       <dt>{{ _('Prefijo de pedidos') }}</dt><dd>{{ cliente.prefijo or '—' }} <span class="text-muted">{{ _('(próximo pedido: %(ref)s)', ref=cliente.proxima_referencia_interna) }}</span></dd>
@@ -41,11 +58,31 @@
       <dt>{{ _('Dirección') }}</dt><dd><a href="#envio">{{ _('Ver «Facturación y envío»') }}</a></dd>
       <dt>{{ rol_fas }}</dt><dd>{{ cliente.logisticos|map(attribute='nombre')|join(', ') or '—' }}</dd>
       <dt>{{ _('Ve precios en la plataforma') }}</dt>
+      {% if pausa_html %}
+        <div>
+          <span class="franja-etiqueta">{{ _('Pedidos nuevos') }}</span>
+
+          <span class="d-inline-flex align-items-center flex-wrap gap-2">
+            <strong id="estado-pedidos-cliente" aria-live="polite">
+              {{ _('Configuración del cliente') }}
+            </strong>
+
+            <button type="button"
+                    class="btn btn-link btn-sm p-0 align-baseline"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#pausa-pedidos"
+                    aria-expanded="false"
+                    aria-controls="pausa-pedidos">
+              {{ _('Cambiar') }}
+            </button>
+          </span>
+        </div>
+      {% endif %}
       <dd>{{ _('Sí') if cliente.ver_precios else _('No') }} <span class="text-muted">({{ _('se cambia arriba') }})</span>
         <div class="text-muted mt-1">{{ _('Sus tarifas en el catálogo, precios y totales de sus pedidos e importes de sus facturas. La proforma sigue sin precios.') }}</div></dd>
       <dt>{{ _('Usuarios de la empresa') }}</dt><dd>{{ cliente.usuarios|map(attribute='email')|join(', ') or '—' }}</dd>
       {% if cliente.notas %}<dt>{{ _('Notas') }}</dt><dd style="white-space:pre-line">{{ cliente.notas }}</dd>{% endif %}
-      {% if pausa_html %}<details class="card mb-3" id="pausa-pedidos"><summary class="card-header">{{ _('¿Este cliente puede hacer pedidos nuevos?') }}</summary><div class="card-body">{{ pausa_html }}</div></details>{% endif %}
+
     </dl>
   </div></div>
 </div></div>
@@ -365,4 +402,66 @@
 })();
 </script>
 {% if catalogo %}<script src="{{ url_for('static', filename='js/catalogo_cliente.js') }}"></script>{% endif %}
+<script>
+(function () {
+  const panel = document.getElementById('pausa-pedidos');
+  const contenedor = document.getElementById('formulario-pausa-cliente');
+  const estado = document.getElementById('estado-pedidos-cliente');
+  const cancelar = document.getElementById('cancelar-pausa-cliente');
+
+  if (!panel || !contenedor || !estado || !cancelar) return;
+
+  const formulario = contenedor.querySelector('form');
+  const casilla = contenedor.querySelector('input[name="pausada"]');
+
+  if (!formulario || !casilla) return;
+
+  const textoEsp = contenedor.querySelector('textarea[name="pausa_es"]');
+  const mensajes = textoEsp ? textoEsp.closest('.row') : null;
+
+  // La franja muestra lo guardado, no los cambios aún sin guardar.
+  const pausaGuardada = casilla.checked;
+
+  const icono = document.createElement('i');
+  icono.className = pausaGuardada
+    ? 'fas fa-pause-circle me-1'
+    : 'fas fa-check-circle me-1';
+  icono.setAttribute('aria-hidden', 'true');
+
+  const etiqueta = pausaGuardada
+    ? {{ _('Pausa individual')|tojson }}
+    : {{ _('Sin pausa individual')|tojson }};
+
+  estado.replaceChildren(icono, document.createTextNode(etiqueta));
+
+  // Los mensajes solo se muestran cuando se marca la pausa.
+  // Ocultarlos conserva su contenido y permite guardarlo como antes.
+  function actualizarMensajes() {
+    if (mensajes) mensajes.hidden = !casilla.checked;
+  }
+
+  casilla.addEventListener('change', actualizarMensajes);
+  actualizarMensajes();
+
+  const desplegable = bootstrap.Collapse.getOrCreateInstance(panel, {
+    toggle: false
+  });
+
+  cancelar.addEventListener('click', function () {
+    formulario.reset();
+    actualizarMensajes();
+    desplegable.hide();
+  });
+
+  // El guardado actual vuelve a la ficha con #pausa-pedidos.
+  function abrirDesdeEnlace() {
+    if (location.hash === '#pausa-pedidos') {
+      desplegable.show();
+    }
+  }
+
+  abrirDesdeEnlace();
+  window.addEventListener('hashchange', abrirDesdeEnlace);
+})();
+</script>
 {% endblock %}

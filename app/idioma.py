@@ -12,7 +12,7 @@ Cómo funciona la traducción:
 """
 from flask import has_request_context, request, session
 
-IDIOMAS = {"es": "Español", "en": "English"}
+IDIOMAS = {"es": "Español", "en": "English", "it":"Italian", "tr":"Turkish"}
 IDIOMA_POR_DEFECTO = "es"
 
 
