@@ -309,6 +309,29 @@ Dice cuáles ha situado y cuáles no (sin ciudad o no encontrados): esos se sit�
 haciendo clic en el mapa. Si el servidor no pudiera salir a internet, pon `GEOCODIFICAR=0` en el
 `.env` y se sitúan todos a mano.
 
+### Borrar pruebas, un pedido o un cliente
+
+La web no borra pedidos ni clientes (se cancelan o se desactivan). Para borrar de verdad, desde la
+terminal del servidor (`app/limpieza.py`). Todos enseñan antes lo que van a borrar y piden escribir
+una palabra para confirmar. **Antes, una copia de seguridad.**
+
+```bash
+# Empezar de verdad tras las pruebas: borra pedidos, proformas, facturas, mensajes, tickets, correos y
+# auditoría; la numeración de pedidos vuelve a 1. Se quedan clientes, usuarios, productos, kits, precios,
+# catálogos, ajustes y el inventario (lotes y entradas; con --con-inventario, también eso).
+sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && /srv/yikonpo/venv/bin/flask limpiar-pruebas"
+
+# Un pedido con todo lo suyo (si era el último de su cliente, ese número se reutiliza)
+sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && /srv/yikonpo/venv/bin/flask borrar-pedido YK-2026-CLA-003"
+
+# Un cliente (el número de su ficha: /clientes/12) con sus usuarios, pedidos, mensajes y tickets
+sudo -u yikonpo -H bash -c "cd /srv/yikonpo/app && /srv/yikonpo/venv/bin/flask borrar-cliente 12"
+```
+
+Con facturas registradas, `borrar-pedido` y `borrar-cliente` no borran (una factura emitida no debería
+desaparecer) salvo con `--con-facturas`. El stock queda como si el pedido no hubiera existido y sus
+fotos, documentos y PDFs se borran también del disco. Queda una línea en la auditoría.
+
 ### Restaurar una copia
 
 En una base de datos de prueba (no toca la real):

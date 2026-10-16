@@ -636,6 +636,13 @@ pruebas automáticas con navegador.
   veía mal); «INVOICE» en una fila alta (salía cortado); «CP Ciudad, Provincia» en una línea y sin repetir la
   provincia si es la ciudad; las líneas de dirección que no caben en su bloque se parten en dos.
   Y centrada en la página al imprimir (sobraba hueco a la derecha); con todo a 0 € el IVA sale con su tipo, no «mixed».
+- **Borrar de verdad desde la terminal** (16/10, `app/limpieza.py`): `flask limpiar-pruebas` (empezar tras las
+  pruebas: pedidos, facturas, mensajes, tickets, correos y auditoría fuera; numeración de pedidos a 1; se quedan
+  clientes, usuarios, catálogo, ajustes e inventario; `--con-inventario` también lo borra), `flask borrar-pedido REF`
+  (si era el último número del cliente, se reutiliza) y `flask borrar-cliente ID`. Borran siguiendo las claves
+  ajenas (lo de abajo primero; lo que solo «menciona» lo borrado se queda con ese dato vacío), devuelven el stock
+  de las salidas, borran los archivos del disco, enseñan antes cuántas filas de cada tabla y piden confirmar. Con
+  facturas, no borran salvo `--con-facturas`. Probado también contra PostgreSQL. Test: `test_limpieza.py`.
 
 ### Pendiente
 - Botón «Pedir este kit» en la página de Productos del cliente (de la propuesta del catálogo; sin hacer:

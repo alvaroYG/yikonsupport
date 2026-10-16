@@ -69,6 +69,102 @@ def registrar_comandos(app):
                     shutil.rmtree(ruta) if os.path.isdir(ruta) else os.remove(ruta)
         click.echo("Hecho: la plataforma está a cero (solo quedan los admin).")
 
+    # ------------------------------------------------------------------ #
+    # Borrar de verdad (app/limpieza.py). Siempre enseñan antes lo que van a borrar.
+    # ------------------------------------------------------------------ #
+    def _confirmar(borrado, si, palabra):
+        click.echo("Se va a borrar (filas por tabla):\n" + borrado.resumen())
+        if borrado.archivos:
+            click.echo(f"  y {len(set(borrado.archivos))} archivo(s) del disco (fotos, documentos, PDFs, adjuntos).")
+        click.echo(f"Base de datos: {db.engine.url.render_as_string(hide_password=True)}")
+        click.echo("⚠ No se puede deshacer. ¿Tienes copia de seguridad? (DESPLIEGUE.md, «Copias de seguridad»)")
+        if si:
+            return True
+        return click.prompt(f"Para borrar, escribe {palabra}", default="", show_default=False).strip() == palabra
+
+    def _terminar(borrado, ok):
+        if not ok:
+            db.session.rollback()
+            click.echo("Cancelado: no se ha borrado nada.")
+            return
+        db.session.commit()
+        n = borrado.borrar_archivos()
+        click.echo(f"Hecho. Archivos borrados del disco: {n}.")
+
+    @app.cli.command("borrar-pedido")
+    @click.argument("referencia")
+    @click.option("--con-facturas", is_flag=True, help="Borrar también sus facturas registradas.")
+    @click.option("--si", is_flag=True, help="No preguntar (para scripts).")
+    def borrar_pedido_cmd(referencia, con_facturas, si):
+        """Borra un pedido con todo lo suyo (proformas, fotos, documentos, mensajes, lotes reservados,
+        salidas de stock…). Si era el último número de su cliente, ese número se reutiliza."""
+        from app import limpieza
+        from app.models import Factura, Pedido
+        pedido = db.session.scalar(db.select(Pedido).filter(db.func.lower(Pedido.referencia_interna) == referencia.lower()))
+        if pedido is None and referencia.isdigit():
+            pedido = db.session.get(Pedido, int(referencia))
+        if pedido is None:
+            click.echo(f"No hay ningún pedido {referencia}.")
+            return
+        facturas = db.session.scalars(db.select(Factura.numero).filter_by(pedido_id=pedido.id)).all()
+        if facturas and not con_facturas:
+            click.echo(f"{pedido.referencia_interna} tiene facturas registradas ({', '.join(facturas)}): no lo borro. "
+                       "Una factura emitida no debería desaparecer. Si es una prueba, usa --con-facturas.")
+            return
+        click.echo(f"Pedido {pedido.referencia_interna} · {pedido.cliente.nombre} · {pedido.estado_nombre}")
+        borrado = limpieza.Borrado()
+        ref, cliente = pedido.referencia_interna, pedido.cliente.nombre
+        atras = limpieza.borrar_pedido(pedido, borrado)
+        if atras:
+            click.echo(f"Era el último pedido de {cliente}: el siguiente volverá a ser {ref}.")
+        limpieza.anotar("borrar", "Pedido", pedido.id, ref, f"pedido de {cliente} borrado con todo lo suyo")
+        _terminar(borrado, _confirmar(borrado, si, ref))
+
+    @app.cli.command("borrar-cliente")
+    @click.argument("cliente_id", type=int)
+    @click.option("--con-facturas", is_flag=True, help="Borrar también sus facturas registradas.")
+    @click.option("--si", is_flag=True, help="No preguntar (para scripts).")
+    def borrar_cliente_cmd(cliente_id, con_facturas, si):
+        """Borra un cliente (el nº de la dirección de su ficha: /clientes/12) con sus usuarios, pedidos,
+        mensajes, tickets, precios especiales y catálogo. Mejor desactivarlo, si no es una prueba."""
+        from app import limpieza
+        from app.models import Cliente, Factura
+        cliente = db.session.get(Cliente, cliente_id)
+        if cliente is None:
+            click.echo(f"No hay ningún cliente con id {cliente_id}.")
+            return
+        n_facturas = db.session.scalar(db.select(db.func.count()).select_from(Factura).filter_by(cliente_id=cliente.id))
+        if n_facturas and not con_facturas:
+            click.echo(f"{cliente.nombre} tiene {n_facturas} factura(s) registrada(s): no lo borro. Desactívalo en su "
+                       "ficha o, si es una prueba, usa --con-facturas.")
+            return
+        click.echo(f"Cliente {cliente.nombre} ({cliente.cif or 'sin CIF'}) · usuarios: "
+                   + (", ".join(u.email for u in cliente.usuarios) or "ninguno"))
+        borrado, nombre = limpieza.Borrado(), cliente.nombre
+        borrado.borrar("clientes", [cliente.id])
+        limpieza.anotar("borrar", "Cliente", cliente_id, nombre, "cliente borrado con sus usuarios, pedidos y mensajes")
+        _terminar(borrado, _confirmar(borrado, si, nombre))
+
+    @app.cli.command("limpiar-pruebas")
+    @click.option("--con-inventario", is_flag=True, help="Borrar también los lotes y todas las entradas de stock.")
+    @click.option("--si", is_flag=True, help="No preguntar (para scripts).")
+    def limpiar_pruebas_cmd(con_inventario, si):
+        """Deja la plataforma lista para empezar de verdad: borra pedidos, proformas, facturas, mensajes,
+        tickets, correos y auditoría, y la numeración de pedidos vuelve a 1. Se quedan clientes, usuarios,
+        productos, kits, precios, catálogos, ajustes y (sin --con-inventario) los lotes y entradas de stock."""
+        from app import limpieza
+        borrado = limpieza.Borrado()
+        limpieza.limpiar_pruebas(borrado, con_inventario)
+        click.echo("Se quedan: clientes, usuarios, productos, kits, precios, catálogos y ajustes"
+                   + ("." if con_inventario else ", y los lotes y entradas de stock (sin las salidas de los pedidos)."))
+        click.echo("La numeración de pedidos de todos los clientes vuelve a empezar (…-001).")
+        ok = _confirmar(borrado, si, "BORRAR")
+        if ok:
+            limpieza.anotar("borrar", "-", None, "limpieza de pruebas",
+                            "pedidos, facturas, mensajes y auditoría borrados; numeración a 1"
+                            + (" · también el inventario" if con_inventario else ""))
+        _terminar(borrado, ok)
+
     @app.cli.command("importar-datos")
     @click.argument("archivo", type=click.Path(exists=True, dir_okay=False))
     @click.option("--guardar", is_flag=True, help="Guardar de verdad (sin esto, solo se comprueba).")
