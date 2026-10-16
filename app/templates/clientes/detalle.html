@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 {% from "_macros.html" import estado_pedido, estado_factura, paginacion %}
 {% block contenido %}
-{% if pausa_html %}<details class="card mb-3" id="pausa-pedidos"><summary class="card-header">{{ _('Nuevas solicitudes de pedido') }}</summary><div class="card-body">{{ pausa_html }}</div></details>{% endif %}
 <div class="d-flex justify-content-between align-items-start mb-3">
   <div><h1 class="h3 mb-1">{{ cliente.nombre }} {% if not cliente.activo %}<span class="badge est-neutro">{{ _('Inactivo') }}</span>{% endif %}</h1>
     <div class="text-muted">{{ cliente.razon_social or '' }} {{ '· ' ~ cliente.cif if cliente.cif }}</div></div>
@@ -46,10 +45,10 @@
         <div class="text-muted mt-1">{{ _('Sus tarifas en el catálogo, precios y totales de sus pedidos e importes de sus facturas. La proforma sigue sin precios.') }}</div></dd>
       <dt>{{ _('Usuarios de la empresa') }}</dt><dd>{{ cliente.usuarios|map(attribute='email')|join(', ') or '—' }}</dd>
       {% if cliente.notas %}<dt>{{ _('Notas') }}</dt><dd style="white-space:pre-line">{{ cliente.notas }}</dd>{% endif %}
+      {% if pausa_html %}<details class="card mb-3" id="pausa-pedidos"><summary class="card-header">{{ _('¿Este cliente puede hacer pedidos nuevos?') }}</summary><div class="card-body">{{ pausa_html }}</div></details>{% endif %}
     </dl>
   </div></div>
 </div></div>
-
 <div class="card ficha-pestanas">
   <div class="card-header pb-0">
     <ul class="nav nav-tabs card-header-tabs" role="tablist" aria-label="{{ _('Secciones del cliente') }}">
